@@ -1,54 +1,76 @@
-package com.ntankard.Tracking.DataBase.Core.BaseObject;
+package com.ntankard.javaObjectDatabase.CoreObject;
 
-import com.ntankard.dynamicGUI.CoreObject.CoreObject;
-import com.ntankard.dynamicGUI.CoreObject.Factory.Dummy_Factory;
-import com.ntankard.dynamicGUI.CoreObject.Factory.ObjectFactory;
-import com.ntankard.dynamicGUI.CoreObject.Field.DataCore.Calculate_DataCore;
-import com.ntankard.dynamicGUI.CoreObject.Field.DataCore.Method_DataCore;
-import com.ntankard.dynamicGUI.CoreObject.Field.Properties.Display_Properties;
-import com.ntankard.dynamicGUI.CoreObject.FieldContainer;
-import com.ntankard.dynamicGUI.CoreObject.Field.DataField;
-import com.ntankard.Tracking.DataBase.Database.SubContainers.DataObjectContainer;
-import com.ntankard.Tracking.DataBase.Database.TrackingDatabase;
+import com.ntankard.javaObjectDatabase.CoreObject.Factory.Dummy_Factory;
+import com.ntankard.javaObjectDatabase.CoreObject.Factory.ObjectFactory;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.Properties.Display_Properties;
+import com.ntankard.javaObjectDatabase.Database.SubContainers.DataObjectContainer;
+import com.ntankard.javaObjectDatabase.Database.TrackingDatabase;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public abstract class DataObject extends CoreObject {
+public abstract class DataObject {
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################### Field Setup ##################################################
+    //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * All my children
+     * The method name to get the fields
      */
-    private final DataObjectContainer children = new DataObjectContainer();
+    public static String FieldName = "getFieldContainer";
 
     /**
-     * All object to be notified when a child is linked or unlinked
+     * Get all the fields for this object an object
+     *
+     * @param aClass The object to get
      */
-    private final List<ChildrenListener<?>> childrenListeners = new ArrayList<>();
+    public static FieldContainer getFieldContainer(Class<?> aClass) {
+        try {
+            Method method = aClass.getDeclaredMethod(DataObject.FieldName);
+            return ((FieldContainer) method.invoke(null));
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ee) {
+            throw new RuntimeException("Cant extract object fields", ee);
+        }
+    }
+
+    /**
+     * Set all the fields for this object, should be called by a solid object constructor
+     *
+     * @param fields The fields to set
+     */
+    public void setFields(List<DataField<?>> fields) {
+        for (DataField<?> field : fields) {
+            fieldMap.put(field.getIdentifierName(), field);
+        }
+    }
+
+    /**
+     * The fields for this DataObject
+     */
+    protected Map<String, DataField<?>> fieldMap = new HashMap<>();
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################### Constructor ##################################################
     //------------------------------------------------------------------------------------------------------------------
 
     public static final String DataObject_Id = "getId";
-    public static final String DataObject_Parents = "getParents";
 
     /**
      * Get all the fields for this object
      */
     public static FieldContainer getFieldContainer() {
-        FieldContainer fieldContainer = CoreObject.getFieldContainer();
-
+        FieldContainer fieldContainer = new FieldContainer();
         // ID ==========================================================================================================
-        fieldContainer.add(new Tracking_DataField<>(DataObject_Id, Integer.class));
+        fieldContainer.add(new DataField<>(DataObject_Id, Integer.class));
         fieldContainer.get(DataObject_Id).getDisplayProperties().setVerbosityLevel(Display_Properties.INFO_DISPLAY);
-        // Parents =====================================================================================================
-        fieldContainer.add(new Tracking_DataField<>(DataObject_Parents, List.class));
-        fieldContainer.get(DataObject_Parents).setDataCore(new Method_DataCore<>(container -> ((DataObject) container).getParentsImpl()));
-        fieldContainer.get(DataObject_Parents).getDisplayProperties().setVerbosityLevel(Display_Properties.DEBUG_DISPLAY);
         //==============================================================================================================
-
-        return fieldContainer.endLayer(DataObject.class, DataObject_Id);
+        return fieldContainer.endLayer(DataObject.class);
     }
 
     /**
@@ -67,6 +89,10 @@ public abstract class DataObject extends CoreObject {
         // Link the fields to the object
         fieldContainer.getList().forEach(field -> field.fieldAttached(blackObject));
         blackObject.setFields(fieldContainer.getList());
+        blackObject.allValid = true;
+
+        // Start sharing data
+        fieldContainer.getList().forEach(DataField::allowValue);
 
         List<String> done = new ArrayList<>();
         List<Integer> paramIndexes = new ArrayList<>();
@@ -104,7 +130,7 @@ public abstract class DataObject extends CoreObject {
             }
 
             // Load the field
-            fieldContainer.get(identifier).initialSet(value);
+            fieldContainer.get(identifier).set(value);
             paramIndexes.remove(0);
             done.add(identifier);
         } while (paramIndexes.size() != 0);
@@ -112,20 +138,50 @@ public abstract class DataObject extends CoreObject {
         return blackObject;
     }
 
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################ Field Interface #################################################
+    //------------------------------------------------------------------------------------------------------------------
+
     /**
-     * Set all the fields for this object, should be called by a solid object constructor
+     * Get a specific field
      *
-     * @param fields The fields to set
+     * @param field The Field to get
+     * @param <T>   THe type of the field
+     * @return The field
      */
-    public void setFields(List<DataField<?>> fields) {
-        for (DataField<?> field : fields) {
-            fieldMap.put(field.getIdentifierName(), field);
-        }
+    @SuppressWarnings("unchecked")
+    public <T> DataField<T> getField(String field) {
+        return (DataField<T>) fieldMap.get(field);
+    }
+
+    /**
+     * Set the value from a specific field
+     *
+     * @param field The field to set
+     * @param value THe value to set
+     * @param <T>   The type of the Field
+     */
+    public <T> void set(String field, T value) {
+        (getField(field)).set(value);
+    }
+
+    /**
+     * Get the value from a specific field
+     *
+     * @param field The Field to get
+     * @param <T>   The type of the Field
+     * @return The value of the field
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T get(String field) {
+        return (T) getField(field).get();
     }
 
     //------------------------------------------------------------------------------------------------------------------
     //#################################################### General #####################################################
     //------------------------------------------------------------------------------------------------------------------
+
+    public boolean allValid = false;
 
     /**
      * {@inheritDoc
@@ -144,19 +200,18 @@ public abstract class DataObject extends CoreObject {
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void add() {
-        TrackingDatabase.get().add(this);
         for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
             field.getValue().add();
         }
 
-        FieldContainer fieldContainer = CoreObject.getFieldContainer(this.getClass());
+        TrackingDatabase.get().add(this);
+
+        FieldContainer fieldContainer = DataObject.getFieldContainer(this.getClass());
         for (ObjectFactory factory : fieldContainer.getObjectFactories()) {
             if (!(factory instanceof Dummy_Factory)) {
                 factory.generate(this);
             }
         }
-
-        // @TODO check that this has not been double added
     }
 
     /**
@@ -173,14 +228,8 @@ public abstract class DataObject extends CoreObject {
         if (this.getChildren().size() != 0) {
             throw new RuntimeException("Cant delete this kind of object. NoneFundEvent still has children");
         }
-        if (CoreObject.getFieldContainer(this.getClass()).getObjectFactories().size() != 0) {
+        if (DataObject.getFieldContainer(this.getClass()).getObjectFactories().size() != 0) {
             throw new UnsupportedOperationException("The code for deleting object that are factories has not been implemented yet");
-        }
-
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            if (field.getValue() instanceof Tracking_DataField) {
-                ((Tracking_DataField<?>) field.getValue()).unlink();
-            }
         }
 
         TrackingDatabase.get().remove(this);
@@ -198,13 +247,21 @@ public abstract class DataObject extends CoreObject {
                 throw new RuntimeException();
             }
         }
-
-        // @TODO check that this has not been double removed
     }
 
     //------------------------------------------------------------------------------------------------------------------
     //############################################### Parental Hierarchy  ##############################################
     //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * All my children
+     */
+    private final DataObjectContainer children = new DataObjectContainer();
+
+    /**
+     * All object to be notified when a child is linked or unlinked
+     */
+    private final List<ChildrenListener<?>> childrenListeners = new ArrayList<>();
 
     /**
      * A listener for notifying when new children are added or removed to this object
@@ -249,6 +306,15 @@ public abstract class DataObject extends CoreObject {
     }
 
     /**
+     * Get all object to be notified when a child is linked or unlinked
+     *
+     * @return All object to be notified when a child is linked or unlinked
+     */
+    public List<ChildrenListener<?>> getChildrenListeners() {
+        return childrenListeners;
+    }
+
+    /**
      * Get all the parents of this object
      *
      * @return All the parents of this object
@@ -256,15 +322,13 @@ public abstract class DataObject extends CoreObject {
     private List<DataObject> getParentsImpl() {
         List<DataObject> toReturn = new ArrayList<>();
         for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            if (!Calculate_DataCore.class.isAssignableFrom(field.getValue().getDataCore().getClass())) {
-                if (DataObject.class.isAssignableFrom(field.getValue().getType())) {
-                    if (((Tracking_DataField<?>) field.getValue()).isTellParent()) {
-                        if (field.getValue().get() != null) {
-                            try {
-                                toReturn.add((DataObject) field.getValue().get());
-                            } catch (Exception e) {
-                                throw new RuntimeException();
-                            }
+            if (DataObject.class.isAssignableFrom(field.getValue().getType())) {
+                if (field.getValue().isTellParent()) {
+                    if (field.getValue().get() != null) {
+                        try {
+                            toReturn.add((DataObject) field.getValue().get());
+                        } catch (Exception e) {
+                            throw new RuntimeException();
                         }
                     }
                 }
@@ -342,7 +406,7 @@ public abstract class DataObject extends CoreObject {
     }
 
     public List<DataObject> getParents() {
-        return get(DataObject_Parents);
+        return getParentsImpl();
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -388,5 +452,9 @@ public abstract class DataObject extends CoreObject {
                 throw new RuntimeException("Not registered with a child");
             }
         }
+    }
+
+    public boolean isAllValid() {
+        return allValid;
     }
 }

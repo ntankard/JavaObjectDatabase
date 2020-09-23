@@ -214,6 +214,8 @@ public class FieldContainer {
      */
     @SuppressWarnings("unchecked")
     public <T> DataField<T> get(String key) {
+        if (!masterMap.containsKey(key))
+            throw new IllegalArgumentException("Key not found");
         return (DataField<T>) masterMap.get(key);
     }
 

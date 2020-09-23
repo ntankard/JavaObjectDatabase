@@ -1,6 +1,7 @@
-package com.ntankard.javaObjectDatabase.CoreObject.Field.DataCore;
+package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore;
 
-import com.ntankard.javaObjectDatabase.CoreObject.Field.Listener.FieldChangeListener;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataCore;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
 
 public class Static_DataCore<T> extends DataCore<T> {
 
@@ -10,68 +11,54 @@ public class Static_DataCore<T> extends DataCore<T> {
     private final T value;
 
     /**
+     * The source of the value the field should always have (only called once during setup
+     */
+    private final ValueGetter<T> valueGetter;
+
+    /**
      * Constructor
      */
     public Static_DataCore(T value) {
         this.value = value;
+        this.valueGetter = null;
+    }
+
+    /**
+     * Constructor
+     */
+    public Static_DataCore(ValueGetter<T> valueGetter) {
+        this.valueGetter = valueGetter;
+        this.value = null;
     }
 
     /**
      * {@inheritDoc
      */
     @Override
-    public T get() {
-        return value;
-    }
-
-    /**
-     * {@inheritDoc
-     */
-    @Override
-    public void set(T toSet) {
-        throw new UnsupportedOperationException("Trying to set a static value");
-    }
-
-    /**
-     * {@inheritDoc
-     */
-    @Override
-    public void initialSet(T toSet) {
-        throw new UnsupportedOperationException("Trying to set a static value");
-    }
-
-    /**
-     * {@inheritDoc
-     */
-    @Override
-    public boolean canEdit() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc
-     */
-    @Override
-    public boolean canInitialSet() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc
-     */
-    @Override
-    public boolean doseSupportChangeListeners() {
-        return true;
-    }
-
-    /**
-     * {@inheritDoc
-     */
-    @Override
-    public void forceInitialSet() {
-        super.forceInitialSet();
-        for (FieldChangeListener<T> fieldChangeListener : getDataField().getFieldChangeListeners()) {
-            fieldChangeListener.valueChanged(getDataField(), null, get());
+    public void startInitialSet() {
+        if (valueGetter != null) {
+            doSet(valueGetter.get(getDataField()));
+        } else {
+            doSet(value);
         }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################ Interface Classes ###############################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Interface to extract the static value during setup
+     *
+     * @param <T>
+     */
+    public interface ValueGetter<T> {
+
+        /**
+         * Get the static value
+         *
+         * @return The Static value
+         */
+        T get(DataField<T> dataField);
     }
 }

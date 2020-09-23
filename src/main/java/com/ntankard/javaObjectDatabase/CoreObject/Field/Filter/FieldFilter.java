@@ -10,13 +10,14 @@ import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 public abstract class FieldFilter<T, ContainerType extends DataObject> {
 
     /**
-     * Check that a value is valid fora  given field
+     * Check that a newValue is valid fora  given field
      *
-     * @param value     The value to check
+     * @param newValue  The newValue to check
+     * @param pastValue The past or current value
      * @param container The object that contains the field this filter is attached to
-     * @return True if the value is valid
+     * @return True if the newValue is valid
      */
-    public abstract boolean isValid(T value, ContainerType container);
+    public abstract boolean isValid(T newValue, T pastValue, ContainerType container);
 
     /**
      * Called when this filter is attached to a field, run all required attachments now

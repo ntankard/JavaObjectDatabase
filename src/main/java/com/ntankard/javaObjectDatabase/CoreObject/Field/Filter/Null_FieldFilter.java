@@ -20,9 +20,9 @@ public class Null_FieldFilter<T, ContainerType extends DataObject> extends Field
      * {@inheritDoc
      */
     @Override
-    public boolean isValid(T value, ContainerType container) {
+    public boolean isValid(T newValue, T pastValue, ContainerType container) {
         if (!canBeNull) {
-            return value != null;
+            return newValue != null;
         }
         return true;
     }

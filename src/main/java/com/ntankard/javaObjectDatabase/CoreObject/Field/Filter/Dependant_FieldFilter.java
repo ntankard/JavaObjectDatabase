@@ -27,15 +27,4 @@ public abstract class Dependant_FieldFilter<T, ContainerType extends DataObject>
         }
         super.attachedToField(field);
     }
-
-    /**
-     * {@inheritDoc
-     */
-    @Override
-    public void detachedFromField(DataField<T> field) {
-        super.detachedFromField(field);
-        for (String requiredField : requiredFields) {
-            field.removeDependantField(requiredField);
-        }
-    }
 }

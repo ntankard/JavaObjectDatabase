@@ -1,8 +1,5 @@
-package com.ntankard.javaObjectDatabase.CoreObject.Field.DataCore;
+package com.ntankard.javaObjectDatabase.CoreObject.Field;
 
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-
-@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 public abstract class DataCore<T> {
 
     /**
@@ -32,64 +29,26 @@ public abstract class DataCore<T> {
         this.dataField = null;
     }
 
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################### Data Access ##################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * Get the current value
-     *
-     * @return The current value
-     */
-    public abstract T get();
-
-    /**
-     * Set the value of the field
-     *
-     * @param toSet The value to set
-     */
-    public abstract void set(T toSet);
-
-    /**
-     * Set the value of the field the first time. Can only be called once
-     *
-     * @param toSet The value to set
-     */
-    public abstract void initialSet(T toSet);
-
     /**
      * This is called instead of initialSet if canInitialSet is false. It is used to initialise a internal value if needed
      */
-    public void forceInitialSet() {
+    public abstract void startInitialSet();
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################# Implementation #################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Set the value in the dataField
+     *
+     * @param toSet The value to set
+     */
+    protected void doSet(T toSet) {
+        getDataField().setFromDataCore(toSet);
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    //############################################### DataCore Properties ##############################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * Can the value be set after the initial set?
-     *
-     * @return True if the value be set after the initial set?
-     */
-    public abstract boolean canEdit();
-
-    /**
-     * Can the field be initially set?
-     *
-     * @return True if the field be initially set?
-     */
-    public abstract boolean canInitialSet();
-
-    /**
-     * Can this DataCore respond to changes in other fields and notify them when i change?
-     *
-     * @return True if this DataCore respond to changes in other fields and notify them when i change
-     */
-    public abstract boolean doseSupportChangeListeners();
-
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################ Standard Access #################################################
+    //#################################################### Getters #####################################################
     //------------------------------------------------------------------------------------------------------------------
 
     /**

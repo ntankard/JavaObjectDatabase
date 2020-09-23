@@ -2,10 +2,9 @@ package com.ntankard.javaObjectDatabase.Database;
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 import com.ntankard.javaObjectDatabase.CoreObject.Factory.ObjectFactory;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataCore.Calculate_DataCore;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataCore.Static_DataCore;
-import com.ntankard.javaObjectDatabase.CoreObject.FieldContainer;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.Static_DataCore;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.FieldContainer;
 import com.ntankard.javaObjectDatabase.util.FileUtil;
 
 import java.io.File;
@@ -418,10 +417,7 @@ public class TrackingDatabase_Reader {
 
             // Look for the direct dependency
             if (DataObject.class.isAssignableFrom(field.getType())) {
-                if (Calculate_DataCore.class.isAssignableFrom(field.getDataCore().getClass())) {
-                    continue; // TODO need to check this logic, the problem is without this a half transfer is detected, there might be a better solution
-                }
-                if (Static_DataCore.class.isAssignableFrom(field.getDataCore().getClass())) {
+                if (field.getDataCore() != null && Static_DataCore.class.isAssignableFrom(field.getDataCore().getClass())) {
                     continue; // TODO THis is here because at least one Static_DataCore references itself resulting in a circular dependency. Some Static_DataCore may need to be added to dependency
                 }
                 Class<? extends DataObject> primeDependencies = (Class<? extends DataObject>) field.getType();
@@ -464,7 +460,7 @@ public class TrackingDatabase_Reader {
 
         FieldContainer fieldContainer = DataObject.getFieldContainer(aClass);
         List<DataField<?>> currentFields = DataObject.getFieldContainer(aClass).getList();
-        currentFields.removeIf(field -> !field.getDataCore().canInitialSet());
+        currentFields.removeIf(field -> !field.getSourceMode().equals(DataField.SourceMode.DIRECT));
 
         // Build up the argument list
         int i = 0;
@@ -608,7 +604,7 @@ public class TrackingDatabase_Reader {
      */
     public static List<DataField<?>> getSaveFields(Class<? extends DataObject> aClass) {
         List<DataField<?>> toReturn = DataObject.getFieldContainer(aClass).getList();
-        toReturn.removeIf(field -> !field.getDataCore().canInitialSet());
+        toReturn.removeIf(field -> !field.getSourceMode().equals(DataField.SourceMode.DIRECT));
         return toReturn;
     }
 

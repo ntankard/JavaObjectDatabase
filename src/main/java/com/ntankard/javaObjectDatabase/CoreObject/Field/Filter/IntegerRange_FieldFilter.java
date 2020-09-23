@@ -26,8 +26,8 @@ public class IntegerRange_FieldFilter<ContainerType extends DataObject> extends 
      * {@inheritDoc
      */
     @Override
-    public boolean isValid(Integer value, ContainerType container) {
-        if (min != null && value < min) return false;
-        return max == null || value <= max;
+    public boolean isValid(Integer newValue, Integer pastValue, ContainerType container) {
+        if (min != null && newValue < min) return false;
+        return max == null || newValue <= max;
     }
 }
