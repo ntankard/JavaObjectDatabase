@@ -381,7 +381,13 @@ public class DataField<T> {
 
         if (!doFilterCheck(value, oldValue))
             throw new IllegalArgumentException("The field has been initially set but with an invalid value");
+        this.state = N_ACTIVE;
+    }
 
+    /**
+     * Notify all linked objects
+     */
+    public void forceNotify() {
         if (DataObject.class.isAssignableFrom(getType())) {
             if (tellParent) {
                 if (value != null) {
@@ -389,8 +395,6 @@ public class DataField<T> {
                 }
             }
         }
-
-        this.state = N_ACTIVE;
     }
 
     //------------------------------------------------------------------------------------------------------------------

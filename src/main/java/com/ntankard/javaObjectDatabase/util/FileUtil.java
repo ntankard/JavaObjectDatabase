@@ -61,49 +61,6 @@ public class FileUtil {
     }
 
     /**
-     * Find the latest save directory
-     *
-     * @param corePath The core directory
-     * @return The path of the latest save directory
-     */
-    public static String getLatestSaveDirectory(String corePath) {
-        int max = 0;
-        List<String> folders = findFoldersInDirectory(corePath);
-        for (String s : folders) {
-            int value = Integer.parseInt(s);
-            if (value > max) {
-                max = value;
-            }
-        }
-        return corePath + "\\" + max + "\\";
-    }
-
-    /**
-     * Create an empty save directory in the core directory
-     *
-     * @param corePath The core directory
-     * @return The new save path
-     */
-    public static String newSaveDirectory(String corePath) {
-        // Find the next save dir
-        int max = 0;
-        List<String> folders = findFoldersInDirectory(corePath);
-        for (String s : folders) {
-            int value = Integer.parseInt(s);
-            if (value > max) {
-                max = value;
-            }
-        }
-        String csvFile = corePath + "\\" + (max + 1) + "\\";
-
-        // Make the folder
-        //noinspection ResultOfMethodCallIgnored
-        new File(csvFile).mkdir();
-
-        return csvFile;
-    }
-
-    /**
      * Find the files in a directory
      *
      * @param directoryPath The path to search
@@ -119,7 +76,7 @@ public class FileUtil {
      * @param directoryPath The path to search
      * @return A list of folders in the directory
      */
-    private static List<String> findFoldersInDirectory(String directoryPath) {
+    public static List<String> findFoldersInDirectory(String directoryPath) {
         return findInDirectory(directoryPath, File::isDirectory);
     }
 
@@ -130,7 +87,7 @@ public class FileUtil {
      * @param directoryFileFilter The type of tile to search for
      * @return A list of files in the directory
      */
-    private static List<String> findInDirectory(String directoryPath, FileFilter directoryFileFilter) {
+    public static List<String> findInDirectory(String directoryPath, FileFilter directoryFileFilter) {
         File directory = new File(directoryPath);
 
         File[] directoryListAsFile = directory.listFiles(directoryFileFilter);

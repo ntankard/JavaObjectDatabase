@@ -1,13 +1,11 @@
 package com.ntankard.javaObjectDatabase.CoreObject;
 
-import com.ntankard.javaObjectDatabase.CoreObject.Factory.Dummy_Factory;
 import com.ntankard.javaObjectDatabase.CoreObject.Factory.ObjectFactory;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.Properties.Display_Properties;
 import com.ntankard.javaObjectDatabase.Database.SubContainers.DataObjectContainer;
 import com.ntankard.javaObjectDatabase.Database.TrackingDatabase;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,20 +22,6 @@ public abstract class DataObject {
      * The method name to get the fields
      */
     public static String FieldName = "getFieldContainer";
-
-    /**
-     * Get all the fields for this object an object
-     *
-     * @param aClass The object to get
-     */
-    public static FieldContainer getFieldContainer(Class<?> aClass) {
-        try {
-            Method method = aClass.getDeclaredMethod(DataObject.FieldName);
-            return ((FieldContainer) method.invoke(null));
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ee) {
-            throw new RuntimeException("Cant extract object fields", ee);
-        }
-    }
 
     /**
      * Set all the fields for this object, should be called by a solid object constructor
@@ -135,6 +119,20 @@ public abstract class DataObject {
             done.add(identifier);
         } while (paramIndexes.size() != 0);
 
+        for (Map.Entry<String, DataField<?>> field : blackObject.fieldMap.entrySet()) {
+            field.getValue().add(); // Possible error here, this may need to be done AFTER being put into the database
+        }
+
+        for (Map.Entry<String, DataField<?>> field : blackObject.fieldMap.entrySet()) {
+            if (!field.getValue().getState().equals(DataField.NewFieldState.N_ACTIVE)) {
+                throw new RuntimeException();
+            }
+        }
+
+        for (ObjectFactory<?> factory : fieldContainer.getObjectFactories()) {
+            factory.generate(blackObject);
+        }
+
         return blackObject;
     }
 
@@ -198,19 +196,11 @@ public abstract class DataObject {
     /**
      * Add this object to the database. Notify everyone required and create or add supporting objects if needed
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void add() {
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            field.getValue().add();
-        }
-
         TrackingDatabase.get().add(this);
 
-        FieldContainer fieldContainer = DataObject.getFieldContainer(this.getClass());
-        for (ObjectFactory factory : fieldContainer.getObjectFactories()) {
-            if (!(factory instanceof Dummy_Factory)) {
-                factory.generate(this);
-            }
+        for (Map.Entry<String, DataField<?>> field : this.fieldMap.entrySet()) {
+            field.getValue().forceNotify(); // possible error here, this may need to be done AFTER being put into the database
         }
     }
 
@@ -228,7 +218,7 @@ public abstract class DataObject {
         if (this.getChildren().size() != 0) {
             throw new RuntimeException("Cant delete this kind of object. NoneFundEvent still has children");
         }
-        if (DataObject.getFieldContainer(this.getClass()).getObjectFactories().size() != 0) {
+        if (TrackingDatabase_Schema.getFieldContainer(this.getClass()).getObjectFactories().size() != 0) {
             throw new UnsupportedOperationException("The code for deleting object that are factories has not been implemented yet");
         }
 

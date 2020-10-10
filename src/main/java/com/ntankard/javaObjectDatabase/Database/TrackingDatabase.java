@@ -23,7 +23,7 @@ public class TrackingDatabase {
     /**
      * The lowest ID of the loaded objects, this is stored because new objects can be created while they are loading in
      */
-    private Integer IDFloor;
+    private Integer IDFloor = null;
 
     //------------------------------------------------------------------------------------------------------------------
     //############################################### Constructor ######################################################
@@ -69,11 +69,10 @@ public class TrackingDatabase {
      * @return The next free ID
      */
     public Integer getNextId() {
-        Integer next = masterMap.getNextId();
-        if (next < (IDFloor + 1)) {
-            next = IDFloor + 1;
+        if (IDFloor == null) {
+            throw new IllegalArgumentException("Trying to get an ID before the IDFloor has been set");
         }
-        return next;
+        return ++IDFloor;
     }
 
     /**

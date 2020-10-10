@@ -2,9 +2,11 @@ package com.ntankard.javaObjectDatabase.CoreObject.Factory;
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 
+import java.util.List;
+
 import static com.ntankard.javaObjectDatabase.CoreObject.Factory.ObjectFactory.GeneratorMode.GENERATOR_ONLY;
 
-public abstract class ObjectFactory<GeneratedType extends DataObject, GeneratorType extends DataObject> {
+public abstract class ObjectFactory<GeneratedType extends DataObject> {
 
     /**
      * How the generator should behave in regards to multiple objects
@@ -46,7 +48,7 @@ public abstract class ObjectFactory<GeneratedType extends DataObject, GeneratorT
      *
      * @param generator The source invoking this method, the source of the new object
      */
-    public abstract void generate(GeneratorType generator);
+    public abstract void generate(DataObject generator);
 
     /**
      * Get the object type this factory builds
@@ -86,4 +88,11 @@ public abstract class ObjectFactory<GeneratedType extends DataObject, GeneratorT
         }
         return true;
     }
+
+    /**
+     * Get all the DataObjects that invoke this factory
+     *
+     * @return The DataObjects that invoke this factory
+     */
+    public abstract List<Class<? extends DataObject>> getGenerators();
 }

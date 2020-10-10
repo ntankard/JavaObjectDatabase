@@ -2,6 +2,7 @@ package com.ntankard.javaObjectDatabase.CoreObject;
 
 import com.ntankard.javaObjectDatabase.CoreObject.Factory.ObjectFactory;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.Static_DataCore;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -43,7 +44,12 @@ public class FieldContainer {
     /**
      * All the factory this class has
      */
-    private final List<ObjectFactory<?, ?>> objectFactories = new ArrayList<>();
+    private final List<ObjectFactory<?>> objectFactories = new ArrayList<>();
+
+    /**
+     * A factory to create this object
+     */
+    private ObjectFactory<?> myFactory = null;
 
     // State -----------------------------------------------------------------------------------------------------------
 
@@ -116,6 +122,21 @@ public class FieldContainer {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
         this.objectFactories.add(objectFactory);
+    }
+
+    /**
+     * Set a factory to create this object
+     *
+     * @param myFactory A factory to create this object
+     */
+    public void setMyFactory(ObjectFactory<?> myFactory) {
+        if (isFinalized)
+            throw new IllegalStateException("Trying to modify a finalised container");
+
+        if (this.myFactory != null)
+            throw new IllegalArgumentException("Can't set more that one self factory");
+
+        this.myFactory = myFactory;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -260,10 +281,69 @@ public class FieldContainer {
     }
 
     //------------------------------------------------------------------------------------------------------------------
+    //############################################### Special inspection ###############################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Get all the filed that will ba saved
+     *
+     * @return All the filed that will ba saved
+     */
+    public List<DataField<?>> getSavedFields() {
+        List<DataField<?>> toReturn = new ArrayList<>(list);
+        toReturn.removeIf(field -> !field.getSourceMode().equals(DataField.SourceMode.DIRECT));
+        return toReturn;
+    }
+
+    /**
+     * Get all the classes this one needs to load an instance
+     *
+     * @return All the classes this one needs to load an instance
+     */
+    @SuppressWarnings("unchecked")
+    public List<Class<? extends DataObject>> getPreLoadDependencies() {
+        List<Class<? extends DataObject>> dependencies = new ArrayList<>();
+
+        // Get my direct dependencies
+        for (DataField<?> field : list) {
+
+            // Look for the direct dependency
+            if (DataObject.class.isAssignableFrom(field.getType())) {
+                if (field.getDataCore() != null && Static_DataCore.class.isAssignableFrom(field.getDataCore().getClass())) {
+                    continue; // TODO THis is here because at least one Static_DataCore references itself resulting in a circular dependency. Some Static_DataCore may need to be added to dependency
+                }
+                Class<? extends DataObject> primeDependencies = (Class<? extends DataObject>) field.getType();
+
+                if (primeDependencies.equals(this.solidObjectType)) {
+                    continue;
+                }
+
+                if (!dependencies.contains(primeDependencies)) {
+                    dependencies.add(primeDependencies);
+                }
+            }
+        }
+
+        if (myFactory != null) {
+            for (Class<? extends DataObject> parent : myFactory.getGenerators()) {
+                if (!dependencies.contains(parent)) {
+                    dependencies.add(parent);
+                }
+            }
+        }
+
+        return dependencies;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
     //############################################# Class Behavior Access ##############################################
     //------------------------------------------------------------------------------------------------------------------
 
-    public List<ObjectFactory<?, ?>> getObjectFactories() {
+    public List<ObjectFactory<?>> getObjectFactories() {
         return objectFactories;
+    }
+
+    public ObjectFactory<?> getMyFactory() {
+        return myFactory;
     }
 }
