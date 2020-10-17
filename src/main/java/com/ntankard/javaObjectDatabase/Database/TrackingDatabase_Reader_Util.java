@@ -1,8 +1,7 @@
 package com.ntankard.javaObjectDatabase.Database;
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.TrackingDatabase_Schema;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Schema;
 import com.ntankard.javaObjectDatabase.util.FileUtil;
 
 import java.io.File;
@@ -143,7 +142,7 @@ public class TrackingDatabase_Reader_Util {
      * @param aClass The class to get the fields from
      * @return All fields not marked as do not save
      */
-    public static List<DataField<?>> getSaveFields(Class<? extends DataObject> aClass) {
+    public static List<DataField_Schema<?>> getSaveFields(Class<? extends DataObject> aClass) {
         return TrackingDatabase_Schema.getFieldContainer(aClass).getSavedFields();
     }
 

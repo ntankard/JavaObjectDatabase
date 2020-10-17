@@ -1,6 +1,6 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.Filter;
 
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Schema;
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 
 public abstract class Dependant_FieldFilter<T, ContainerType extends DataObject> extends FieldFilter<T, ContainerType> {
@@ -21,7 +21,7 @@ public abstract class Dependant_FieldFilter<T, ContainerType extends DataObject>
      * {@inheritDoc
      */
     @Override
-    public void attachedToField(DataField<T> field) {
+    public void attachedToField(DataField_Schema<T> field) {
         for (String requiredField : requiredFields) {
             field.addDependantField(requiredField);
         }

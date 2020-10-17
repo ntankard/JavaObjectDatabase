@@ -1,9 +1,8 @@
 package com.ntankard.javaObjectDatabase.Database;
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.FieldContainer;
-import com.ntankard.javaObjectDatabase.CoreObject.TrackingDatabase_Schema;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Schema;
+import com.ntankard.javaObjectDatabase.CoreObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.util.FileUtil;
 import com.ntankard.javaObjectDatabase.util.Timer;
 
@@ -196,8 +195,8 @@ public class TrackingDatabase_Reader_Read {
      */
     public static List<String> extractParams(Class<? extends DataObject> fileClass, String[] paramStrings, Map<String, String> nameMap) {
         // Get the expected field's
-        FieldContainer fieldContainer = TrackingDatabase_Schema.getFieldContainer(fileClass);
-        List<DataField<?>> currentFields = fieldContainer.getSavedFields();
+        DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.getFieldContainer(fileClass);
+        List<DataField_Schema<?>> currentFields = dataObjectSchema.getSavedFields();
 
         // Check the size
         if (currentFields.size() * 2 != paramStrings.length)
@@ -209,7 +208,7 @@ public class TrackingDatabase_Reader_Read {
             String savedName = paramStrings[i * 2];
             Class<?> savedType = classForName(paramStrings[i * 2 + 1], "com.ntankard.Tracking.DataBase.Core", nameMap);
 
-            DataField<?> field = fieldContainer.get(paramStrings[i * 2]);
+            DataField_Schema<?> field = dataObjectSchema.get(paramStrings[i * 2]);
             if (field == null)
                 throw new IllegalStateException("A unknown field has been saved: " + paramStrings[i * 2]);
 
@@ -271,15 +270,15 @@ public class TrackingDatabase_Reader_Read {
      */
     public static DataObject dataObjectFromString(Class<? extends DataObject> aClass, String[] paramStrings, DataObject underConstruction) {
 
-        FieldContainer fieldContainer = TrackingDatabase_Schema.getFieldContainer(aClass);
-        List<DataField<?>> currentFields = fieldContainer.getList();
-        currentFields.removeIf(field -> !field.getSourceMode().equals(DataField.SourceMode.DIRECT));
+        DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.getFieldContainer(aClass);
+        List<DataField_Schema<?>> currentFields = dataObjectSchema.getList();
+        currentFields.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT));
 
         // Build up the argument list
         List<Object> args = new ArrayList<>();
         for (int i = 0; i < newParamList.get(aClass).size(); i++) {
             args.add(newParamList.get(aClass).get(i));
-            args.add(paramFromString(paramStrings[i], fieldContainer.get(newParamList.get(aClass).get(i)).getType(), underConstruction));
+            args.add(paramFromString(paramStrings[i], dataObjectSchema.get(newParamList.get(aClass).get(i)).getType(), underConstruction));
         }
 
         // Build the base object

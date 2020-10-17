@@ -1,102 +1,78 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field;
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataCore.DataCore_Factory;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.Filter.FieldFilter;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.Filter.Null_FieldFilter;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.Properties.Display_Properties;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.Listener.FieldChangeListener;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.DataCore;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
-import static com.ntankard.javaObjectDatabase.CoreObject.Field.DataField.SourceMode.*;
+import static com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Schema.SourceMode.DERIVED;
+import static com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Schema.SourceMode.VIRTUAL_DERIVED;
+import static com.ntankard.javaObjectDatabase.CoreObject.Field.DataField.NewFieldState.*;
+
 
 public class DataField<FieldType> {
 
-    // Core Data -------------------------------------------------------------------------------------------------------
+    // Fixed properties ------------------------------------------------------------------------------------------------
 
     /**
-     * The name of the Field. This must be unique and is used to identify and save the field
+     * The structure of this DataField_Instance
      */
-    private final String identifierName;
+    private final DataField_Schema<FieldType> dataFieldSchema;
 
     /**
-     * The data type of the field (same as T)
+     * The class that contains this field
      */
-    private final Class<FieldType> type;
+    private final DataObject container;
 
     /**
-     * Can the field be null?
+     * Listener to register children and parents
      */
-    private final boolean canBeNull;
+    private final FieldChangeListener<FieldType> notifyParentListener;
+
+    // Setup properties ------------------------------------------------------------------------------------------------
 
     /**
-     * The name to be displayed to the user, can be anything.
+     * The engine to control the data
      */
-    private final String displayName;
+    private DataCore<FieldType> dataCore = null;
 
-    /**
-     * The type of object that contains this field
-     */
-    private Class<? extends DataObject> parentType;
+    // Field State -----------------------------------------------------------------------------------------------------
 
-    // Data Control ----------------------------------------------------------------------------------------------------
-
-    public enum SourceMode {
-        DIRECT,         // The field is controlled by the user
-        DERIVED,        // The is set by other fields directly or indirectly
-        VIRTUAL_DERIVED // The field is controlled another field but has a setter that performs an external function
+    public enum NewFieldState {
+        N_ALL_FIELDS_FINISHED,  // All fields are finished and grouped into a container
+        N_ATTACHED_TO_OBJECT,   // The field is attached to its container
+        N_INITIALIZED,          // The field is fully setup and the initial value has been set
+        N_ACTIVE,               // The object the field is attached to is in the database and in active use
+        N_REMOVED               // The object this field is attached to has been removed, it can not be added again and should have all ties cut
     }
 
     /**
-     * The mode the field is operating in
+     * The current state of the field
      */
-    private SourceMode sourceMode;
+    protected NewFieldState state;
+
+    // Value of the field ----------------------------------------------------------------------------------------------
 
     /**
-     * If the field is operating in DIRECT mode, can the user change the value?
+     * The current value of the field
      */
-    private boolean manualCanEdit = false;
+    protected FieldType value = null;
 
     /**
-     * The factory for the DataCore
+     * The most recent previous value
      */
-    private DataCore_Factory<FieldType, ?> dataCore_factory;
+    private FieldType oldValue = null;
+
+
+    // Change Listeners ------------------------------------------------------------------------------------------------
 
     /**
-     * The method to call if we are in virtual mode when a manual set happens
+     * Objects to be notified when data changes
      */
-    private SetterFunction<FieldType> setterFunction = null;
-
-    // General Properties ----------------------------------------------------------------------------------------------
-
-    /**
-     * Should the parent be notified if this field links to it?
-     */
-    private boolean tellParent = true;
-
-    /**
-     * The source of valid values that be used to set this field
-     */
-    private Method source = null;
-
-    /**
-     * The properties to use when displaying the data
-     */
-    private final Display_Properties displayProperties = new Display_Properties();
-
-    /**
-     * A list of fields this one depends on (must be part of the same container as this one)
-     */
-    private List<String> dependantFields = new ArrayList<>();
-
-    /**
-     * The fillers used to check the data
-     */
-    private List<FieldFilter<FieldType, ?>> filters = new ArrayList<>();
+    private final List<FieldChangeListener<FieldType>> fieldChangeListeners = new ArrayList<>();
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################### Constructor ##################################################
@@ -105,220 +81,280 @@ public class DataField<FieldType> {
     /**
      * Constructor
      */
-    public DataField(String identifierName, Class<FieldType> type) {
-        this(identifierName, type, false);
+    public DataField(DataField_Schema<FieldType> dataFieldSchema, DataObject container) {
+        this.dataFieldSchema = dataFieldSchema;
+        this.container = container;
+
+        this.state = N_ALL_FIELDS_FINISHED;
+
+        this.notifyParentListener = (field, oldValue, newValue) -> {
+            if (DataObject.class.isAssignableFrom(field.dataFieldSchema.getType())) {
+                if (field.dataFieldSchema.isTellParent()) {
+                    if (field.getState().equals(N_ACTIVE)) {
+                        if (oldValue != null) {
+                            ((DataObject) oldValue).notifyChildUnLink(field.getContainer());
+                        }
+                        if (newValue != null) {
+                            ((DataObject) newValue).notifyChildLink(field.getContainer());
+                        }
+                    }
+                }
+            }
+        };
+        addChangeListener(notifyParentListener);
     }
 
+    //------------------------------------------------------------------------------------------------------------------
+    //###################################################### Setup #####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
     /**
-     * Constructor
+     * Call to allow a data core to start receiving values
      */
-    public DataField(String identifierName, Class<FieldType> type, Boolean canBeNull) {
-        this.sourceMode = SourceMode.DIRECT;
+    public void allowValue() {
+        this.state = N_ATTACHED_TO_OBJECT;
+        if (dataFieldSchema.getDataCore_factory() != null) {
+            this.dataCore = dataFieldSchema.getDataCore_factory().createCore(this);
+            this.dataCore.attachToField(this);
+            this.dataCore.startInitialSet();
+        }
+    }
 
-        this.identifierName = identifierName;
-        this.type = type;
-        this.canBeNull = canBeNull;
+    /**
+     * Add this field to the database along with its container object
+     */
+    public void add() {
+        if (!getState().equals(N_INITIALIZED))
+            throw new IllegalStateException("The field has not been configured, added or had its initial value set yet");
 
-        this.displayName = identifierName.replace("get", "").replace("is", "").replace("has", "");
+        if (!doFilterCheck(value, oldValue))
+            throw new IllegalArgumentException("The field has been initially set but with an invalid value");
+        this.state = N_ACTIVE;
+    }
 
-        addFilter(new Null_FieldFilter<>(canBeNull));
+    /**
+     * Notify all linked objects
+     */
+    public void forceNotify() {
+        if (DataObject.class.isAssignableFrom(dataFieldSchema.getType())) {
+            if (dataFieldSchema.isTellParent()) {
+                if (value != null) {
+                    ((DataObject) value).notifyChildLink(getContainer());
+                }
+            }
+        }
+    }
+
+    /**
+     * Remove this field from the database
+     */
+    public void remove() {
+        if (!getState().equals(N_ACTIVE))
+            throw new IllegalStateException("The field has not been configured, added or had its initial value set yet");
+
+        if (fieldChangeListeners.size() > 1 || (fieldChangeListeners.size() == 1 && !fieldChangeListeners.contains(notifyParentListener)))
+            throw new IllegalStateException("Trying to delete and object that has change listeners attached");
+
+        if (!dataFieldSchema.getDependantFields().isEmpty())
+            throw new IllegalStateException("Trying to remove a field that still has dependant fields attached");
+
+        // Unlink this object from others in the database
+        this.removeChangeListener(notifyParentListener);
+        if (DataObject.class.isAssignableFrom(dataFieldSchema.getType())) {
+            if (dataFieldSchema.isTellParent()) {
+                if (get() != null) {
+                    ((DataObject) get()).notifyChildUnLink(getContainer());
+                }
+            }
+        }
+
+        // Detach the data core
+        if (dataCore != null) {
+            dataCore.detachFromField(this);
+            dataCore = null;
+        }
+
+        this.state = N_REMOVED;
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    //################################################## Finalisation ##################################################
+    //################################################ Change Listener #################################################
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Called when all fields in a container are finished and added to the container
+     * Add a new change listener to get called when a value changes
      *
-     * @param parentType The type of object this fields belongs too
+     * @param fieldChangeListener The FieldChangeListener to add
      */
-    public void containerFinished(Class<? extends DataObject> parentType) {
-        this.parentType = parentType;
-
-        if (manualCanEdit && !sourceMode.equals(DIRECT))
-            throw new IllegalStateException("Manual edit was set but the field is operating in a non direct mode");
-
-        if (setterFunction != null && dataCore_factory == null)
-            throw new IllegalStateException("Setter function added but not data core provided");
-
-        this.displayProperties.finish();
-        this.filters = Collections.unmodifiableList(this.filters);
-        this.dependantFields = Collections.unmodifiableList(this.dependantFields);
+    public void addChangeListener(FieldChangeListener<FieldType> fieldChangeListener) {
+        this.fieldChangeListeners.add(fieldChangeListener);
     }
 
     /**
-     * Generate a DataField_Instance for this field
+     * Remove a change listener
      *
-     * @param blackObject The object to attach the instance too
-     * @return The new instance
+     * @param fieldChangeListener The FieldChangeListener to remove
      */
-    public DataField_Instance<FieldType> generate(DataObject blackObject) {
-        return new DataField_Instance<>(this, blackObject);
+    public void removeChangeListener(FieldChangeListener<FieldType> fieldChangeListener) {
+        this.fieldChangeListeners.remove(fieldChangeListener);
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    //#################################################### Getters #####################################################
+    //################################################## Value Access ##################################################
     //------------------------------------------------------------------------------------------------------------------
 
-    // Core Data -------------------------------------------------------------------------------------------------------
+    /**
+     * Get the current value
+     *
+     * @return The current value
+     */
+    public FieldType get() {
+        if (!state.equals(N_INITIALIZED) && !state.equals(N_ACTIVE))
+            throw new IllegalStateException("Cant get the value until its initially set");
 
-    public String getIdentifierName() {
-        return identifierName;
+        return value;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
+    /**
+     * Set the field value and perform what ever actions are required from the user or file
+     *
+     * @param toSet The value to set
+     */
+    public void set(FieldType toSet) {
+        if (!dataFieldSchema.getCanEdit() && !state.equals(N_ATTACHED_TO_OBJECT))
+            throw new IllegalStateException("This field can only be set once");
 
-    public Class<FieldType> getType() {
-        return type;
-    }
-
-    public boolean isCanBeNull() {
-        return canBeNull;
-    }
-
-    public Class<? extends DataObject> getParentType() {
-        return parentType;
-    }
-
-    // Data Control ----------------------------------------------------------------------------------------------------
-
-    public SourceMode getSourceMode() {
-        return sourceMode;
-    }
-
-    public Boolean getCanEdit() {
-        if (sourceMode.equals(VIRTUAL_DERIVED)) {
-            return true;
+        if (dataFieldSchema.getSourceMode().equals(VIRTUAL_DERIVED)) {
+            dataFieldSchema.getSetterFunction().set(toSet, getContainer());
+            return;
         }
-        if (sourceMode.equals(DERIVED)) {
-            return false;
+
+        if (dataFieldSchema.getSourceMode().equals(DERIVED))
+            throw new IllegalStateException("Trying to set a field that is controlled by a data core");
+
+
+        set_impl(toSet);
+    }
+
+    /**
+     * Set the field value and perform what ever actions are required from a dataCore
+     *
+     * @param toSet The value to set
+     */
+    public void setFromDataCore(FieldType toSet) {
+        if (dataFieldSchema.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT))
+            throw new IllegalStateException("A dataCore is trying to set a field controlled by the user");
+
+        set_impl(toSet);
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################### Setter Impl ##################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Set the field value and perform what ever actions are required
+     *
+     * @param value The value to set
+     */
+    protected void set_impl(FieldType value) {
+        if (!state.equals(N_ACTIVE) && !state.equals(N_ATTACHED_TO_OBJECT) && !getState().equals(N_INITIALIZED))
+            throw new IllegalStateException("Wrong state for setting a value");
+
+        if (value instanceof DataObject) {
+            if (!((DataObject) value).isAllValid())
+                throw new IllegalStateException("Can not set an object that is not all valid");
         }
-        return manualCanEdit;
+
+        set_preCheck(value);
+        set_set(value);
+
+        if (state.equals(N_ATTACHED_TO_OBJECT)) {
+            this.state = N_INITIALIZED;
+        }
+
+        set_postSet();
     }
 
-    public DataCore_Factory<FieldType, ?> getDataCore_factory() {
-        return dataCore_factory;
-    }
-
-    public SetterFunction<FieldType> getSetterFunction() {
-        return setterFunction;
-    }
-
-    // General Properties ----------------------------------------------------------------------------------------------
-
-    public boolean isTellParent() {
-        return tellParent;
-    }
-
-    public Method getSource() {
-        return source;
-    }
-
-    public Display_Properties getDisplayProperties() {
-        return displayProperties;
-    }
-
-    public List<String> getDependantFields() {
-        return dependantFields;
-    }
-
-    public List<FieldFilter<FieldType, ?>> getFilters() {
-        return filters;
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //#################################################### Setters #####################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    // Data Control ----------------------------------------------------------------------------------------------------
-
-    public void setManualCanEdit(Boolean manualCanEdit) {
-        this.manualCanEdit = manualCanEdit;
-    }
-
-    public void setDataCore_factory(DataCore_Factory<FieldType, ?> dataCore_factory) {
-        this.dataCore_factory = dataCore_factory;
-        if (setterFunction != null) {
-            this.sourceMode = VIRTUAL_DERIVED;
-        } else {
-            this.sourceMode = DERIVED;
+    /**
+     * Validate the value to set
+     *
+     * @param toCheck The value to set
+     */
+    private void set_preCheck(FieldType toCheck) {
+        if (state.equals(N_ACTIVE)) {
+            if (!doFilterCheck(toCheck, value)) {
+                throw new IllegalArgumentException("Attempting to set a invalid value");
+            }
         }
     }
 
-    public void setSetterFunction(DataField.SetterFunction<FieldType> setterFunction) {
-        this.setterFunction = setterFunction;
-        this.sourceMode = VIRTUAL_DERIVED;
-    }
-
-    // General Properties ----------------------------------------------------------------------------------------------
-
-    public void setTellParent(boolean tellParent) {
-        this.tellParent = tellParent;
-    }
-
-    public void setSource(Method source) {
-        this.source = source;
-    }
-
-    public void addDependantField(String field) {
-        this.dependantFields.add(field);
-    }
-
-    public void addFilter(FieldFilter<FieldType, ?> filter) {
-        this.filters.add(filter);
-        filter.attachedToField(this);
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################# Object Methods #################################################
-    //------------------------------------------------------------------------------------------------------------------
-
     /**
-     * {@inheritDoc
+     * Set the value
+     *
+     * @param value The value to set
      */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DataField<?> dataField = (DataField<?>) o;
-        return getIdentifierName().equals(dataField.getIdentifierName()) &&
-                getType().equals(dataField.getType());
+    private void set_set(FieldType value) {
+        this.oldValue = this.value;
+        this.value = value;
     }
 
     /**
-     * {@inheritDoc
+     * Perform what ever actions are required after setting a new value (register, notify ect)
      */
-    @Override
-    public int hashCode() {
-        return Objects.hash(getIdentifierName(), getType());
+    private void set_postSet() {
+        getFieldChangeListeners().forEach(fieldChangeListener -> fieldChangeListener.valueChanged(this, oldValue, value));
     }
 
     /**
-     * {@inheritDoc
+     * Check the value against the attached filters
+     *
+     * @param toCheck The value to check
+     * @return True if the value is valid against all filters
      */
-    @Override
-    public String toString() {
-        return identifierName + " - " + type.getSimpleName();
+    @SuppressWarnings({"rawtypes", "unchecked", "BooleanMethodIsAlwaysInverted"})
+    public boolean doFilterCheck(FieldType toCheck, FieldType pastValue) {
+        for (FieldFilter filter : dataFieldSchema.getFilters()) {
+            if (!filter.isValid(toCheck, pastValue, this.getContainer())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    //#################################################### Interface ###################################################
+    //##################################################### Getters ####################################################
     //------------------------------------------------------------------------------------------------------------------
 
-    /**
-     * Interface for virtual setter function
-     */
-    public interface SetterFunction<T> {
+    // Fixed properties ------------------------------------------------------------------------------------------------
 
-        /**
-         * Called when the user invokes a the setter on a virtual field
-         *
-         * @param toSet     The values to set
-         * @param container The object containing the field
-         */
-        void set(T toSet, DataObject container);
+    public DataObject getContainer() {
+        return container;
+    }
+
+    public DataField_Schema<FieldType> getDataFieldSchema() {
+        return dataFieldSchema;
+    }
+
+    // Field State -----------------------------------------------------------------------------------------------------s
+
+    public NewFieldState getState() {
+        return state;
+    }
+
+    // Setup properties ------------------------------------------------------------------------------------------------
+
+    public DataCore<FieldType> getDataCore() {
+        return dataCore;
+    }
+
+    public boolean hasValidValue() {
+        return getState().equals(N_INITIALIZED) || getState().equals(N_ACTIVE);
+    }
+
+    // Change Listeners ------------------------------------------------------------------------------------------------
+
+    public List<FieldChangeListener<FieldType>> getFieldChangeListeners() {
+        return fieldChangeListeners;
     }
 }

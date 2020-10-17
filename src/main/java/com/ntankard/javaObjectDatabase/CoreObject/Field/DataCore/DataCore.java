@@ -1,4 +1,6 @@
-package com.ntankard.javaObjectDatabase.CoreObject.Field;
+package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore;
+
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
 
 public abstract class DataCore<FieldType> {
 
@@ -17,7 +19,7 @@ public abstract class DataCore<FieldType> {
          * @param container The DataField this will be attached to
          * @return A stand alone instance of DataCore that can have state information
          */
-        public abstract DataCoreType createCore(DataField_Instance<FieldType> container);
+        public abstract DataCoreType createCore(DataField<FieldType> container);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -27,7 +29,7 @@ public abstract class DataCore<FieldType> {
     /**
      * The field containing this data core
      */
-    private DataField_Instance<FieldType> dataField = null;
+    private DataField<FieldType> dataField = null;
 
     //------------------------------------------------------------------------------------------------------------------
     //###################################################### Setup #####################################################
@@ -38,7 +40,7 @@ public abstract class DataCore<FieldType> {
      *
      * @param dataField The field this object was attached to
      */
-    public void attachToField(DataField_Instance<FieldType> dataField) {
+    public void attachToField(DataField<FieldType> dataField) {
         this.dataField = dataField;
     }
 
@@ -47,7 +49,7 @@ public abstract class DataCore<FieldType> {
      *
      * @param field The field this object was removed from
      */
-    public void detachFromField(DataField_Instance<FieldType> field) {
+    public void detachFromField(DataField<FieldType> field) {
         this.dataField = null;
     }
 
@@ -78,7 +80,7 @@ public abstract class DataCore<FieldType> {
      *
      * @return The field containing this data core
      */
-    public DataField_Instance<FieldType> getDataField() {
+    public DataField<FieldType> getDataField() {
         return dataField;
     }
 }

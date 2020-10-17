@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.CoreObject;
 
 import com.ntankard.javaObjectDatabase.CoreObject.Factory.ObjectFactory;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Schema;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.Static_DataCore;
 
 import java.lang.reflect.Modifier;
@@ -10,24 +10,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FieldContainer {
+public class DataObject_Schema {
 
     // Field -----------------------------------------------------------------------------------------------------------
 
     /**
      * The master container for the fields
      */
-    public final Map<String, DataField<?>> masterMap = new HashMap<>();
+    public final Map<String, DataField_Schema<?>> masterMap = new HashMap<>();
 
     /**
      * A list stored look up optimization
      */
-    private final List<DataField<?>> list = new ArrayList<>();
+    private final List<DataField_Schema<?>> list = new ArrayList<>();
 
     /**
      * The last added field
      */
-    private DataField<?> last = null;
+    private DataField_Schema<?> last = null;
 
     /**
      * The last order value set
@@ -76,37 +76,37 @@ public class FieldContainer {
      * Add a field after the key provided
      *
      * @param toFollowKey The key for the field to follow
-     * @param dataField   The field to add
+     * @param dataFieldSchema   The field to add
      * @return The field that was just added
      */
-    public DataField<?> add(String toFollowKey, DataField<?> dataField) {
+    public DataField_Schema<?> add(String toFollowKey, DataField_Schema<?> dataFieldSchema) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
         lastOrder = masterMap.get(toFollowKey).getDisplayProperties().getOrder();
-        return add(dataField);
+        return add(dataFieldSchema);
     }
 
     /**
      * Add a new field
      *
-     * @param dataField The field to add
+     * @param dataFieldSchema The field to add
      * @return The field that was just added
      */
-    public DataField<?> add(DataField<?> dataField) {
+    public DataField_Schema<?> add(DataField_Schema<?> dataFieldSchema) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
-        if (masterMap.containsKey(dataField.getIdentifierName()))
+        if (masterMap.containsKey(dataFieldSchema.getIdentifierName()))
             throw new IllegalArgumentException("A field with this key has been added before");
 
 
-        list.add(dataField);
-        masterMap.put(dataField.getIdentifierName(), dataField);
-        last = dataField;
+        list.add(dataFieldSchema);
+        masterMap.put(dataFieldSchema.getIdentifierName(), dataFieldSchema);
+        last = dataFieldSchema;
 
         lastOrder = lastOrder + orderStep;
-        dataField.getDisplayProperties().setOrder(lastOrder);
+        dataFieldSchema.getDisplayProperties().setOrder(lastOrder);
 
-        return dataField;
+        return dataFieldSchema;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -150,7 +150,7 @@ public class FieldContainer {
      * @param toFollowKey The key of the field for all future orders to follow
      * @return This
      */
-    public FieldContainer endLayer(Class<? extends DataObject> endLayer, String toFollowKey) {
+    public DataObject_Schema endLayer(Class<? extends DataObject> endLayer, String toFollowKey) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
         lastOrder = masterMap.get(toFollowKey).getDisplayProperties().getOrder();
@@ -163,7 +163,7 @@ public class FieldContainer {
      * @param endLayer The Object for the current layer
      * @return This
      */
-    public FieldContainer endLayer(Class<? extends DataObject> endLayer) {
+    public DataObject_Schema endLayer(Class<? extends DataObject> endLayer) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
         if (!Modifier.isAbstract(endLayer.getModifiers()))
@@ -186,7 +186,7 @@ public class FieldContainer {
      * @return This
      */
     @SuppressWarnings("unchecked")
-    public FieldContainer finaliseContainer(Class<? extends DataObject> end) {
+    public DataObject_Schema finaliseContainer(Class<? extends DataObject> end) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
         if (Modifier.isAbstract(end.getModifiers()))
@@ -213,8 +213,8 @@ public class FieldContainer {
         } while (DataObject.class.isAssignableFrom(aClass));
 
         // Finalise all fields
-        for (DataField<?> dataField : list) {
-            dataField.containerFinished(end);
+        for (DataField_Schema<?> dataFieldSchema : list) {
+            dataFieldSchema.containerFinished(end);
         }
 
         solidObjectType = end;
@@ -234,10 +234,10 @@ public class FieldContainer {
      * @return The requested field
      */
     @SuppressWarnings("unchecked")
-    public <T> DataField<T> get(String key) {
+    public <T> DataField_Schema<T> get(String key) {
         if (!masterMap.containsKey(key))
             throw new IllegalArgumentException("Key not found");
-        return (DataField<T>) masterMap.get(key);
+        return (DataField_Schema<T>) masterMap.get(key);
     }
 
     /**
@@ -245,7 +245,7 @@ public class FieldContainer {
      *
      * @return The list of fields
      */
-    public List<DataField<?>> getList() {
+    public List<DataField_Schema<?>> getList() {
         return list;
     }
 
@@ -255,9 +255,9 @@ public class FieldContainer {
      * @param verbosity The level to filter on
      * @return The list of fields
      */
-    public List<DataField<?>> getVerbosityDataFields(int verbosity) {
-        List<DataField<?>> fields = new ArrayList<>();
-        for (DataField<?> f : getList()) {
+    public List<DataField_Schema<?>> getVerbosityDataFields(int verbosity) {
+        List<DataField_Schema<?>> fields = new ArrayList<>();
+        for (DataField_Schema<?> f : getList()) {
             if (f.getDisplayProperties().getVerbosityLevel() > verbosity) {
                 continue;
             }
@@ -276,8 +276,8 @@ public class FieldContainer {
      * @return The last field that was added
      */
     @SuppressWarnings("unchecked")
-    public <T> DataField<T> getLast() {
-        return (DataField<T>) last;
+    public <T> DataField_Schema<T> getLast() {
+        return (DataField_Schema<T>) last;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -289,9 +289,9 @@ public class FieldContainer {
      *
      * @return All the filed that will ba saved
      */
-    public List<DataField<?>> getSavedFields() {
-        List<DataField<?>> toReturn = new ArrayList<>(list);
-        toReturn.removeIf(field -> !field.getSourceMode().equals(DataField.SourceMode.DIRECT));
+    public List<DataField_Schema<?>> getSavedFields() {
+        List<DataField_Schema<?>> toReturn = new ArrayList<>(list);
+        toReturn.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT));
         return toReturn;
     }
 
@@ -305,7 +305,7 @@ public class FieldContainer {
         List<Class<? extends DataObject>> dependencies = new ArrayList<>();
 
         // Get my direct dependencies
-        for (DataField<?> field : list) {
+        for (DataField_Schema<?> field : list) {
 
             // Look for the direct dependency
             if (DataObject.class.isAssignableFrom(field.getType())) {

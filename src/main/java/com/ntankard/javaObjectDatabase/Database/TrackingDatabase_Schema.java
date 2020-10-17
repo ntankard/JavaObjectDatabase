@@ -1,5 +1,7 @@
-package com.ntankard.javaObjectDatabase.CoreObject;
+package com.ntankard.javaObjectDatabase.Database;
 
+import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
+import com.ntankard.javaObjectDatabase.CoreObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.util.SourceCodeInspector;
 
 import java.io.IOException;
@@ -45,10 +47,10 @@ public class TrackingDatabase_Schema {
      *
      * @param aClass The object to get
      */
-    public static FieldContainer getFieldContainer(Class<?> aClass) {
+    public static DataObject_Schema getFieldContainer(Class<?> aClass) {
         try {
             Method method = aClass.getDeclaredMethod(DataObject.FieldName);
-            return ((FieldContainer) method.invoke(null)); // TODO optimise by cashing
+            return ((DataObject_Schema) method.invoke(null)); // TODO optimise by cashing
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ee) {
             throw new RuntimeException("Cant extract object fields", ee);
         }

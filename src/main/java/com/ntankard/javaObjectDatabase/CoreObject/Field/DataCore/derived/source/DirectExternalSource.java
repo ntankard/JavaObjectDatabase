@@ -2,7 +2,6 @@ package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.Derived_DataCore.Calculator;
 
 /**
@@ -51,7 +50,7 @@ public class DirectExternalSource<ResultType, SourceContainerType extends DataOb
          * {@inheritDoc
          */
         @Override
-        public DirectExternalSource<ResultType, SourceContainerType> createSource(DataField_Instance<ResultType> container) {
+        public DirectExternalSource<ResultType, SourceContainerType> createSource(DataField<ResultType> container) {
             return new DirectExternalSource<>(container.getContainer().getField(sourceContainerFieldKey), sourceFieldName, valueModifier);
         }
     }
@@ -68,16 +67,16 @@ public class DirectExternalSource<ResultType, SourceContainerType extends DataOb
     /**
      * Constructor
      */
-    public DirectExternalSource(DataField_Instance<SourceContainerType> sourceObjectField, String sourceFieldName) {
+    public DirectExternalSource(DataField<SourceContainerType> sourceObjectField, String sourceFieldName) {
         this(sourceObjectField, sourceFieldName, null);
     }
 
     /**
      * Constructor
      */
-    public DirectExternalSource(DataField_Instance<SourceContainerType> sourceContainerField, String sourceFieldName, ValueModifier<ResultType> valueModifier) {
+    public DirectExternalSource(DataField<SourceContainerType> sourceContainerField, String sourceFieldName, ValueModifier<ResultType> valueModifier) {
         super(sourceContainerField, sourceFieldName);
-        if (sourceContainerField.getDataField().isCanBeNull())
+        if (sourceContainerField.getDataFieldSchema().isCanBeNull())
             throw new IllegalArgumentException("The field can no allow null values");
 
         this.calculator = container -> {

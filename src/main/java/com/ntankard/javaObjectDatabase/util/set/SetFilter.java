@@ -1,4 +1,4 @@
-package com.ntankard.javaObjectDatabase.util;
+package com.ntankard.javaObjectDatabase.util.set;
 
 public abstract class SetFilter<T> {
 

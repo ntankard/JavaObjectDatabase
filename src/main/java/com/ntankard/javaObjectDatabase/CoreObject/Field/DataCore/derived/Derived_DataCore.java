@@ -1,9 +1,8 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived;
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataCore;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.DataCore;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source.DirectExternalSource;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source.DirectExternalSource.DirectExternalSource_Factory;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source.Source;
@@ -55,7 +54,7 @@ public class Derived_DataCore<FieldType, ContainerType extends DataObject> exten
          */
         @SuppressWarnings({"unchecked", "ConstantConditions"})
         @Override
-        public Derived_DataCore<FieldType, ContainerType> createCore(DataField_Instance<FieldType> container) {
+        public Derived_DataCore<FieldType, ContainerType> createCore(DataField<FieldType> container) {
             if (sourceFactory != null) {
                 return new Derived_DataCore<>(sourceFactory.createSource(container));
             } else {
@@ -129,7 +128,7 @@ public class Derived_DataCore<FieldType, ContainerType extends DataObject> exten
      * {@inheritDoc
      */
     @Override
-    public void detachFromField(DataField_Instance<FieldType> field) {
+    public void detachFromField(DataField<FieldType> field) {
         for (Source<FieldType> source : sources) {
             source.detach();
         }

@@ -1,4 +1,6 @@
-package com.ntankard.javaObjectDatabase.CoreObject.Field;
+package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore;
+
+import com.ntankard.javaObjectDatabase.CoreObject.Field.ListDataField;
 
 import java.util.List;
 
@@ -10,7 +12,7 @@ public abstract class ListDataCore<T> extends DataCore<List<T>> {
      * @param toAdd The value to add
      */
     protected void doAdd(T toAdd) {
-        ((ListDataField_Instance<T>) getDataField()).addFromDataCore(toAdd);
+        ((ListDataField<T>) getDataField()).addFromDataCore(toAdd);
     }
 
     /**
@@ -19,6 +21,6 @@ public abstract class ListDataCore<T> extends DataCore<List<T>> {
      * @param toRemover The value to remove
      */
     protected void doRemove(T toRemover) {
-        ((ListDataField_Instance<T>) getDataField()).removeFromDataCore(toRemover);
+        ((ListDataField<T>) getDataField()).removeFromDataCore(toRemover);
     }
 }

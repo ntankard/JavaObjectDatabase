@@ -1,7 +1,6 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.Listener;
 
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 
 public interface FieldChangeListener<T> {
 
@@ -12,5 +11,5 @@ public interface FieldChangeListener<T> {
      * @param oldValue The past value
      * @param newValue The new value
      */
-    void valueChanged(DataField_Instance<T> field, T oldValue, T newValue);
+    void valueChanged(DataField<T> field, T oldValue, T newValue);
 }

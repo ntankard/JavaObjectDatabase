@@ -1,8 +1,6 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore;
 
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataCore;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 
 public class Static_DataCore<FieldType> extends DataCore<FieldType> {
 
@@ -42,7 +40,7 @@ public class Static_DataCore<FieldType> extends DataCore<FieldType> {
          * {@inheritDoc
          */
         @Override
-        public Static_DataCore<FieldType> createCore(DataField_Instance<FieldType> container) {
+        public Static_DataCore<FieldType> createCore(DataField<FieldType> container) {
             if (valueGetter == null) {
                 return new Static_DataCore<>(value);
             } else {
@@ -109,6 +107,6 @@ public class Static_DataCore<FieldType> extends DataCore<FieldType> {
          *
          * @return The Static value
          */
-        T get(DataField_Instance<T> dataField);
+        T get(DataField<T> dataField);
     }
 }

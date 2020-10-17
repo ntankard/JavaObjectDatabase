@@ -1,7 +1,6 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source;
 
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.Derived_DataCore;
 
 public abstract class Source<ResultType> {
@@ -17,7 +16,7 @@ public abstract class Source<ResultType> {
          * @param container The DataField this will be attached to
          * @return A stand alone instance of Source that can have state information
          */
-        public abstract SourceType createSource(DataField_Instance<ResultType> container);
+        public abstract SourceType createSource(DataField<ResultType> container);
     }
 
     /**

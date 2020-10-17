@@ -1,7 +1,6 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source;
 
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.Listener.FieldChangeListener;
 
 /**
@@ -31,7 +30,7 @@ public class LocalSource<ResultType, SourceType> extends Source<ResultType> impl
          * {@inheritDoc
          */
         @Override
-        public LocalSource<ResultType, SourceType> createSource(DataField_Instance<ResultType> container) {
+        public LocalSource<ResultType, SourceType> createSource(DataField<ResultType> container) {
             return new LocalSource<>(container.getContainer().getField(sourceObjectFieldKey));
         }
     }
@@ -43,12 +42,12 @@ public class LocalSource<ResultType, SourceType> extends Source<ResultType> impl
     /**
      * The field containing the value that is the source of our new value
      */
-    private final DataField_Instance<SourceType> sourceObjectField;
+    private final DataField<SourceType> sourceObjectField;
 
     /**
      * Constructor
      */
-    public LocalSource(DataField_Instance<SourceType> sourceObjectField) {
+    public LocalSource(DataField<SourceType> sourceObjectField) {
         if (sourceObjectField == null)
             throw new IllegalArgumentException("sourceObjectField cannot be null");
 
@@ -83,7 +82,7 @@ public class LocalSource<ResultType, SourceType> extends Source<ResultType> impl
      * {@inheritDoc
      */
     @Override
-    public void valueChanged(DataField_Instance<SourceType> field, SourceType oldValue, SourceType newValue) {
+    public void valueChanged(DataField<SourceType> field, SourceType oldValue, SourceType newValue) {
         doRecalculate();
     }
 }

@@ -1,6 +1,6 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.Filter;
 
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Schema;
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 
 /**
@@ -24,7 +24,7 @@ public abstract class FieldFilter<T, ContainerType extends DataObject> {
      *
      * @param field the field i was attached to
      */
-    public void attachedToField(DataField<T> field) {
+    public void attachedToField(DataField_Schema<T> field) {
     }
 
     /**
@@ -32,6 +32,6 @@ public abstract class FieldFilter<T, ContainerType extends DataObject> {
      *
      * @param field The field i was removed from
      */
-    public void detachedFromField(DataField<T> field) {
+    public void detachedFromField(DataField_Schema<T> field) {
     }
 }

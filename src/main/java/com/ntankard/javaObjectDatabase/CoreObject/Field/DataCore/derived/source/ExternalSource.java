@@ -2,9 +2,7 @@ package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.ListDataField;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.ListDataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.Listener.FieldChangeListener;
 
 /**
@@ -40,7 +38,7 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
          * {@inheritDoc
          */
         @Override
-        public ExternalSource<ResultType, SourceContainerType, SourceType> createSource(DataField_Instance<ResultType> container) {
+        public ExternalSource<ResultType, SourceContainerType, SourceType> createSource(DataField<ResultType> container) {
             return new ExternalSource<>(container.getContainer().getField(sourceContainerFieldKey), sourceFieldName);
         }
     }
@@ -52,7 +50,7 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
     /**
      * The field containing the value that is the source of our new value
      */
-    private final DataField_Instance<SourceContainerType> sourceContainerField;
+    private final DataField<SourceContainerType> sourceContainerField;
 
     /**
      * The field inside the source object used to get the final value
@@ -72,8 +70,8 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
     /**
      * Constructor
      */
-    public ExternalSource(DataField_Instance<SourceContainerType> sourceContainerField, String sourceFieldName) {
-        if (ListDataField_Instance.class.isAssignableFrom(sourceContainerField.getClass()))
+    public ExternalSource(DataField<SourceContainerType> sourceContainerField, String sourceFieldName) {
+        if (ListDataField.class.isAssignableFrom(sourceContainerField.getClass()))
             throw new IllegalArgumentException("sourceContainerField can not be of type ListDataField");
 
         this.sourceContainerField = sourceContainerField;
@@ -117,7 +115,7 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
     @Override
     protected boolean isReady_impl() {
         if (sourceContainerField.hasValidValue()) {
-            if (sourceContainerField.getDataField().isCanBeNull() && sourceContainerField.get() == null) {
+            if (sourceContainerField.getDataFieldSchema().isCanBeNull() && sourceContainerField.get() == null) {
                 return true;
             }
             if (containerObject == null) {
@@ -135,7 +133,7 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
      * {@inheritDoc
      */
     @Override
-    public void valueChanged(DataField_Instance<SourceType> field, SourceType oldValue, SourceType newValue) {
+    public void valueChanged(DataField<SourceType> field, SourceType oldValue, SourceType newValue) {
         doRecalculate();
     }
 

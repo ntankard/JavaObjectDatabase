@@ -1,6 +1,4 @@
-package com.ntankard.javaObjectDatabase.util;
-
-import com.ntankard.javaObjectDatabase.util.SetFilter;
+package com.ntankard.javaObjectDatabase.util.set;
 
 import java.util.List;
 

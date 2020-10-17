@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.Database;
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
-import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Schema;
 import com.ntankard.javaObjectDatabase.util.FileUtil;
 
 import java.io.File;
@@ -24,7 +24,7 @@ public class TrackingDatabase_Reader_Save {
         validateMasterDirectory(corePath);
 
         Map<Class<? extends DataObject>, List<List<String>>> classLinesToSave = new HashMap<>();
-        Map<Class<? extends DataObject>, List<DataField<?>>> classFields = new HashMap<>();
+        Map<Class<? extends DataObject>, List<DataField_Schema<?>>> classFields = new HashMap<>();
 
         // Generate the headers
         for (Class<? extends DataObject> aClass : TrackingDatabase.get().getDataObjectTypes()) {
@@ -52,7 +52,7 @@ public class TrackingDatabase_Reader_Save {
                 classFields.put(aClass, getSaveFields(aClass));
 
                 List<String> types = new ArrayList<>();
-                for (DataField<?> constructorParameter : classFields.get(aClass)) {
+                for (DataField_Schema<?> constructorParameter : classFields.get(aClass)) {
                     types.add(constructorParameter.getIdentifierName());
                     types.add(constructorParameter.getType().getName());
                 }
@@ -63,7 +63,7 @@ public class TrackingDatabase_Reader_Save {
         // Add each individual object
         for (DataObject dataObject : TrackingDatabase.get().getAll()) {
             List<List<String>> lines = classLinesToSave.get(dataObject.getClass());
-            List<DataField<?>> constructorParameters = classFields.get(dataObject.getClass());
+            List<DataField_Schema<?>> constructorParameters = classFields.get(dataObject.getClass());
 
             if (lines == null || constructorParameters == null) {
                 if (shouldSave(dataObject.getClass())) {
@@ -95,9 +95,9 @@ public class TrackingDatabase_Reader_Save {
      * @param fields     the parameters to save for loading in the future
      * @return All objects needed to construct the object as a string
      */
-    public static List<String> dataObjectToString(DataObject dataObject, List<DataField<?>> fields) {
+    public static List<String> dataObjectToString(DataObject dataObject, List<DataField_Schema<?>> fields) {
         List<String> paramStrings = new ArrayList<>();
-        for (DataField<?> field : fields) {
+        for (DataField_Schema<?> field : fields) {
 
             // Find the method
             Method getter;
