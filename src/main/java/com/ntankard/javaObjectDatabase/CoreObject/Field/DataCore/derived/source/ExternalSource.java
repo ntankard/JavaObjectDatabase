@@ -2,7 +2,9 @@ package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.ListDataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.ListDataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.Listener.FieldChangeListener;
 
 /**
@@ -10,10 +12,52 @@ import com.ntankard.javaObjectDatabase.CoreObject.Field.Listener.FieldChangeList
  */
 public class ExternalSource<ResultType, SourceContainerType extends DataObject, SourceType> extends Source<ResultType> implements FieldChangeListener<SourceType> {
 
+    //------------------------------------------------------------------------------------------------------------------
+    //##################################################### Factory ####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    public static class ExternalSource_Factory<ResultType, SourceContainerType extends DataObject, SourceType> extends Source_Factory<ResultType, ExternalSource<ResultType, SourceContainerType, SourceType>> {
+
+        /**
+         * The field containing the value that is the source of our new value
+         */
+        private final String sourceContainerFieldKey;
+
+        /**
+         * The field inside the source object used to get the final value
+         */
+        private final String sourceFieldName;
+
+        /**
+         * Constructor
+         */
+        public ExternalSource_Factory(String sourceContainerFieldKey, String sourceFieldName) {
+            this.sourceContainerFieldKey = sourceContainerFieldKey;
+            this.sourceFieldName = sourceFieldName;
+        }
+
+        /**
+         * {@inheritDoc
+         */
+        @Override
+        public ExternalSource<ResultType, SourceContainerType, SourceType> createSource(DataField_Instance<ResultType> container) {
+            return new ExternalSource<>(container.getContainer().getField(sourceContainerFieldKey), sourceFieldName);
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################## Core Source ###################################################
+    //------------------------------------------------------------------------------------------------------------------
+
     /**
      * The field containing the value that is the source of our new value
      */
-    private final DataField<SourceContainerType> sourceContainerField;
+    private final DataField_Instance<SourceContainerType> sourceContainerField;
+
+    /**
+     * The field inside the source object used to get the final value
+     */
+    private final String sourceFieldName;
 
     /**
      * The last know source object
@@ -26,19 +70,14 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
     private final FieldChangeListener<SourceContainerType> sourceContainerChangeListener;
 
     /**
-     * The field inside the source object used to get the final value
-     */
-    private final String fieldName;
-
-    /**
      * Constructor
      */
-    public ExternalSource(DataField<SourceContainerType> sourceContainerField, String sourceFieldName) {
-        if (ListDataField.class.isAssignableFrom(sourceContainerField.getClass()))
+    public ExternalSource(DataField_Instance<SourceContainerType> sourceContainerField, String sourceFieldName) {
+        if (ListDataField_Instance.class.isAssignableFrom(sourceContainerField.getClass()))
             throw new IllegalArgumentException("sourceContainerField can not be of type ListDataField");
 
         this.sourceContainerField = sourceContainerField;
-        this.fieldName = sourceFieldName;
+        this.sourceFieldName = sourceFieldName;
         this.sourceContainerChangeListener = (field, oldValue, newValue) -> {
             if (oldValue != null) {
                 oldValue.<SourceType>getField(sourceFieldName).removeChangeListener(this);
@@ -67,7 +106,7 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
     protected void detach_impl() {
         this.sourceContainerField.removeChangeListener(sourceContainerChangeListener);
         if (containerObject != null) {
-            containerObject.<SourceType>getField(fieldName).removeChangeListener(this);
+            containerObject.<SourceType>getField(sourceFieldName).removeChangeListener(this);
         }
         containerObject = null;
     }
@@ -78,13 +117,13 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
     @Override
     protected boolean isReady_impl() {
         if (sourceContainerField.hasValidValue()) {
-            if (sourceContainerField.isCanBeNull() && sourceContainerField.get() == null) {
+            if (sourceContainerField.getDataField().isCanBeNull() && sourceContainerField.get() == null) {
                 return true;
             }
             if (containerObject == null) {
                 return false;
             }
-            if (!containerObject.getField(fieldName).hasValidValue())
+            if (!containerObject.getField(sourceFieldName).hasValidValue())
                 throw new IllegalStateException("This should not be possible. It means that the containerObject is not not valid. This should not have been allowed to be set to the container object");
 
             return true;
@@ -96,7 +135,7 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
      * {@inheritDoc
      */
     @Override
-    public void valueChanged(DataField<SourceType> field, SourceType oldValue, SourceType newValue) {
+    public void valueChanged(DataField_Instance<SourceType> field, SourceType oldValue, SourceType newValue) {
         doRecalculate();
     }
 
@@ -114,7 +153,7 @@ public class ExternalSource<ResultType, SourceContainerType extends DataObject, 
      *
      * @return The field inside the source object used to get the final value
      */
-    protected String getFieldName() {
-        return fieldName;
+    protected String getSourceFieldName() {
+        return sourceFieldName;
     }
 }

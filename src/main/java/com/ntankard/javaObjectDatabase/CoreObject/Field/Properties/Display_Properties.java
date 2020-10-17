@@ -23,27 +23,33 @@ public class Display_Properties {
         NOT_FALSE,      // Boolean false values are highlighted
     }
 
-    private Boolean shouldDisplay = true;
-    private Integer verbosityLevel = ALWAYS_DISPLAY;
-    private Integer order = null;
+    private boolean isFinished = false;
+
+    private boolean shouldDisplay = true;
+    private int verbosityLevel = ALWAYS_DISPLAY;
+    private int order = -1;
     private DataType dataType = DataType.AS_CLASS;
     private DataContext dataContext = DataContext.NONE;
-    private Integer displayDecimal = 2;
-    private Boolean displaySet = true;
+    private int displayDecimal = 2;
+    private boolean displaySet = true;
 
-    public Boolean getDisplaySet() {
+    public void finish() {
+        isFinished = true;
+    }
+
+    public boolean getDisplaySet() {
         return displaySet;
     }
 
-    public Boolean getShouldDisplay() {
+    public boolean getShouldDisplay() {
         return shouldDisplay;
     }
 
-    public Integer getVerbosityLevel() {
+    public int getVerbosityLevel() {
         return verbosityLevel;
     }
 
-    public Integer getOrder() {
+    public int getOrder() {
         return order;
     }
 
@@ -55,41 +61,55 @@ public class Display_Properties {
         return dataContext;
     }
 
-    public Integer getDisplayDecimal() {
+    public int getDisplayDecimal() {
         return displayDecimal;
     }
 
-    public Display_Properties setShouldDisplay(Boolean shouldDisplay) {
+    public Display_Properties setShouldDisplay(boolean shouldDisplay) {
+        if (this.isFinished)
+            throw new IllegalStateException("Cant set values once the properties are finalised");
         this.shouldDisplay = shouldDisplay;
         return this;
     }
 
-    public Display_Properties setVerbosityLevel(Integer verbosityLevel) {
+    public Display_Properties setVerbosityLevel(int verbosityLevel) {
+        if (this.isFinished)
+            throw new IllegalStateException("Cant set values once the properties are finalised");
         this.verbosityLevel = verbosityLevel;
         return this;
     }
 
-    public Display_Properties setOrder(Integer order) {
+    public Display_Properties setOrder(int order) {
+        if (this.isFinished)
+            throw new IllegalStateException("Cant set values once the properties are finalised");
         this.order = order;
         return this;
     }
 
     public Display_Properties setDataType(DataType dataType) {
+        if (this.isFinished)
+            throw new IllegalStateException("Cant set values once the properties are finalised");
         this.dataType = dataType;
         return this;
     }
 
     public Display_Properties setDataContext(DataContext dataContext) {
+        if (this.isFinished)
+            throw new IllegalStateException("Cant set values once the properties are finalised");
         this.dataContext = dataContext;
         return this;
     }
 
-    public Display_Properties setDisplaySet(Boolean displaySet) {
+    public Display_Properties setDisplaySet(boolean displaySet) {
+        if (this.isFinished)
+            throw new IllegalStateException("Cant set values once the properties are finalised");
         this.displaySet = displaySet;
         return this;
     }
 
-    public Display_Properties setDisplayDecimal(Integer displayDecimal) {
+    public Display_Properties setDisplayDecimal(int displayDecimal) {
+        if (this.isFinished)
+            throw new IllegalStateException("Cant set values once the properties are finalised");
         this.displayDecimal = displayDecimal;
         return this;
     }

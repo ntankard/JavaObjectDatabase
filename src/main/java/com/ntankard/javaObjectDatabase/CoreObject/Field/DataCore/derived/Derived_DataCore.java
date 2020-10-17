@@ -1,12 +1,77 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived;
 
+import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataCore;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
-import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source.DirectExternalSource;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source.DirectExternalSource.DirectExternalSource_Factory;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source.Source;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source.Source.Source_Factory;
 
 public class Derived_DataCore<FieldType, ContainerType extends DataObject> extends DataCore<FieldType> {
+
+    //------------------------------------------------------------------------------------------------------------------
+    //##################################################### Factory ####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    public static class Derived_DataCore_Factory<FieldType, ContainerType extends DataObject> extends DataCore_Factory<FieldType, Derived_DataCore<FieldType, ContainerType>> {
+
+        /**
+         * Single source factory when DirectExternalSource is used
+         */
+        private final DirectExternalSource_Factory<FieldType, ContainerType> sourceFactory;
+
+        /**
+         * The method that gets the result object from the source
+         */
+        private final Calculator<FieldType, ContainerType> calculator;
+
+        /**
+         * The sources that drives this field
+         */
+        private final Source_Factory<FieldType, ?>[] sources;
+
+        /**
+         * Constructor
+         */
+        public Derived_DataCore_Factory(Calculator<FieldType, ContainerType> calculator, Source_Factory<FieldType, ?>... sources) {
+            this.calculator = calculator;
+            this.sources = sources;
+            this.sourceFactory = null;
+        }
+
+        /**
+         * Constructor
+         */
+        public Derived_DataCore_Factory(DirectExternalSource_Factory<FieldType, ContainerType> sourceFactory) {
+            this.calculator = null;
+            this.sources = null;
+            this.sourceFactory = sourceFactory;
+        }
+
+        /**
+         * {@inheritDoc
+         */
+        @SuppressWarnings({"unchecked", "ConstantConditions"})
+        @Override
+        public Derived_DataCore<FieldType, ContainerType> createCore(DataField_Instance<FieldType> container) {
+            if (sourceFactory != null) {
+                return new Derived_DataCore<>(sourceFactory.createSource(container));
+            } else {
+                Source<FieldType>[] sourceInstances = new Source[sources.length];
+                int i = 0;
+                for (Source_Factory<FieldType, ?> factory : sources) {
+                    sourceInstances[i++] = factory.createSource(container);
+                }
+                return new Derived_DataCore<>(calculator, sourceInstances);
+            }
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################## Core DataCore #################################################
+    //------------------------------------------------------------------------------------------------------------------
 
     /**
      * The method that gets the result object from the source
@@ -64,7 +129,7 @@ public class Derived_DataCore<FieldType, ContainerType extends DataObject> exten
      * {@inheritDoc
      */
     @Override
-    public void detachFromField(DataField<FieldType> field) {
+    public void detachFromField(DataField_Instance<FieldType> field) {
         for (Source<FieldType> source : sources) {
             source.detach();
         }

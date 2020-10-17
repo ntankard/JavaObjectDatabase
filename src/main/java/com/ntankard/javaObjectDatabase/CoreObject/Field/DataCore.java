@@ -1,11 +1,33 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field;
 
-public abstract class DataCore<T> {
+public abstract class DataCore<FieldType> {
+
+    //------------------------------------------------------------------------------------------------------------------
+    //##################################################### Factory ####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * A factory to create DataCore object that can contain state information
+     */
+    public static abstract class DataCore_Factory<FieldType, DataCoreType extends DataCore<FieldType>> {
+
+        /**
+         * Create a stand alone instance of DataCore that can have state information
+         *
+         * @param container The DataField this will be attached to
+         * @return A stand alone instance of DataCore that can have state information
+         */
+        public abstract DataCoreType createCore(DataField_Instance<FieldType> container);
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################## Core DataCore #################################################
+    //------------------------------------------------------------------------------------------------------------------
 
     /**
      * The field containing this data core
      */
-    private DataField<T> dataField = null;
+    private DataField_Instance<FieldType> dataField = null;
 
     //------------------------------------------------------------------------------------------------------------------
     //###################################################### Setup #####################################################
@@ -16,7 +38,7 @@ public abstract class DataCore<T> {
      *
      * @param dataField The field this object was attached to
      */
-    public void attachToField(DataField<T> dataField) {
+    public void attachToField(DataField_Instance<FieldType> dataField) {
         this.dataField = dataField;
     }
 
@@ -25,7 +47,7 @@ public abstract class DataCore<T> {
      *
      * @param field The field this object was removed from
      */
-    public void detachFromField(DataField<T> field) {
+    public void detachFromField(DataField_Instance<FieldType> field) {
         this.dataField = null;
     }
 
@@ -43,7 +65,7 @@ public abstract class DataCore<T> {
      *
      * @param toSet The value to set
      */
-    protected void doSet(T toSet) {
+    protected void doSet(FieldType toSet) {
         getDataField().setFromDataCore(toSet);
     }
 
@@ -56,7 +78,7 @@ public abstract class DataCore<T> {
      *
      * @return The field containing this data core
      */
-    public DataField<T> getDataField() {
+    public DataField_Instance<FieldType> getDataField() {
         return dataField;
     }
 }

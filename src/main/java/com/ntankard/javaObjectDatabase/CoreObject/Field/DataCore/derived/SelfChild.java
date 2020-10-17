@@ -1,9 +1,31 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived;
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source.Source;
 
 public class SelfChild<ResultType, SourceType extends DataObject> extends Source<ResultType> implements DataObject.ChildrenListener<SourceType> {
+
+    //------------------------------------------------------------------------------------------------------------------
+    //##################################################### Factory ####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    public static class SelfChildSource_Factory<ResultType, SourceType extends DataObject> extends Source_Factory<ResultType, SelfChild<ResultType, SourceType>> {
+
+        /**
+         * {@inheritDoc
+         */
+        @Override
+        public SelfChild<ResultType, SourceType> createSource(DataField_Instance<ResultType> container) {
+            return new SelfChild<>();
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################## Core Source ###################################################
+    //------------------------------------------------------------------------------------------------------------------
+
 
     /**
      * Constructor

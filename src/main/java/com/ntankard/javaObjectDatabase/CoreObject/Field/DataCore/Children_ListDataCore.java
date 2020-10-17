@@ -2,35 +2,98 @@ package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore;
 
 import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.ListDataCore;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.ListDataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.Listener.FieldChangeListener;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.Children_ListDataCore.ParentAccess.ParentAccess_Factory;
 import com.ntankard.javaObjectDatabase.util.SetFilter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T> {
+public class Children_ListDataCore<FieldType extends DataObject> extends ListDataCore<FieldType> {
+
+    //------------------------------------------------------------------------------------------------------------------
+    //##################################################### Factory ####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    public static class Children_ListDataCore_Factory<FieldType extends DataObject> extends DataCore_Factory<List<FieldType>, Children_ListDataCore<FieldType>> {
+
+        /**
+         * The type of object stored in this set
+         */
+        private final Class<FieldType> tClass;
+
+        /**
+         * A filter to apply, can be null
+         */
+        private final SetFilter<FieldType> filter;
+
+        /**
+         * The object to manages each of the parents
+         */
+        private final ParentAccess_Factory<FieldType>[] parents;
+
+        /**
+         * Constructor
+         */
+        @SafeVarargs
+        public Children_ListDataCore_Factory(Class<FieldType> tClass, ParentAccess_Factory<FieldType>... parents) {
+            this(tClass, null, parents);
+        }
+
+        /**
+         * Constructor
+         */
+        @SafeVarargs
+        public Children_ListDataCore_Factory(Class<FieldType> tClass, SetFilter<FieldType> filter, ParentAccess_Factory<FieldType>... parents) {
+            this.tClass = tClass;
+            this.filter = filter;
+            this.parents = parents;
+        }
+
+        /**
+         * {@inheritDoc
+         */
+        @Override
+        public Children_ListDataCore<FieldType> createCore(DataField_Instance<List<FieldType>> container) {
+            ParentAccess<?, FieldType>[] newTest = new ParentAccess[parents.length];
+
+            int i = 0;
+            for (ParentAccess_Factory<FieldType> factory : parents) {
+                ParentAccess<?, FieldType> toAdd = factory.generate((ListDataField_Instance) container);
+                newTest[i++] = toAdd;
+            }
+
+            return new Children_ListDataCore<>(tClass, filter, newTest);
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################## Core DataCore #################################################
+    //------------------------------------------------------------------------------------------------------------------
 
     /**
      * The type of object stored in this set
      */
-    private final Class<T> tClass;
-
-    /**
-     * The object to manages each of the parents
-     */
-    private final ParentAccess<?, T>[] parents;
+    private final Class<FieldType> tClass;
 
     /**
      * A filter to apply, can be null
      */
-    private final SetFilter<T> filter;
+    private final SetFilter<FieldType> filter;
+
+    /**
+     * The object to manages each of the parents
+     */
+    private final ParentAccess<? extends DataObject, FieldType>[] parents;
 
     /**
      * Constructor
      */
     @SafeVarargs
-    public Children_ListDataCore(Class<T> aClass, ParentAccess<?, T>... parents) {
+    public Children_ListDataCore(Class<FieldType> aClass, ParentAccess<? extends DataObject, FieldType>... parents) {
         this(aClass, null, parents);
     }
 
@@ -38,7 +101,7 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
      * Constructor
      */
     @SafeVarargs
-    public Children_ListDataCore(Class<T> aClass, SetFilter<T> filter, ParentAccess<?, T>... parents) {
+    public Children_ListDataCore(Class<FieldType> aClass, SetFilter<FieldType> filter, ParentAccess<?, FieldType>... parents) {
         this.tClass = aClass;
         this.filter = filter;
         this.parents = parents;
@@ -49,7 +112,7 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
      */
     @Override
     public void startInitialSet() {
-        for (ParentAccess<?, T> parentAccess : parents) {
+        for (ParentAccess<?, FieldType> parentAccess : parents) {
             parentAccess.lookForParent(this);
         }
     }
@@ -58,8 +121,8 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
      * {@inheritDoc
      */
     @Override
-    public void detachFromField(DataField<List<T>> field) {
-        for (ParentAccess<?, T> parentAccess : parents) {
+    public void detachFromField(DataField_Instance<List<FieldType>> field) {
+        for (ParentAccess<?, FieldType> parentAccess : parents) {
             parentAccess.remove();
         }
         super.detachFromField(field);
@@ -71,9 +134,9 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
      *
      * @param source The ParentAccess that called this method, passed so not checked twice
      */
-    private void notifyParentAccessReady(ParentAccess<?, T> source) {
-        if (getDataField().getState().equals(DataField.NewFieldState.N_ATTACHED_TO_OBJECT)) {
-            for (ParentAccess<?, T> parentAccess : parents) {
+    private void notifyParentAccessReady(ParentAccess<?, FieldType> source) {
+        if (getDataField().getState().equals(DataField_Instance.NewFieldState.N_ATTACHED_TO_OBJECT)) {
+            for (ParentAccess<?, FieldType> parentAccess : parents) {
                 if (parentAccess != source) {
                     if (!parentAccess.isReadyToLinkToParent()) {
                         return;
@@ -81,7 +144,7 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
                 }
             }
             doSet(new ArrayList<>());
-            for (ParentAccess<?, T> parentAccess : parents) {
+            for (ParentAccess<?, FieldType> parentAccess : parents) {
                 parentAccess.linkToParent();
             }
         } else {
@@ -96,7 +159,7 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
      * @param isInitial  Is this being called during initial setup (multiple adds will be ignored instead of throwing an error)
      * @param source     The source of this call
      */
-    private void childAdded(T dataObject, ParentAccess<?, T> source, boolean isInitial) {
+    private void childAdded(FieldType dataObject, ParentAccess<?, FieldType> source, boolean isInitial) {
         if (doAllAgree(dataObject, source)) {
             if (isInitial && getDataField().get().contains(dataObject)) {
                 return;
@@ -111,7 +174,7 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
      * @param dataObject The object to remove
      * @param source     The source of this call
      */
-    private void childRemoved(T dataObject, ParentAccess<?, T> source) {
+    private void childRemoved(FieldType dataObject, ParentAccess<?, FieldType> source) {
         if (doAllAgree(dataObject, source)) {
             doRemove(dataObject);
         }
@@ -124,14 +187,14 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
      * @param source     The source of the candidate
      * @return True if all agree
      */
-    private boolean doAllAgree(T dataObject, ParentAccess<?, T> source) {
+    private boolean doAllAgree(FieldType dataObject, ParentAccess<?, FieldType> source) {
         // Are we ready for values?
         if (!getDataField().hasValidValue()) {
             return false;
         }
 
         // Do the other parents think this is a valid value as well?
-        for (ParentAccess<?, T> parentAccess : parents) {
+        for (ParentAccess<?, FieldType> parentAccess : parents) {
             if (parentAccess != source) {
                 if (!parentAccess.isValidValue(tClass, dataObject)) {
                     return false;
@@ -152,7 +215,7 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
      *
      * @return The type of object stored in this set
      */
-    private Class<T> getTClass() {
+    private Class<FieldType> getTClass() {
         return tClass;
     }
 
@@ -163,10 +226,32 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
 
     public static class ParentAccess<ParentType extends DataObject, T extends DataObject> implements FieldChangeListener<ParentType>, DataObject.ChildrenListener<T> {
 
+        public static class ParentAccess_Factory<T extends DataObject> {
+
+            /**
+             * The field that will contain the parent
+             */
+            private final String parentFieldKey;
+
+            /**
+             * Constructor
+             */
+            public ParentAccess_Factory(String parentFieldKey) {
+                this.parentFieldKey = parentFieldKey;
+            }
+
+            /**
+             * {@inheritDoc
+             */
+            public ParentAccess<?, T> generate(ListDataField_Instance<T> container) {
+                return new ParentAccess<>(container.getContainer().getField(parentFieldKey));
+            }
+        }
+
         /**
          * The field that will contain the parent
          */
-        private final DataField<ParentType> parentField;
+        private final DataField_Instance<ParentType> parentField;
 
         /**
          * The parent object
@@ -181,7 +266,10 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
         /**
          * Constructor
          */
-        public ParentAccess(DataField<ParentType> parentField) {
+        public ParentAccess(DataField_Instance<ParentType> parentField) {
+            if (parentField == null) {
+                throw new RuntimeException();
+            }
             this.parentField = parentField;
         }
 
@@ -193,7 +281,7 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
         private void lookForParent(Children_ListDataCore<T> owner) {
             this.owner = owner;
 
-            if (this.parentField.isCanBeNull())
+            if (this.parentField.getDataField().isCanBeNull())
                 throw new IllegalArgumentException("The parent field can not allow null values");
 
             this.parentField.addChangeListener(this);
@@ -257,7 +345,7 @@ public class Children_ListDataCore<T extends DataObject> extends ListDataCore<T>
          * {@inheritDoc
          */
         @Override
-        public void valueChanged(DataField<ParentType> field, ParentType oldValue, ParentType newValue) {
+        public void valueChanged(DataField_Instance<ParentType> field, ParentType oldValue, ParentType newValue) {
             if (owner == null)
                 throw new RuntimeException("The listener has been attached before the field this has been linked to the core");
 

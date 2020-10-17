@@ -2,6 +2,7 @@ package com.ntankard.javaObjectDatabase.CoreObject;
 
 import com.ntankard.javaObjectDatabase.CoreObject.Factory.ObjectFactory;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.Properties.Display_Properties;
 import com.ntankard.javaObjectDatabase.Database.SubContainers.DataObjectContainer;
 import com.ntankard.javaObjectDatabase.Database.TrackingDatabase;
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance.NewFieldState.N_ACTIVE;
 
 public abstract class DataObject {
 
@@ -28,16 +31,16 @@ public abstract class DataObject {
      *
      * @param fields The fields to set
      */
-    public void setFields(List<DataField<?>> fields) {
-        for (DataField<?> field : fields) {
-            fieldMap.put(field.getIdentifierName(), field);
+    public void setFields(List<DataField_Instance<?>> fields) {
+        for (DataField_Instance<?> field : fields) {
+            fieldMap.put(field.getDataField().getIdentifierName(), field);
         }
     }
 
     /**
      * The fields for this DataObject
      */
-    protected Map<String, DataField<?>> fieldMap = new HashMap<>();
+    protected Map<String, DataField_Instance<?>> fieldMap = new HashMap<>();
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################### Constructor ##################################################
@@ -71,12 +74,17 @@ public abstract class DataObject {
             throw new IllegalArgumentException("Wrong amount of arguments");
 
         // Link the fields to the object
-        fieldContainer.getList().forEach(field -> field.fieldAttached(blackObject));
-        blackObject.setFields(fieldContainer.getList());
+        List<DataField_Instance<?>> instanceList = new ArrayList<>();
+        for (DataField<?> field : fieldContainer.getList()) {
+            DataField_Instance<?> instance = field.generate(blackObject);
+            instanceList.add(instance);
+        }
+        blackObject.setFields(instanceList);
+
         blackObject.allValid = true;
 
         // Start sharing data
-        fieldContainer.getList().forEach(DataField::allowValue);
+        instanceList.forEach(DataField_Instance::allowValue);
 
         List<String> done = new ArrayList<>();
         List<Integer> paramIndexes = new ArrayList<>();
@@ -114,17 +122,17 @@ public abstract class DataObject {
             }
 
             // Load the field
-            fieldContainer.get(identifier).set(value);
+            blackObject.getField(identifier).set(value);
             paramIndexes.remove(0);
             done.add(identifier);
         } while (paramIndexes.size() != 0);
 
-        for (Map.Entry<String, DataField<?>> field : blackObject.fieldMap.entrySet()) {
+        for (Map.Entry<String, DataField_Instance<?>> field : blackObject.fieldMap.entrySet()) {
             field.getValue().add(); // Possible error here, this may need to be done AFTER being put into the database
         }
 
-        for (Map.Entry<String, DataField<?>> field : blackObject.fieldMap.entrySet()) {
-            if (!field.getValue().getState().equals(DataField.NewFieldState.N_ACTIVE)) {
+        for (Map.Entry<String, DataField_Instance<?>> field : blackObject.fieldMap.entrySet()) {
+            if (!field.getValue().getState().equals(N_ACTIVE)) {
                 throw new RuntimeException();
             }
         }
@@ -148,8 +156,8 @@ public abstract class DataObject {
      * @return The field
      */
     @SuppressWarnings("unchecked")
-    public <T> DataField<T> getField(String field) {
-        return (DataField<T>) fieldMap.get(field);
+    public <T> DataField_Instance<T> getField(String field) {
+        return (DataField_Instance<T>) fieldMap.get(field);
     }
 
     /**
@@ -197,11 +205,13 @@ public abstract class DataObject {
      * Add this object to the database. Notify everyone required and create or add supporting objects if needed
      */
     public void add() {
-        TrackingDatabase.get().add(this);
 
-        for (Map.Entry<String, DataField<?>> field : this.fieldMap.entrySet()) {
+
+        for (Map.Entry<String, DataField_Instance<?>> field : this.fieldMap.entrySet()) {
             field.getValue().forceNotify(); // possible error here, this may need to be done AFTER being put into the database
         }
+
+        TrackingDatabase.get().add(this);
     }
 
     /**
@@ -224,7 +234,7 @@ public abstract class DataObject {
 
         TrackingDatabase.get().remove(this);
 
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
+        for (Map.Entry<String, DataField_Instance<?>> field : fieldMap.entrySet()) {
             if (field.getKey().equals(DataObject_Id)) {
                 continue;
             }
@@ -232,7 +242,7 @@ public abstract class DataObject {
         }
         fieldMap.get(DataObject_Id).remove();
 
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
+        for (Map.Entry<String, DataField_Instance<?>> field : fieldMap.entrySet()) {
             if (!field.getValue().getFieldChangeListeners().isEmpty()) {
                 throw new RuntimeException();
             }
@@ -311,9 +321,9 @@ public abstract class DataObject {
      */
     private List<DataObject> getParentsImpl() {
         List<DataObject> toReturn = new ArrayList<>();
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            if (DataObject.class.isAssignableFrom(field.getValue().getType())) {
-                if (field.getValue().isTellParent()) {
+        for (Map.Entry<String, DataField_Instance<?>> field : fieldMap.entrySet()) {
+            if (DataObject.class.isAssignableFrom(field.getValue().getDataField().getType())) {
+                if (field.getValue().getDataField().isTellParent()) {
                     if (field.getValue().get() != null) {
                         try {
                             toReturn.add((DataObject) field.getValue().get());

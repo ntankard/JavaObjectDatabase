@@ -309,7 +309,7 @@ public class FieldContainer {
 
             // Look for the direct dependency
             if (DataObject.class.isAssignableFrom(field.getType())) {
-                if (field.getDataCore() != null && Static_DataCore.class.isAssignableFrom(field.getDataCore().getClass())) {
+                if (field.getDataCore_factory() != null && Static_DataCore.Static_DataCore_Factory.class.isAssignableFrom(field.getDataCore_factory().getClass())) {
                     continue; // TODO THis is here because at least one Static_DataCore references itself resulting in a circular dependency. Some Static_DataCore may need to be added to dependency
                 }
                 Class<? extends DataObject> primeDependencies = (Class<? extends DataObject>) field.getType();

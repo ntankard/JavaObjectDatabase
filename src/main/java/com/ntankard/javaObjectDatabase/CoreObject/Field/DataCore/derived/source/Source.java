@@ -1,8 +1,24 @@
 package com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.source;
 
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField;
+import com.ntankard.javaObjectDatabase.CoreObject.Field.DataField_Instance;
 import com.ntankard.javaObjectDatabase.CoreObject.Field.dataCore.derived.Derived_DataCore;
 
 public abstract class Source<ResultType> {
+
+    /**
+     * A factory to create Source object that can contain state information
+     */
+    public static abstract class Source_Factory<ResultType, SourceType extends Source<ResultType>> {
+
+        /**
+         * Create a stand alone instance of Source that can have state information
+         *
+         * @param container The DataField this will be attached to
+         * @return A stand alone instance of Source that can have state information
+         */
+        public abstract SourceType createSource(DataField_Instance<ResultType> container);
+    }
 
     /**
      * The data core this is attached to
