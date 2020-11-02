@@ -329,7 +329,11 @@ public class TrackingDatabase_Reader_Read {
                 parsedData = Double.parseDouble(paramString);
             }
         } else if (Integer.class.isAssignableFrom(paramType) || int.class.isAssignableFrom(paramType)) {
-            parsedData = Integer.parseInt(paramString);
+            if (paramString.equals(" ")) {
+                parsedData = null;
+            } else {
+                parsedData = Integer.parseInt(paramString);
+            }
         } else {
             throw new RuntimeException("Unknown data type");
         }

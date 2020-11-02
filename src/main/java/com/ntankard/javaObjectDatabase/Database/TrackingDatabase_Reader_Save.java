@@ -100,7 +100,7 @@ public class TrackingDatabase_Reader_Save {
         for (DataField_Schema<?> field : fields) {
 
             // Find the method
-            Method getter;
+            Method getter; // TODO this is wrong, it should just be using the field right?
             try {
                 getter = dataObject.getClass().getMethod(field.getIdentifierName());
             } catch (NoSuchMethodException e) {
