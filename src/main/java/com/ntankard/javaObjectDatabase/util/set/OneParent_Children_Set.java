@@ -1,6 +1,6 @@
 package com.ntankard.javaObjectDatabase.util.set;
 
-import com.ntankard.javaObjectDatabase.CoreObject.DataObject;
+import com.ntankard.javaObjectDatabase.coreObject.DataObject;
 
 import java.util.ArrayList;
 import java.util.List;
