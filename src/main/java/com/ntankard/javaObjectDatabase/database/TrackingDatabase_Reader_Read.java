@@ -98,7 +98,18 @@ public class TrackingDatabase_Reader_Read {
         TrackingDatabase.get().setIDFloor(maxID);
 
         // Sort the objects so they are read correctly
-        List<Class<? extends DataObject>> readOrder = TrackingDatabase_Schema.get().getDecencyOrder();//sortByDependency(getConstructorDependencies(newObjectList));
+        List<Class<? extends DataObject>> readOrder = TrackingDatabase_Schema.get().getDecencyOrder();
+
+        // TODO this needs to be fixed. This is needed because currency is not detected as a dependency for some factory children
+        Class<? extends DataObject> currency = null;
+        for (Class<? extends DataObject> toRead : readOrder) {
+            if(toRead.getSimpleName().equals("Currency")){
+                currency = toRead;
+                break;
+            }
+        }
+        readOrder.remove(currency);
+        readOrder.add(0,currency);
 
         // Load the core data
         for (Class<? extends DataObject> toRead : readOrder) {
@@ -179,7 +190,7 @@ public class TrackingDatabase_Reader_Read {
      */
     @SuppressWarnings("unchecked")
     public static Class<? extends DataObject> extractClass(String classLine, Map<String, String> nameMap) {
-        Class<?> baseClass = classForName(classLine, "com.ntankard.Tracking.DataBase.Core", nameMap);
+        Class<?> baseClass = classForName(classLine, "com.ntankard.tracking.dataBase.core", nameMap);
         if (!DataObject.class.isAssignableFrom(baseClass))
             throw new IllegalStateException("Object is not of type DataObject");
         return (Class<? extends DataObject>) baseClass;
@@ -206,7 +217,7 @@ public class TrackingDatabase_Reader_Read {
         List<String> params = new ArrayList<>();
         for (int i = 0; i < currentFields.size(); i++) {
             String savedName = paramStrings[i * 2];
-            Class<?> savedType = classForName(paramStrings[i * 2 + 1], "com.ntankard.Tracking.DataBase.Core", nameMap);
+            Class<?> savedType = classForName(paramStrings[i * 2 + 1], "com.ntankard.tracking.dataBase.core", nameMap);
 
             DataField_Schema<?> field = dataObjectSchema.get(paramStrings[i * 2]);
             if (field == null)
