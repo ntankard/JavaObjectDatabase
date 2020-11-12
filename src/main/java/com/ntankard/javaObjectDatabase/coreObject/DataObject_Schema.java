@@ -246,7 +246,7 @@ public class DataObject_Schema {
      * @return The list of fields
      */
     public List<DataField_Schema<?>> getList() {
-        return list;
+        return new ArrayList<>(list);
     }
 
     /**

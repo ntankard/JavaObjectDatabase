@@ -47,7 +47,7 @@ public class TrackingDatabase_Schema {
      *
      * @param aClass The object to get
      */
-    public static DataObject_Schema getFieldContainer(Class<?> aClass) {
+    private static DataObject_Schema getFieldContainer(Class<?> aClass) {
         try {
             Method method = aClass.getDeclaredMethod(DataObject.FieldName);
             return ((DataObject_Schema) method.invoke(null)); // TODO optimise by cashing
@@ -84,6 +84,11 @@ public class TrackingDatabase_Schema {
      * All solid classes ordered so that if loaded in this order, all dependencies will be met
      */
     private ArrayList<Class<? extends DataObject>> decencyOrder;
+
+    /**
+     * Known Class schemas
+     */
+    private final Map<Class<?>,DataObject_Schema> knownSchemas = new HashMap<>();
 
     /**
      * Initialize the Schema with the location of the classes and any rename information
@@ -200,13 +205,27 @@ public class TrackingDatabase_Schema {
     }
 
     /**
+     * Get a schema for an individual class
+     * @param aClass The class to get
+     * @return The schema for that class
+     */
+    public DataObject_Schema getClassSchema(Class<?> aClass){
+        if(knownSchemas.containsKey(aClass)){
+            return knownSchemas.get(aClass);
+        }
+        DataObject_Schema schema = getFieldContainer(aClass);
+        knownSchemas.put(aClass,schema);
+        return schema;
+    }
+
+    /**
      * Get getPreLoadDependencies for dataObjectClass but all abstract dependencies replaced with solid ones
      *
      * @param dataObjectClass The class to get the dependencies for
      * @return getPreLoadDependencies for dataObjectClass but all abstract dependencies replaced with solid ones
      */
     public List<Class<? extends DataObject>> getSolidPreLoadDependencies(Class<? extends DataObject> dataObjectClass) {
-        List<Class<? extends DataObject>> rawDependencies = TrackingDatabase_Schema.getFieldContainer(dataObjectClass).getPreLoadDependencies();
+        List<Class<? extends DataObject>> rawDependencies = TrackingDatabase_Schema.get().getClassSchema(dataObjectClass).getPreLoadDependencies();
         List<Class<? extends DataObject>> dependencies = new ArrayList<>();
 
         for (Class<? extends DataObject> aClass : rawDependencies) {

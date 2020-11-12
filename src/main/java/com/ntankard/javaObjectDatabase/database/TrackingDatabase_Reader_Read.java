@@ -120,7 +120,7 @@ public class TrackingDatabase_Reader_Read {
             }
 
             // Ensure all factories object were consumed
-            if (TrackingDatabase_Schema.getFieldContainer(toRead).getMyFactory() != null) {
+            if (TrackingDatabase_Schema.get().getClassSchema(toRead).getMyFactory() != null) {
                 if (newToReadData.get(toRead).size() != 0) {
                     throw new RuntimeException("There are still factorised object left unloaded");
                 }
@@ -206,7 +206,7 @@ public class TrackingDatabase_Reader_Read {
      */
     public static List<String> extractParams(Class<? extends DataObject> fileClass, String[] paramStrings, Map<String, String> nameMap) {
         // Get the expected field's
-        DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.getFieldContainer(fileClass);
+        DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.get().getClassSchema(fileClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getSavedFields();
 
         // Check the size
@@ -281,7 +281,7 @@ public class TrackingDatabase_Reader_Read {
      */
     public static DataObject dataObjectFromString(Class<? extends DataObject> aClass, String[] paramStrings, DataObject underConstruction) {
 
-        DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.getFieldContainer(aClass);
+        DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.get().getClassSchema(aClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getList();
         currentFields.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT));
 
@@ -300,7 +300,7 @@ public class TrackingDatabase_Reader_Read {
             throw new RuntimeException(e);
         }
 
-        return DataObject.assembleDataObject(TrackingDatabase_Schema.getFieldContainer(aClass), newDataObject, args.toArray());
+        return DataObject.assembleDataObject(TrackingDatabase_Schema.get().getClassSchema(aClass), newDataObject, args.toArray());
     }
 
     /**

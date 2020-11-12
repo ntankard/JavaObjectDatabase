@@ -143,7 +143,7 @@ public class TrackingDatabase_Reader_Util {
      * @return All fields not marked as do not save
      */
     public static List<DataField_Schema<?>> getSaveFields(Class<? extends DataObject> aClass) {
-        return TrackingDatabase_Schema.getFieldContainer(aClass).getSavedFields(); // TODO looks like the order the object is created maters, it should now
+        return TrackingDatabase_Schema.get().getClassSchema(aClass).getSavedFields(); // TODO looks like the order the object is created maters, it should now
     }
 
     /**
