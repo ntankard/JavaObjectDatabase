@@ -18,9 +18,9 @@ import static com.ntankard.javaObjectDatabase.util.SourceCodeInspector.classForN
 public class TrackingDatabase_Reader_Read {
 
     // New data
-    static List<Class<? extends DataObject>> newObjectList;
-    static Map<Class<? extends DataObject>, List<String>> newParamList;
-    static Map<Class<? extends DataObject>, List<String[]>> newToReadData;
+    private final List<Class<? extends DataObject>> newObjectList = new ArrayList<>();
+    private final Map<Class<? extends DataObject>, List<String>> newParamList = new HashMap<>();
+    private final Map<Class<? extends DataObject>, List<String[]>> newToReadData = new HashMap<>();
 
     /**
      * An interface to check if a line of saved data is the one that the factory is trying to make
@@ -42,7 +42,7 @@ public class TrackingDatabase_Reader_Read {
      * @param lineMatcher The tester to see if any specific line is the target object
      * @param source      The generator of the factory
      */
-    public static void tryLoad(Class<? extends DataObject> type, LineMatcher lineMatcher, DataObject source) {
+    public void tryLoad(Class<? extends DataObject> type, LineMatcher lineMatcher, DataObject source) {
         List<String[]> objects = newToReadData.get(type);
         if (objects == null) {
             return;
@@ -63,12 +63,9 @@ public class TrackingDatabase_Reader_Read {
      *
      * @param corePath The path that files are located in
      */
-    public static void read(String corePath, Map<String, String> nameMap) {
+    public void read(String corePath, Map<String, String> nameMap) {
         Timer timer = new Timer();
         timer.stopPrint("Start");
-
-        // Clear all stored memory
-        resetState();
 
         // Check that we have a valid path to a save directory
         validateMasterDirectory(corePath);
@@ -139,21 +136,12 @@ public class TrackingDatabase_Reader_Read {
     }
 
     /**
-     * Reset the reader instance
-     */
-    public static void resetState() {
-        newObjectList = new ArrayList<>();
-        newParamList = new HashMap<>();
-        newToReadData = new HashMap<>();
-    }
-
-    /**
      * Validate a class save file and extract the information to be processed
      *
      * @param path    The file to parse
      * @param nameMap Any changed names
      */
-    private static void validateAndExtractFile(String path, Map<String, String> nameMap) {
+    private void validateAndExtractFile(String path, Map<String, String> nameMap) {
         // Read the lines
         List<String[]> allLines = FileUtil.readLines(path);
 
@@ -189,7 +177,7 @@ public class TrackingDatabase_Reader_Read {
      * @return The DataObject saved in the file
      */
     @SuppressWarnings("unchecked")
-    public static Class<? extends DataObject> extractClass(String classLine, Map<String, String> nameMap) {
+    public Class<? extends DataObject> extractClass(String classLine, Map<String, String> nameMap) {
         Class<?> baseClass = classForName(classLine, "com.ntankard.tracking.dataBase.core", nameMap);
         if (!DataObject.class.isAssignableFrom(baseClass))
             throw new IllegalStateException("Object is not of type DataObject");
@@ -204,7 +192,7 @@ public class TrackingDatabase_Reader_Read {
      * @param nameMap      Any renamed classes
      * @return An order list of the parameters
      */
-    public static List<String> extractParams(Class<? extends DataObject> fileClass, String[] paramStrings, Map<String, String> nameMap) {
+    public List<String> extractParams(Class<? extends DataObject> fileClass, String[] paramStrings, Map<String, String> nameMap) {
         // Get the expected field's
         DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.get().getClassSchema(fileClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getSavedFields();
@@ -240,7 +228,7 @@ public class TrackingDatabase_Reader_Read {
      * @param lines      The lines to extract from
      * @return The string of that field
      */
-    public static String getValue(Class<? extends DataObject> type, String primaryKey, String[] lines) {
+    public String getValue(Class<? extends DataObject> type, String primaryKey, String[] lines) {
         int index = newParamList.get(type).indexOf(primaryKey);
         if (index < 0) {
             throw new IllegalArgumentException("Trying to get a field that dose not exist");
@@ -256,7 +244,7 @@ public class TrackingDatabase_Reader_Read {
      * @param lines      The lines to extract from
      * @return The ID field as a integer
      */
-    public static Integer getID(Class<? extends DataObject> type, String primaryKey, String[] lines) {
+    public Integer getID(Class<? extends DataObject> type, String primaryKey, String[] lines) {
         return Integer.parseInt(getValue(type, primaryKey, lines));
     }
 
@@ -267,7 +255,7 @@ public class TrackingDatabase_Reader_Read {
      * @param lines             The lines for this instance
      * @param underConstruction The under construction object that may have created this one
      */
-    public static void loadObject(Class<? extends DataObject> toRead, String[] lines, DataObject underConstruction) {
+    public void loadObject(Class<? extends DataObject> toRead, String[] lines, DataObject underConstruction) {
         DataObject toAdd = dataObjectFromString(toRead, lines, underConstruction);
         toAdd.add();
     }
@@ -279,7 +267,7 @@ public class TrackingDatabase_Reader_Read {
      * @param paramStrings The values as a string
      * @return The newly constructed object
      */
-    public static DataObject dataObjectFromString(Class<? extends DataObject> aClass, String[] paramStrings, DataObject underConstruction) {
+    public DataObject dataObjectFromString(Class<? extends DataObject> aClass, String[] paramStrings, DataObject underConstruction) {
 
         DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.get().getClassSchema(aClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getList();

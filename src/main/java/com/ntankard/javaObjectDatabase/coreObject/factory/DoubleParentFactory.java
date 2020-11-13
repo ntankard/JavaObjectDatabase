@@ -116,14 +116,14 @@ public class DoubleParentFactory<GeneratedType extends DataObject, PrimaryGenera
      * @param source             Primary or secodnary generator that invoked generate
      */
     private void tryLoad(PrimaryGeneratorType primaryGenerator, SecondaryGeneratorType secondaryGenerator, DataObject source) {
-        TrackingDatabase_Reader_Read.tryLoad(getGeneratedType(), new TrackingDatabase_Reader_Read.LineMatcher() {
+        TrackingDatabase.get().getReader().tryLoad(getGeneratedType(), new TrackingDatabase_Reader_Read.LineMatcher() {
             @Override
             public boolean isTargetLine(String[] lines) {
-                Integer id = TrackingDatabase_Reader_Read.getID(getGeneratedType(), primaryKey, lines);
+                Integer id = TrackingDatabase.get().getReader().getID(getGeneratedType(), primaryKey, lines);
                 if (!primaryGenerator.getId().equals(id)) {
                     return false;
                 }
-                id = TrackingDatabase_Reader_Read.getID(getGeneratedType(), secondaryKey, lines);
+                id = TrackingDatabase.get().getReader().getID(getGeneratedType(), secondaryKey, lines);
                 return secondaryGenerator.getId().equals(id);
             }
         }, source);

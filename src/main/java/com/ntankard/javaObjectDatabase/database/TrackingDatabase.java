@@ -21,6 +21,11 @@ public class TrackingDatabase {
     private String imagePath;
 
     /**
+     * The reader used to make this database
+     */
+    private TrackingDatabase_Reader_Read reader;
+
+    /**
      * The lowest ID of the loaded objects, this is stored because new objects can be created while they are loading in
      */
     private Integer IDFloor = null;
@@ -57,6 +62,15 @@ public class TrackingDatabase {
         containers.add(defaultObjectMap);
         containers.add(specialValuesMap);
         containers.add(dataObjectClassTree);
+    }
+
+    /**
+     * Set the reader used to create this database
+     *
+     * @param reader The reader used to create this database
+     */
+    public void setReader(TrackingDatabase_Reader_Read reader) {
+        this.reader = reader;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -176,6 +190,15 @@ public class TrackingDatabase {
      */
     public TreeNode<Class<? extends DataObject>> getClassTreeRoot() {
         return dataObjectClassTree.getClassTreeRoot();
+    }
+
+    /**
+     * Get the reader the builds this database
+     *
+     * @return The reader the builds this database
+     */
+    public TrackingDatabase_Reader_Read getReader() {
+        return reader;
     }
 
     //------------------------------------------------------------------------------------------------------------------
