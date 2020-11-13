@@ -49,7 +49,7 @@ public class TrackingDatabase_Reader_Save {
                 classLinesToSave.get(aClass).add(new ArrayList<>(Collections.singletonList(aClass.getName())));
 
                 // Write the object parameters to the header of the file
-                classFields.put(aClass, getSaveFields(aClass));
+                classFields.put(aClass, TrackingDatabase.get().getSchema().getClassSchema(aClass).getSavedFields());
 
                 List<String> types = new ArrayList<>();
                 for (DataField_Schema<?> constructorParameter : classFields.get(aClass)) {

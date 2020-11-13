@@ -9,11 +9,9 @@ public class TrackingDatabase_Reader {
      *
      * @param corePath The path that files are located in
      */
-    public static void read(String corePath, Map<String, String> nameMap) {
-        TrackingDatabase.reset();
-        TrackingDatabase trackingDatabase = TrackingDatabase.get();
+    public static void read(TrackingDatabase_Schema schema, String corePath, Map<String, String> nameMap) {
         TrackingDatabase_Reader_Read reader = new TrackingDatabase_Reader_Read();
-        trackingDatabase.setReader(reader);
+        TrackingDatabase.resetAndInit(schema,reader);
         reader.read(corePath, nameMap);
     }
 

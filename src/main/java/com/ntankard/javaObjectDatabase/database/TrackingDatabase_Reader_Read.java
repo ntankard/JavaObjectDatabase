@@ -95,7 +95,7 @@ public class TrackingDatabase_Reader_Read {
         TrackingDatabase.get().setIDFloor(maxID);
 
         // Sort the objects so they are read correctly
-        List<Class<? extends DataObject>> readOrder = TrackingDatabase_Schema.get().getDecencyOrder();
+        List<Class<? extends DataObject>> readOrder = TrackingDatabase.get().getSchema().getDecencyOrder();
 
         // TODO this needs to be fixed. This is needed because currency is not detected as a dependency for some factory children
         Class<? extends DataObject> currency = null;
@@ -117,7 +117,7 @@ public class TrackingDatabase_Reader_Read {
             }
 
             // Ensure all factories object were consumed
-            if (TrackingDatabase_Schema.get().getClassSchema(toRead).getMyFactory() != null) {
+            if (TrackingDatabase.get().getSchema().getClassSchema(toRead).getMyFactory() != null) {
                 if (newToReadData.get(toRead).size() != 0) {
                     throw new RuntimeException("There are still factorised object left unloaded");
                 }
@@ -194,7 +194,7 @@ public class TrackingDatabase_Reader_Read {
      */
     public List<String> extractParams(Class<? extends DataObject> fileClass, String[] paramStrings, Map<String, String> nameMap) {
         // Get the expected field's
-        DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.get().getClassSchema(fileClass);
+        DataObject_Schema dataObjectSchema = TrackingDatabase.get().getSchema().getClassSchema(fileClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getSavedFields();
 
         // Check the size
@@ -269,7 +269,7 @@ public class TrackingDatabase_Reader_Read {
      */
     public DataObject dataObjectFromString(Class<? extends DataObject> aClass, String[] paramStrings, DataObject underConstruction) {
 
-        DataObject_Schema dataObjectSchema = TrackingDatabase_Schema.get().getClassSchema(aClass);
+        DataObject_Schema dataObjectSchema = TrackingDatabase.get().getSchema().getClassSchema(aClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getList();
         currentFields.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT));
 
@@ -288,7 +288,7 @@ public class TrackingDatabase_Reader_Read {
             throw new RuntimeException(e);
         }
 
-        return DataObject.assembleDataObject(TrackingDatabase_Schema.get().getClassSchema(aClass), newDataObject, args.toArray());
+        return DataObject.assembleDataObject(TrackingDatabase.get().getSchema().getClassSchema(aClass), newDataObject, args.toArray());
     }
 
     /**

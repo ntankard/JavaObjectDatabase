@@ -11,11 +11,11 @@ import java.util.Set;
 public class TrackingDatabase {
 
     // Core data objects
-    private List<Container<?, ?>> containers = new ArrayList<>();
-    private DefaultObjectMap defaultObjectMap = new DefaultObjectMap();
-    private SpecialValuesMap specialValuesMap = new SpecialValuesMap();
-    private DataObjectContainer masterMap = new DataObjectContainer();
-    private DataObjectClassTree dataObjectClassTree = new DataObjectClassTree();
+    private final List<Container<?, ?>> containers = new ArrayList<>();
+    private final DefaultObjectMap defaultObjectMap = new DefaultObjectMap();
+    private final SpecialValuesMap specialValuesMap = new SpecialValuesMap();
+    private final DataObjectContainer masterMap = new DataObjectContainer();
+    private final DataObjectClassTree dataObjectClassTree = new DataObjectClassTree();
 
     // Paths where images can be found
     private String imagePath;
@@ -23,7 +23,12 @@ public class TrackingDatabase {
     /**
      * The reader used to make this database
      */
-    private TrackingDatabase_Reader_Read reader;
+    private final TrackingDatabase_Reader_Read reader;
+
+    /**
+     * The schema this database is built on
+     */
+    private final TrackingDatabase_Schema schema;
 
     /**
      * The lowest ID of the loaded objects, this is stored because new objects can be created while they are loading in
@@ -42,7 +47,7 @@ public class TrackingDatabase {
      */
     public static TrackingDatabase get() {
         if (master == null) {
-            master = new TrackingDatabase();
+            throw new RuntimeException("Database has not been initialised");
         }
         return master;
     }
@@ -50,27 +55,20 @@ public class TrackingDatabase {
     /**
      * Reset the singleton and delete all data
      */
-    public static void reset() {
-        master = null;
+    public static void resetAndInit(TrackingDatabase_Schema schema, TrackingDatabase_Reader_Read reader){
+        master = new TrackingDatabase(schema, reader);
     }
 
     /**
      * Private Constructor
      */
-    private TrackingDatabase() {
+    private TrackingDatabase(TrackingDatabase_Schema schema, TrackingDatabase_Reader_Read reader) {
+        this.schema = schema;
+        this.reader = reader;
         containers.add(masterMap);
         containers.add(defaultObjectMap);
         containers.add(specialValuesMap);
         containers.add(dataObjectClassTree);
-    }
-
-    /**
-     * Set the reader used to create this database
-     *
-     * @param reader The reader used to create this database
-     */
-    public void setReader(TrackingDatabase_Reader_Read reader) {
-        this.reader = reader;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -199,6 +197,14 @@ public class TrackingDatabase {
      */
     public TrackingDatabase_Reader_Read getReader() {
         return reader;
+    }
+
+    /**
+     * Get the schema this database is built on
+     * @return The schema this database is built on
+     */
+    public TrackingDatabase_Schema getSchema() {
+        return schema;
     }
 
     //------------------------------------------------------------------------------------------------------------------

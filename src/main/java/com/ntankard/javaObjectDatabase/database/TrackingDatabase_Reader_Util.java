@@ -137,16 +137,6 @@ public class TrackingDatabase_Reader_Util {
     // TO REMOVE -------------------------------------------------------------------------------------------------------
 
     /**
-     * Get the fields used by a class that are not marked as do not save
-     *
-     * @param aClass The class to get the fields from
-     * @return All fields not marked as do not save
-     */
-    public static List<DataField_Schema<?>> getSaveFields(Class<? extends DataObject> aClass) {
-        return TrackingDatabase_Schema.get().getClassSchema(aClass).getSavedFields(); // TODO looks like the order the object is created maters, it should now
-    }
-
-    /**
      * Should a class be saved?
      *
      * @param aClass The object to check

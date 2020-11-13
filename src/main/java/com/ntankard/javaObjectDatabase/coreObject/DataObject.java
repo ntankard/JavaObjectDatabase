@@ -229,7 +229,7 @@ public abstract class DataObject {
         if (this.getChildren().size() != 0) {
             throw new RuntimeException("Cant delete this kind of object. NoneFundEvent still has children");
         }
-        if (TrackingDatabase_Schema.get().getClassSchema(this.getClass()).getObjectFactories().size() != 0) {
+        if (TrackingDatabase.get().getSchema().getClassSchema(this.getClass()).getObjectFactories().size() != 0) {
             throw new UnsupportedOperationException("The code for deleting object that are factories has not been implemented yet");
         }
 

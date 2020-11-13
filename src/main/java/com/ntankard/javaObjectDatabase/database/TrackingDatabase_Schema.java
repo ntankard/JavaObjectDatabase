@@ -225,7 +225,7 @@ public class TrackingDatabase_Schema {
      * @return getPreLoadDependencies for dataObjectClass but all abstract dependencies replaced with solid ones
      */
     public List<Class<? extends DataObject>> getSolidPreLoadDependencies(Class<? extends DataObject> dataObjectClass) {
-        List<Class<? extends DataObject>> rawDependencies = TrackingDatabase_Schema.get().getClassSchema(dataObjectClass).getPreLoadDependencies();
+        List<Class<? extends DataObject>> rawDependencies = getClassSchema(dataObjectClass).getPreLoadDependencies();
         List<Class<? extends DataObject>> dependencies = new ArrayList<>();
 
         for (Class<? extends DataObject> aClass : rawDependencies) {
