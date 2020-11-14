@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.database;
 
-import com.ntankard.javaObjectDatabase.coreObject.DataObject;
-import com.ntankard.javaObjectDatabase.coreObject.DataObject_Schema;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.util.SourceCodeInspector;
 
 import java.io.IOException;

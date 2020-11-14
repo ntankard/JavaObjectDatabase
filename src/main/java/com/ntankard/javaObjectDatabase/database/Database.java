@@ -1,6 +1,7 @@
 package com.ntankard.javaObjectDatabase.database;
 
-import com.ntankard.javaObjectDatabase.coreObject.DataObject;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.database.io.Database_IO_Reader;
 import com.ntankard.javaObjectDatabase.database.subContainers.*;
 
 import java.util.ArrayList;
