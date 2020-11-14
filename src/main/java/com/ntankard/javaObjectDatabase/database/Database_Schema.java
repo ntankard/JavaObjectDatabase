@@ -53,9 +53,7 @@ public class Database_Schema {
         // Filter classes
         for (Class<?> aClass : classes) {
             if (DataObject.class.isAssignableFrom(aClass)) {
-                if (!Modifier.isAbstract(aClass.getModifiers())) {
-                    solidClasses.add((Class<? extends DataObject>) aClass);
-                }
+                solidClasses.add((Class<? extends DataObject>) aClass);
             }
         }
         return solidClasses;
@@ -69,6 +67,11 @@ public class Database_Schema {
      * All DataObject classes that can be instantiated
      */
     private final List<Class<? extends DataObject>> solidClasses;
+
+    /**
+     * All abstract classes
+     */
+    private final List<Class<? extends DataObject>> abstractClasses;
 
     /**
      * All solid classes ordered so that if loaded in this order, all dependencies will be met
@@ -88,7 +91,16 @@ public class Database_Schema {
      * Private Constructor
      */
     public Database_Schema(List<Class<? extends DataObject>> solidClasses) {
-        this.solidClasses = solidClasses;
+        this.solidClasses = new ArrayList<>();
+        this.abstractClasses = new ArrayList<>();
+        for (Class<? extends DataObject> aClass : solidClasses) {
+            if (!Modifier.isAbstract(aClass.getModifiers())) {
+                this.solidClasses.add(aClass);
+            } else {
+                this.abstractClasses.add(aClass);
+            }
+        }
+
         generateClassSchemas();
         generateDependencyList();
     }
@@ -98,6 +110,10 @@ public class Database_Schema {
      */
     private void generateClassSchemas() {
         for (Class<? extends DataObject> aClass : solidClasses) {
+            knownSchemas.put(aClass, getFieldContainer(aClass));
+        }
+
+        for (Class<? extends DataObject> aClass : abstractClasses) {
             knownSchemas.put(aClass, getFieldContainer(aClass));
         }
     }
