@@ -9,9 +9,9 @@ public class TrackingDatabase_Reader {
      *
      * @param corePath The path that files are located in
      */
-    public static TrackingDatabase read(TrackingDatabase_Schema schema, String corePath, Map<String, String> nameMap) {
+    public static Database read(TrackingDatabase_Schema schema, String corePath, Map<String, String> nameMap) {
         TrackingDatabase_Reader_Read reader = new TrackingDatabase_Reader_Read();
-        TrackingDatabase database = new TrackingDatabase(schema, reader);
+        Database database = new Database(schema, reader);
         reader.read(database, corePath, nameMap);
         return database;
     }
@@ -21,7 +21,7 @@ public class TrackingDatabase_Reader {
      *
      * @param corePath The directory to put the folder
      */
-    public static void save(TrackingDatabase trackingDatabase, String corePath) {
-        TrackingDatabase_Reader_Save.save(trackingDatabase, corePath);
+    public static void save(Database database, String corePath) {
+        TrackingDatabase_Reader_Save.save(database, corePath);
     }
 }

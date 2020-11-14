@@ -23,7 +23,7 @@ public class TrackingDatabase_Reader_Read {
     private final Map<Class<? extends DataObject>, List<String[]>> newToReadData = new HashMap<>();
 
     // Core database
-    private TrackingDatabase trackingDatabase;
+    private Database database;
 
     /**
      * An interface to check if a line of saved data is the one that the factory is trying to make
@@ -66,8 +66,8 @@ public class TrackingDatabase_Reader_Read {
      *
      * @param corePath The path that files are located in
      */
-    public void read(TrackingDatabase trackingDatabase, String corePath, Map<String, String> nameMap) {
-        this.trackingDatabase = trackingDatabase;
+    public void read(Database database, String corePath, Map<String, String> nameMap) {
+        this.database = database;
 
         Timer timer = new Timer();
         timer.stopPrint("Start");
@@ -97,10 +97,10 @@ public class TrackingDatabase_Reader_Read {
                 }
             }
         }
-        trackingDatabase.setIDFloor(maxID);
+        database.setIDFloor(maxID);
 
         // Sort the objects so they are read correctly
-        List<Class<? extends DataObject>> readOrder = new ArrayList<>(trackingDatabase.getSchema().getDecencyOrder());
+        List<Class<? extends DataObject>> readOrder = new ArrayList<>(database.getSchema().getDecencyOrder());
 
         // TODO this needs to be fixed. This is needed because currency is not detected as a dependency for some factory children
         Class<? extends DataObject> currency = null;
@@ -122,7 +122,7 @@ public class TrackingDatabase_Reader_Read {
             }
 
             // Ensure all factories object were consumed
-            if (trackingDatabase.getSchema().getClassSchema(toRead).getMyFactory() != null) {
+            if (database.getSchema().getClassSchema(toRead).getMyFactory() != null) {
                 if (newToReadData.get(toRead).size() != 0) {
                     throw new RuntimeException("There are still factorised object left unloaded");
                 }
@@ -135,7 +135,7 @@ public class TrackingDatabase_Reader_Read {
         }
 
         // Load the images and paths into the database
-        trackingDatabase.setImagePath(corePath + ROOT_IMAGE_PATH);
+        database.setImagePath(corePath + ROOT_IMAGE_PATH);
 
         timer.stopPrint("End");
     }
@@ -199,7 +199,7 @@ public class TrackingDatabase_Reader_Read {
      */
     public List<String> extractParams(Class<? extends DataObject> fileClass, String[] paramStrings, Map<String, String> nameMap) {
         // Get the expected field's
-        DataObject_Schema dataObjectSchema = trackingDatabase.getSchema().getClassSchema(fileClass);
+        DataObject_Schema dataObjectSchema = database.getSchema().getClassSchema(fileClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getSavedFields();
 
         // Check the size
@@ -274,7 +274,7 @@ public class TrackingDatabase_Reader_Read {
      */
     public DataObject dataObjectFromString(Class<? extends DataObject> aClass, String[] paramStrings, DataObject underConstruction) {
 
-        DataObject_Schema dataObjectSchema = trackingDatabase.getSchema().getClassSchema(aClass);
+        DataObject_Schema dataObjectSchema = database.getSchema().getClassSchema(aClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getList();
         currentFields.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT));
 
@@ -293,7 +293,7 @@ public class TrackingDatabase_Reader_Read {
             throw new RuntimeException(e);
         }
 
-        return DataObject.assembleDataObject(trackingDatabase, trackingDatabase.getSchema().getClassSchema(aClass), newDataObject, args.toArray());
+        return DataObject.assembleDataObject(database, database.getSchema().getClassSchema(aClass), newDataObject, args.toArray());
     }
 
     /**
@@ -310,7 +310,7 @@ public class TrackingDatabase_Reader_Read {
             if (paramString.equals(" ")) {
                 parsedData = null;
             } else {
-                DataObject dataObject = trackingDatabase.get(DataObject.class, Integer.parseInt(paramString));//loadedObjects.get(Integer.parseInt(paramString));
+                DataObject dataObject = database.get(DataObject.class, Integer.parseInt(paramString));//loadedObjects.get(Integer.parseInt(paramString));
                 if (dataObject == null && underConstruction != null) {
                     if (underConstruction.getId().equals(Integer.parseInt(paramString))) {
                         dataObject = underConstruction;
