@@ -8,113 +8,39 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TrackingDatabase_Schema {
-
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################### Constructor ##################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    // Singleton constructor
-    private static TrackingDatabase_Schema master;
-
-    /**
-     * Singleton access
-     */
-    public static TrackingDatabase_Schema get() {
-        if (master == null) {
-            master = new TrackingDatabase_Schema();
-        }
-        return master;
-    }
-
-    /**
-     * Private Constructor
-     */
-    private TrackingDatabase_Schema() {
-    }
 
     //------------------------------------------------------------------------------------------------------------------
     //##################################################### Static #####################################################
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Get all the fields for this object an object
+     * Previously found schemas
+     */
+    private static final Map<String, TrackingDatabase_Schema> knownGlobalSchemas = new HashMap<>();
+
+    /**
+     * Generate a schema for all classes in a package
      *
-     * @param aClass The object to get
+     * @param path The package to search
+     * @return The generated TrackingDatabase_Schema
      */
-    private static DataObject_Schema getFieldContainer(Class<?> aClass) {
-        try {
-            Method method = aClass.getDeclaredMethod(DataObject.FieldName);
-            return ((DataObject_Schema) method.invoke(null)); // TODO optimise by cashing
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ee) {
-            throw new RuntimeException("Cant extract object fields", ee);
-        }
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //###################################################### Core ######################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * A map of names that have been changed, old mapping to new
-     */
-    private Map<String, String> reNamed;
-
-    /**
-     * The path pointing to where the classes are
-     */
-    private String path;
-
-    /**
-     * All DataObject classes that can be instantiated
-     */
-    private List<Class<? extends DataObject>> solidClasses;
-
-    /**
-     * All DataObject classes
-     */
-    private List<Class<? extends DataObject>> allClasses;
-
-    /**
-     * All solid classes ordered so that if loaded in this order, all dependencies will be met
-     */
-    private ArrayList<Class<? extends DataObject>> decencyOrder;
-
-    /**
-     * Known Class schemas
-     */
-    private final Map<Class<?>,DataObject_Schema> knownSchemas = new HashMap<>();
-
-    /**
-     * Initialize the Schema with the location of the classes and any rename information
-     *
-     * @param path    The path containing the database objects
-     * @param reNamed A map of names that have been changed, old mapping to new
-     */
-    public void init(String path, Map<String, String> reNamed) {
-        if (isInitialized()) {
-            throw new IllegalArgumentException("You can not initialize the schema more than once");
-        }
-
-        this.reNamed = reNamed;
-        this.path = path;
-
-        generateClassList();
-        generateDependencyList();
+    public static synchronized TrackingDatabase_Schema getSchemaFromPackage(String path) {
+        knownGlobalSchemas.putIfAbsent(path, new TrackingDatabase_Schema(findClasses(path)));
+        return knownGlobalSchemas.get(path);
     }
 
     /**
-     * Generate a list of all classes
+     * Parse a package for the desired type of class
+     *
+     * @param path The package to search
+     * @return All classes that are instantiatable and extend DateObject
      */
     @SuppressWarnings("unchecked")
-    private void generateClassList() {
-        this.solidClasses = new ArrayList<>();
-        this.allClasses = new ArrayList<>();
+    private static List<Class<? extends DataObject>> findClasses(String path) {
+        List<Class<? extends DataObject>> solidClasses = new ArrayList<>();
 
         // Find classes
         final Class<?>[] classes;
@@ -130,8 +56,63 @@ public class TrackingDatabase_Schema {
                 if (!Modifier.isAbstract(aClass.getModifiers())) {
                     solidClasses.add((Class<? extends DataObject>) aClass);
                 }
-                allClasses.add((Class<? extends DataObject>) aClass);
             }
+        }
+        return solidClasses;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //###################################################### Core ######################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * All DataObject classes that can be instantiated
+     */
+    private final List<Class<? extends DataObject>> solidClasses;
+
+    /**
+     * All solid classes ordered so that if loaded in this order, all dependencies will be met
+     */
+    private ArrayList<Class<? extends DataObject>> decencyOrder;
+
+    /**
+     * Known Class schemas
+     */
+    private final Map<Class<?>, DataObject_Schema> knownSchemas = new HashMap<>();
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################### Constructor ##################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Private Constructor
+     */
+    public TrackingDatabase_Schema(List<Class<? extends DataObject>> solidClasses) {
+        this.solidClasses = solidClasses;
+        generateClassSchemas();
+        generateDependencyList();
+    }
+
+    /**
+     * Generate all the individual class schemas
+     */
+    private void generateClassSchemas() {
+        for (Class<? extends DataObject> aClass : solidClasses) {
+            knownSchemas.put(aClass, getFieldContainer(aClass));
+        }
+    }
+
+    /**
+     * Get all the fields for this object an object
+     *
+     * @param aClass The object to get
+     */
+    private DataObject_Schema getFieldContainer(Class<?> aClass) {
+        try {
+            Method method = aClass.getDeclaredMethod(DataObject.FieldName);
+            return ((DataObject_Schema) method.invoke(null));
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ee) {
+            throw new RuntimeException("Cant extract object fields", ee);
         }
     }
 
@@ -204,18 +185,18 @@ public class TrackingDatabase_Schema {
         } while (!allSorted);
     }
 
+    //------------------------------------------------------------------------------------------------------------------
+    //#################################################### Getters #####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
     /**
      * Get a schema for an individual class
+     *
      * @param aClass The class to get
      * @return The schema for that class
      */
-    public DataObject_Schema getClassSchema(Class<?> aClass){
-        if(knownSchemas.containsKey(aClass)){
-            return knownSchemas.get(aClass);
-        }
-        DataObject_Schema schema = getFieldContainer(aClass);
-        knownSchemas.put(aClass,schema);
-        return schema;
+    public DataObject_Schema getClassSchema(Class<?> aClass) {
+        return knownSchemas.get(aClass);
     }
 
     /**
@@ -224,7 +205,7 @@ public class TrackingDatabase_Schema {
      * @param dataObjectClass The class to get the dependencies for
      * @return getPreLoadDependencies for dataObjectClass but all abstract dependencies replaced with solid ones
      */
-    public List<Class<? extends DataObject>> getSolidPreLoadDependencies(Class<? extends DataObject> dataObjectClass) {
+    private List<Class<? extends DataObject>> getSolidPreLoadDependencies(Class<? extends DataObject> dataObjectClass) {
         List<Class<? extends DataObject>> rawDependencies = getClassSchema(dataObjectClass).getPreLoadDependencies();
         List<Class<? extends DataObject>> dependencies = new ArrayList<>();
 
@@ -248,34 +229,11 @@ public class TrackingDatabase_Schema {
         return dependencies;
     }
 
-    /**
-     * Has the schema been initialized
-     *
-     * @return True if the schema been initialized
-     */
-    public boolean isInitialized() {
-        return path != null;
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //#################################################### Getters #####################################################
-    //------------------------------------------------------------------------------------------------------------------
-
     public List<Class<? extends DataObject>> getSolidClasses() {
-        if (!isInitialized())
-            throw new IllegalStateException("Cant access the schema before it is initialized");
-        return solidClasses;
+        return Collections.unmodifiableList(solidClasses);
     }
 
-    public List<Class<? extends DataObject>> getAllClasses() {
-        if (!isInitialized())
-            throw new IllegalStateException("Path has not been set so no objects can be found");
-        return allClasses;
-    }
-
-    public ArrayList<Class<? extends DataObject>> getDecencyOrder() {
-        if (!isInitialized())
-            throw new IllegalStateException("Path has not been set so no objects can be found");
-        return decencyOrder;
+    public List<Class<? extends DataObject>> getDecencyOrder() {
+        return Collections.unmodifiableList(decencyOrder);
     }
 }

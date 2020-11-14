@@ -22,6 +22,9 @@ public class TrackingDatabase_Reader_Read {
     private final Map<Class<? extends DataObject>, List<String>> newParamList = new HashMap<>();
     private final Map<Class<? extends DataObject>, List<String[]>> newToReadData = new HashMap<>();
 
+    // Core database
+    private TrackingDatabase trackingDatabase;
+
     /**
      * An interface to check if a line of saved data is the one that the factory is trying to make
      */
@@ -63,7 +66,9 @@ public class TrackingDatabase_Reader_Read {
      *
      * @param corePath The path that files are located in
      */
-    public void read(String corePath, Map<String, String> nameMap) {
+    public void read(TrackingDatabase trackingDatabase, String corePath, Map<String, String> nameMap) {
+        this.trackingDatabase = trackingDatabase;
+
         Timer timer = new Timer();
         timer.stopPrint("Start");
 
@@ -92,21 +97,21 @@ public class TrackingDatabase_Reader_Read {
                 }
             }
         }
-        TrackingDatabase.get().setIDFloor(maxID);
+        trackingDatabase.setIDFloor(maxID);
 
         // Sort the objects so they are read correctly
-        List<Class<? extends DataObject>> readOrder = TrackingDatabase.get().getSchema().getDecencyOrder();
+        List<Class<? extends DataObject>> readOrder = new ArrayList<>(trackingDatabase.getSchema().getDecencyOrder());
 
         // TODO this needs to be fixed. This is needed because currency is not detected as a dependency for some factory children
         Class<? extends DataObject> currency = null;
         for (Class<? extends DataObject> toRead : readOrder) {
-            if(toRead.getSimpleName().equals("Currency")){
+            if (toRead.getSimpleName().equals("Currency")) {
                 currency = toRead;
                 break;
             }
         }
         readOrder.remove(currency);
-        readOrder.add(0,currency);
+        readOrder.add(0, currency);
 
         // Load the core data
         for (Class<? extends DataObject> toRead : readOrder) {
@@ -117,7 +122,7 @@ public class TrackingDatabase_Reader_Read {
             }
 
             // Ensure all factories object were consumed
-            if (TrackingDatabase.get().getSchema().getClassSchema(toRead).getMyFactory() != null) {
+            if (trackingDatabase.getSchema().getClassSchema(toRead).getMyFactory() != null) {
                 if (newToReadData.get(toRead).size() != 0) {
                     throw new RuntimeException("There are still factorised object left unloaded");
                 }
@@ -130,7 +135,7 @@ public class TrackingDatabase_Reader_Read {
         }
 
         // Load the images and paths into the database
-        TrackingDatabase.get().setImagePath(corePath + ROOT_IMAGE_PATH);
+        trackingDatabase.setImagePath(corePath + ROOT_IMAGE_PATH);
 
         timer.stopPrint("End");
     }
@@ -194,7 +199,7 @@ public class TrackingDatabase_Reader_Read {
      */
     public List<String> extractParams(Class<? extends DataObject> fileClass, String[] paramStrings, Map<String, String> nameMap) {
         // Get the expected field's
-        DataObject_Schema dataObjectSchema = TrackingDatabase.get().getSchema().getClassSchema(fileClass);
+        DataObject_Schema dataObjectSchema = trackingDatabase.getSchema().getClassSchema(fileClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getSavedFields();
 
         // Check the size
@@ -269,7 +274,7 @@ public class TrackingDatabase_Reader_Read {
      */
     public DataObject dataObjectFromString(Class<? extends DataObject> aClass, String[] paramStrings, DataObject underConstruction) {
 
-        DataObject_Schema dataObjectSchema = TrackingDatabase.get().getSchema().getClassSchema(aClass);
+        DataObject_Schema dataObjectSchema = trackingDatabase.getSchema().getClassSchema(aClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getList();
         currentFields.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT));
 
@@ -288,7 +293,7 @@ public class TrackingDatabase_Reader_Read {
             throw new RuntimeException(e);
         }
 
-        return DataObject.assembleDataObject(TrackingDatabase.get().getSchema().getClassSchema(aClass), newDataObject, args.toArray());
+        return DataObject.assembleDataObject(trackingDatabase, trackingDatabase.getSchema().getClassSchema(aClass), newDataObject, args.toArray());
     }
 
     /**
@@ -298,14 +303,14 @@ public class TrackingDatabase_Reader_Read {
      * @param paramType   The type
      * @return The object from the string
      */
-    private static Object paramFromString(String paramString, Class<?> paramType, DataObject underConstruction) {
+    private Object paramFromString(String paramString, Class<?> paramType, DataObject underConstruction) {
         Object parsedData;
 
         if (DataObject.class.isAssignableFrom(paramType)) {
             if (paramString.equals(" ")) {
                 parsedData = null;
             } else {
-                DataObject dataObject = TrackingDatabase.get().get(DataObject.class, Integer.parseInt(paramString));//loadedObjects.get(Integer.parseInt(paramString));
+                DataObject dataObject = trackingDatabase.get(DataObject.class, Integer.parseInt(paramString));//loadedObjects.get(Integer.parseInt(paramString));
                 if (dataObject == null && underConstruction != null) {
                     if (underConstruction.getId().equals(Integer.parseInt(paramString))) {
                         dataObject = underConstruction;

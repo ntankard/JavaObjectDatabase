@@ -13,10 +13,16 @@ public class Full_Set<T extends DataObject> extends ObjectSet<T> {
     protected Class<T> tClass;
 
     /**
+     * Core database
+     */
+    private final TrackingDatabase trackingDatabase;
+
+    /**
      * Constructor
      */
-    public Full_Set(Class<T> tClass) {
+    public Full_Set(TrackingDatabase trackingDatabase, Class<T> tClass) {
         super(null);
+        this.trackingDatabase = trackingDatabase;
         this.tClass = tClass;
     }
 
@@ -25,6 +31,6 @@ public class Full_Set<T extends DataObject> extends ObjectSet<T> {
      */
     @Override
     public List<T> get() {
-        return TrackingDatabase.get().get(tClass);
+        return trackingDatabase.get(tClass);
     }
 }

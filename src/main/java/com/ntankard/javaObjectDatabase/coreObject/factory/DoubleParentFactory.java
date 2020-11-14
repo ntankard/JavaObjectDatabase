@@ -89,7 +89,7 @@ public class DoubleParentFactory<GeneratedType extends DataObject, PrimaryGenera
     public void generate(DataObject generator) {
         if (primaryGeneratorType.isAssignableFrom(generator.getClass())) {
             PrimaryGeneratorType primaryGenerator = (PrimaryGeneratorType) generator;
-            for (SecondaryGeneratorType secondaryGenerator : TrackingDatabase.get().get(secondaryGeneratorType)) {
+            for (SecondaryGeneratorType secondaryGenerator : generator.getTrackingDatabase().get(secondaryGeneratorType)) {
                 tryLoad(primaryGenerator, secondaryGenerator, generator);
                 if (shouldBuild(new TwoParent_Children_Set<>(getGeneratedType(), primaryGenerator, secondaryGenerator).get().size())) {
                     constructor.generate(primaryGenerator, secondaryGenerator).add();
@@ -97,7 +97,7 @@ public class DoubleParentFactory<GeneratedType extends DataObject, PrimaryGenera
             }
         } else if (secondaryGeneratorType.isAssignableFrom(generator.getClass())) {
             SecondaryGeneratorType secondaryGenerator = (SecondaryGeneratorType) generator;
-            for (PrimaryGeneratorType primaryGenerator : TrackingDatabase.get().get(primaryGeneratorType)) {
+            for (PrimaryGeneratorType primaryGenerator : generator.getTrackingDatabase().get(primaryGeneratorType)) {
                 tryLoad(primaryGenerator, secondaryGenerator, generator);
                 if (shouldBuild(new TwoParent_Children_Set<>(getGeneratedType(), secondaryGenerator, primaryGenerator).get().size())) {
                     constructor.generate(primaryGenerator, secondaryGenerator).add();
@@ -116,14 +116,14 @@ public class DoubleParentFactory<GeneratedType extends DataObject, PrimaryGenera
      * @param source             Primary or secodnary generator that invoked generate
      */
     private void tryLoad(PrimaryGeneratorType primaryGenerator, SecondaryGeneratorType secondaryGenerator, DataObject source) {
-        TrackingDatabase.get().getReader().tryLoad(getGeneratedType(), new TrackingDatabase_Reader_Read.LineMatcher() {
+        primaryGenerator.getTrackingDatabase().getReader().tryLoad(getGeneratedType(), new TrackingDatabase_Reader_Read.LineMatcher() {
             @Override
             public boolean isTargetLine(String[] lines) {
-                Integer id = TrackingDatabase.get().getReader().getID(getGeneratedType(), primaryKey, lines);
+                Integer id = primaryGenerator.getTrackingDatabase().getReader().getID(getGeneratedType(), primaryKey, lines);
                 if (!primaryGenerator.getId().equals(id)) {
                     return false;
                 }
-                id = TrackingDatabase.get().getReader().getID(getGeneratedType(), secondaryKey, lines);
+                id = primaryGenerator.getTrackingDatabase().getReader().getID(getGeneratedType(), secondaryKey, lines);
                 return secondaryGenerator.getId().equals(id);
             }
         }, source);

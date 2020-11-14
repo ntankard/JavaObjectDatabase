@@ -1,6 +1,7 @@
 package com.ntankard.javaObjectDatabase.database;
 
 import com.ntankard.javaObjectDatabase.coreObject.DataObject;
+import com.ntankard.javaObjectDatabase.coreObject.field.DataField;
 import com.ntankard.javaObjectDatabase.database.subContainers.*;
 
 import java.util.ArrayList;
@@ -39,30 +40,10 @@ public class TrackingDatabase {
     //############################################### Constructor ######################################################
     //------------------------------------------------------------------------------------------------------------------
 
-    // Singleton constructor
-    private static TrackingDatabase master;
-
-    /**
-     * Singleton access
-     */
-    public static TrackingDatabase get() {
-        if (master == null) {
-            throw new RuntimeException("Database has not been initialised");
-        }
-        return master;
-    }
-
-    /**
-     * Reset the singleton and delete all data
-     */
-    public static void resetAndInit(TrackingDatabase_Schema schema, TrackingDatabase_Reader_Read reader){
-        master = new TrackingDatabase(schema, reader);
-    }
-
     /**
      * Private Constructor
      */
-    private TrackingDatabase(TrackingDatabase_Schema schema, TrackingDatabase_Reader_Read reader) {
+    public TrackingDatabase(TrackingDatabase_Schema schema, TrackingDatabase_Reader_Read reader) {
         this.schema = schema;
         this.reader = reader;
         containers.add(masterMap);
@@ -167,7 +148,11 @@ public class TrackingDatabase {
      * @return The default object
      */
     public <T extends DataObject> T getDefault(Class<T> aClass) {
-        return defaultObjectMap.getDefault(aClass);
+        T dataObject = defaultObjectMap.getDefault(aClass);
+        if (dataObject == null) {
+            return get(aClass).get(0);
+        }
+        return dataObject;
     }
 
     /**
@@ -201,6 +186,7 @@ public class TrackingDatabase {
 
     /**
      * Get the schema this database is built on
+     *
      * @return The schema this database is built on
      */
     public TrackingDatabase_Schema getSchema() {

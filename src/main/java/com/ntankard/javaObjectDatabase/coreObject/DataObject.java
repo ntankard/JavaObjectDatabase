@@ -65,14 +65,16 @@ public abstract class DataObject {
      * Construct an object with initialised values
      *
      * @param dataObjectSchema The Fields of the object
-     * @param blackObject    The constructed object without the fields attached yet
-     * @param args           The values for the fields
-     * @param <T>            The object type
+     * @param blackObject      The constructed object without the fields attached yet
+     * @param args             The values for the fields
+     * @param <T>              The object type
      * @return The assembled object
      */
-    public static <T extends DataObject> T assembleDataObject(DataObject_Schema dataObjectSchema, T blackObject, Object... args) {
+    public static <T extends DataObject> T assembleDataObject(TrackingDatabase trackingDatabase, DataObject_Schema dataObjectSchema, T blackObject, Object... args) {
         if (args.length / 2 * 2 != args.length)
             throw new IllegalArgumentException("Wrong amount of arguments");
+
+        blackObject.setTrackingDatabase(trackingDatabase);
 
         // Link the fields to the object
         List<DataField<?>> instanceList = new ArrayList<>();
@@ -146,6 +148,33 @@ public abstract class DataObject {
     }
 
     //------------------------------------------------------------------------------------------------------------------
+    //################################################# Database access ################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * The core database
+     */
+    private TrackingDatabase trackingDatabase;
+
+    /**
+     * Get the core database
+     *
+     * @return The core database
+     */
+    public TrackingDatabase getTrackingDatabase() {
+        return trackingDatabase;
+    }
+
+    /**
+     * Set the core database
+     *
+     * @param trackingDatabase The core database
+     */
+    public void setTrackingDatabase(TrackingDatabase trackingDatabase) {
+        this.trackingDatabase = trackingDatabase;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
     //################################################ Field Interface #################################################
     //------------------------------------------------------------------------------------------------------------------
 
@@ -212,7 +241,7 @@ public abstract class DataObject {
             field.getValue().forceNotify(); // possible error here, this may need to be done AFTER being put into the database
         }
 
-        TrackingDatabase.get().add(this);
+        getTrackingDatabase().add(this);
     }
 
     /**
@@ -229,11 +258,11 @@ public abstract class DataObject {
         if (this.getChildren().size() != 0) {
             throw new RuntimeException("Cant delete this kind of object. NoneFundEvent still has children");
         }
-        if (TrackingDatabase.get().getSchema().getClassSchema(this.getClass()).getObjectFactories().size() != 0) {
+        if (getTrackingDatabase().getSchema().getClassSchema(this.getClass()).getObjectFactories().size() != 0) {
             throw new UnsupportedOperationException("The code for deleting object that are factories has not been implemented yet");
         }
 
-        TrackingDatabase.get().remove(this);
+        getTrackingDatabase().remove(this);
 
         for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
             if (field.getKey().equals(DataObject_Id)) {
@@ -430,7 +459,7 @@ public abstract class DataObject {
      * @return A list of objects the the field will accept
      */
     public <T extends DataObject> List<T> sourceOptions(Class<T> type, String fieldName) {
-        return TrackingDatabase.get().get(type);
+        return getTrackingDatabase().get(type);
     }
 
     /**

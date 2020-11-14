@@ -20,14 +20,14 @@ public class TrackingDatabase_Reader_Save {
      * @param corePath The directory to put the folder
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void save(String corePath) {
+    public static void save(TrackingDatabase trackingDatabase, String corePath) {
         validateMasterDirectory(corePath);
 
         Map<Class<? extends DataObject>, List<List<String>>> classLinesToSave = new HashMap<>();
         Map<Class<? extends DataObject>, List<DataField_Schema<?>>> classFields = new HashMap<>();
 
         // Generate the headers
-        for (Class<? extends DataObject> aClass : TrackingDatabase.get().getDataObjectTypes()) {
+        for (Class<? extends DataObject> aClass : trackingDatabase.getDataObjectTypes()) {
 
             // Only save solid objects
             if (Modifier.isAbstract(aClass.getModifiers())) {
@@ -35,7 +35,7 @@ public class TrackingDatabase_Reader_Save {
             }
 
             // Don't save if there are no instances to save (avoid empty file)
-            if (TrackingDatabase.get().get(aClass).size() == 0) {
+            if (trackingDatabase.get(aClass).size() == 0) {
                 continue;
             }
 
@@ -49,7 +49,7 @@ public class TrackingDatabase_Reader_Save {
                 classLinesToSave.get(aClass).add(new ArrayList<>(Collections.singletonList(aClass.getName())));
 
                 // Write the object parameters to the header of the file
-                classFields.put(aClass, TrackingDatabase.get().getSchema().getClassSchema(aClass).getSavedFields());
+                classFields.put(aClass, trackingDatabase.getSchema().getClassSchema(aClass).getSavedFields());
 
                 List<String> types = new ArrayList<>();
                 for (DataField_Schema<?> constructorParameter : classFields.get(aClass)) {
@@ -61,7 +61,7 @@ public class TrackingDatabase_Reader_Save {
         }
 
         // Add each individual object
-        for (DataObject dataObject : TrackingDatabase.get().getAll()) {
+        for (DataObject dataObject : trackingDatabase.getAll()) {
             List<List<String>> lines = classLinesToSave.get(dataObject.getClass());
             List<DataField_Schema<?>> constructorParameters = classFields.get(dataObject.getClass());
 

@@ -52,6 +52,6 @@ public class DefaultObjectMap extends Container<Class, DataObject> {
                 throw new RuntimeException("No default registered for this type");
             }
         }
-        return TrackingDatabase.get().get(aClass).get(0);
+        return null;
     }
 }

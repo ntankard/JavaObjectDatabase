@@ -83,7 +83,7 @@ public class TwoParent_Children_Set<T extends DataObject, PrimaryParentType exte
     @Override
     public List<T> get() {
         if (isAttached) {
-            if (TrackingDatabase.get().shouldVerifyCalculations()) {
+            if (primaryParent.getTrackingDatabase().shouldVerifyCalculations()) {
                 List<T> reCalculated = manualGet();
 
                 if (reCalculated.size() != list.size()) {
