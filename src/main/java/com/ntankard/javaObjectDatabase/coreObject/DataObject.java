@@ -5,8 +5,7 @@ import com.ntankard.javaObjectDatabase.coreObject.field.DataField_Schema;
 import com.ntankard.javaObjectDatabase.coreObject.field.DataField;
 import com.ntankard.javaObjectDatabase.coreObject.field.properties.Display_Properties;
 import com.ntankard.javaObjectDatabase.database.subContainers.DataObjectContainer;
-import com.ntankard.javaObjectDatabase.database.TrackingDatabase;
-import com.ntankard.javaObjectDatabase.database.TrackingDatabase_Schema;
+import com.ntankard.javaObjectDatabase.database.Database;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -70,11 +69,11 @@ public abstract class DataObject {
      * @param <T>              The object type
      * @return The assembled object
      */
-    public static <T extends DataObject> T assembleDataObject(TrackingDatabase trackingDatabase, DataObject_Schema dataObjectSchema, T blackObject, Object... args) {
+    public static <T extends DataObject> T assembleDataObject(Database database, DataObject_Schema dataObjectSchema, T blackObject, Object... args) {
         if (args.length / 2 * 2 != args.length)
             throw new IllegalArgumentException("Wrong amount of arguments");
 
-        blackObject.setTrackingDatabase(trackingDatabase);
+        blackObject.setTrackingDatabase(database);
 
         // Link the fields to the object
         List<DataField<?>> instanceList = new ArrayList<>();
@@ -154,24 +153,24 @@ public abstract class DataObject {
     /**
      * The core database
      */
-    private TrackingDatabase trackingDatabase;
+    private Database database;
 
     /**
      * Get the core database
      *
      * @return The core database
      */
-    public TrackingDatabase getTrackingDatabase() {
-        return trackingDatabase;
+    public Database getTrackingDatabase() {
+        return database;
     }
 
     /**
      * Set the core database
      *
-     * @param trackingDatabase The core database
+     * @param database The core database
      */
-    public void setTrackingDatabase(TrackingDatabase trackingDatabase) {
-        this.trackingDatabase = trackingDatabase;
+    public void setTrackingDatabase(Database database) {
+        this.database = database;
     }
 
     //------------------------------------------------------------------------------------------------------------------

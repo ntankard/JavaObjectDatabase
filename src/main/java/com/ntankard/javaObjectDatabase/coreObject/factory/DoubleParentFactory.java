@@ -1,9 +1,8 @@
 package com.ntankard.javaObjectDatabase.coreObject.factory;
 
 import com.ntankard.javaObjectDatabase.coreObject.DataObject;
-import com.ntankard.javaObjectDatabase.database.TrackingDatabase;
 import com.ntankard.javaObjectDatabase.util.set.TwoParent_Children_Set;
-import com.ntankard.javaObjectDatabase.database.TrackingDatabase_Reader_Read;
+import com.ntankard.javaObjectDatabase.database.Database_IO_Reader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,7 +115,7 @@ public class DoubleParentFactory<GeneratedType extends DataObject, PrimaryGenera
      * @param source             Primary or secodnary generator that invoked generate
      */
     private void tryLoad(PrimaryGeneratorType primaryGenerator, SecondaryGeneratorType secondaryGenerator, DataObject source) {
-        primaryGenerator.getTrackingDatabase().getReader().tryLoad(getGeneratedType(), new TrackingDatabase_Reader_Read.LineMatcher() {
+        primaryGenerator.getTrackingDatabase().getReader().tryLoad(getGeneratedType(), new Database_IO_Reader.LineMatcher() {
             @Override
             public boolean isTargetLine(String[] lines) {
                 Integer id = primaryGenerator.getTrackingDatabase().getReader().getID(getGeneratedType(), primaryKey, lines);

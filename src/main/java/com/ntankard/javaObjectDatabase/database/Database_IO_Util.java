@@ -9,7 +9,7 @@ import java.util.List;
 
 import static com.ntankard.javaObjectDatabase.util.FileUtil.findFoldersInDirectory;
 
-public class TrackingDatabase_Reader_Util {
+public class Database_IO_Util {
 
     // Root paths
     public static String ROOT_DATA_PATH = "\\Data";

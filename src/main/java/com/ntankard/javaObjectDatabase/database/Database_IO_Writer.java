@@ -10,9 +10,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import static com.ntankard.javaObjectDatabase.database.TrackingDatabase_Reader_Util.*;
+import static com.ntankard.javaObjectDatabase.database.Database_IO_Util.*;
 
-public class TrackingDatabase_Reader_Save {
+public class Database_IO_Writer {
 
     /**
      * Save the database to a new directory
@@ -77,7 +77,7 @@ public class TrackingDatabase_Reader_Save {
         }
 
         // Write to file
-        String saveDir = TrackingDatabase_Reader_Util.newSaveDirectory(corePath + ROOT_DATA_PATH);
+        String saveDir = Database_IO_Util.newSaveDirectory(corePath + ROOT_DATA_PATH);
         new File(saveDir + INSTANCE_CLASSES_PATH).mkdir();
 
         // Save the classes

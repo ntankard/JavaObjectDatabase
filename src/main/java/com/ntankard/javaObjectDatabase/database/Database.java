@@ -1,7 +1,6 @@
 package com.ntankard.javaObjectDatabase.database;
 
 import com.ntankard.javaObjectDatabase.coreObject.DataObject;
-import com.ntankard.javaObjectDatabase.coreObject.field.DataField;
 import com.ntankard.javaObjectDatabase.database.subContainers.*;
 
 import java.util.ArrayList;
@@ -9,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class TrackingDatabase {
+public class Database {
 
     // Core data objects
     private final List<Container<?, ?>> containers = new ArrayList<>();
@@ -24,12 +23,12 @@ public class TrackingDatabase {
     /**
      * The reader used to make this database
      */
-    private final TrackingDatabase_Reader_Read reader;
+    private final Database_IO_Reader reader;
 
     /**
      * The schema this database is built on
      */
-    private final TrackingDatabase_Schema schema;
+    private final Database_Schema schema;
 
     /**
      * The lowest ID of the loaded objects, this is stored because new objects can be created while they are loading in
@@ -43,7 +42,7 @@ public class TrackingDatabase {
     /**
      * Private Constructor
      */
-    public TrackingDatabase(TrackingDatabase_Schema schema, TrackingDatabase_Reader_Read reader) {
+    public Database(Database_Schema schema, Database_IO_Reader reader) {
         this.schema = schema;
         this.reader = reader;
         containers.add(masterMap);
@@ -180,7 +179,7 @@ public class TrackingDatabase {
      *
      * @return The reader the builds this database
      */
-    public TrackingDatabase_Reader_Read getReader() {
+    public Database_IO_Reader getReader() {
         return reader;
     }
 
@@ -189,7 +188,7 @@ public class TrackingDatabase {
      *
      * @return The schema this database is built on
      */
-    public TrackingDatabase_Schema getSchema() {
+    public Database_Schema getSchema() {
         return schema;
     }
 

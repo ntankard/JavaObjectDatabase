@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public class TrackingDatabase_Schema {
+public class Database_Schema {
 
     //------------------------------------------------------------------------------------------------------------------
     //##################################################### Static #####################################################
@@ -19,7 +19,7 @@ public class TrackingDatabase_Schema {
     /**
      * Previously found schemas
      */
-    private static final Map<String, TrackingDatabase_Schema> knownGlobalSchemas = new HashMap<>();
+    private static final Map<String, Database_Schema> knownGlobalSchemas = new HashMap<>();
 
     /**
      * Generate a schema for all classes in a package
@@ -27,8 +27,8 @@ public class TrackingDatabase_Schema {
      * @param path The package to search
      * @return The generated TrackingDatabase_Schema
      */
-    public static synchronized TrackingDatabase_Schema getSchemaFromPackage(String path) {
-        knownGlobalSchemas.putIfAbsent(path, new TrackingDatabase_Schema(findClasses(path)));
+    public static synchronized Database_Schema getSchemaFromPackage(String path) {
+        knownGlobalSchemas.putIfAbsent(path, new Database_Schema(findClasses(path)));
         return knownGlobalSchemas.get(path);
     }
 
@@ -87,7 +87,7 @@ public class TrackingDatabase_Schema {
     /**
      * Private Constructor
      */
-    public TrackingDatabase_Schema(List<Class<? extends DataObject>> solidClasses) {
+    public Database_Schema(List<Class<? extends DataObject>> solidClasses) {
         this.solidClasses = solidClasses;
         generateClassSchemas();
         generateDependencyList();

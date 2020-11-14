@@ -1,7 +1,6 @@
 package com.ntankard.javaObjectDatabase.util.set;
 
 import com.ntankard.javaObjectDatabase.coreObject.DataObject;
-import com.ntankard.javaObjectDatabase.database.TrackingDatabase;
 
 import java.util.ArrayList;
 import java.util.Collections;

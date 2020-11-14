@@ -12,10 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.ntankard.javaObjectDatabase.database.TrackingDatabase_Reader_Util.*;
+import static com.ntankard.javaObjectDatabase.database.Database_IO_Util.*;
 import static com.ntankard.javaObjectDatabase.util.SourceCodeInspector.classForName;
 
-public class TrackingDatabase_Reader_Read {
+public class Database_IO_Reader {
 
     // New data
     private final List<Class<? extends DataObject>> newObjectList = new ArrayList<>();
@@ -76,7 +76,7 @@ public class TrackingDatabase_Reader_Read {
         validateMasterDirectory(corePath);
 
         // Find the latest save and validate the structure
-        String savePath = TrackingDatabase_Reader_Util.getLatestSaveDirectory(corePath + ROOT_DATA_PATH);
+        String savePath = Database_IO_Util.getLatestSaveDirectory(corePath + ROOT_DATA_PATH);
         validateSaveInstance(savePath);
 
         // Extract all lines from all files

@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.util.set;
 
 import com.ntankard.javaObjectDatabase.coreObject.DataObject;
-import com.ntankard.javaObjectDatabase.database.TrackingDatabase;
+import com.ntankard.javaObjectDatabase.database.Database;
 
 import java.util.List;
 
@@ -15,14 +15,14 @@ public class Full_Set<T extends DataObject> extends ObjectSet<T> {
     /**
      * Core database
      */
-    private final TrackingDatabase trackingDatabase;
+    private final Database database;
 
     /**
      * Constructor
      */
-    public Full_Set(TrackingDatabase trackingDatabase, Class<T> tClass) {
+    public Full_Set(Database database, Class<T> tClass) {
         super(null);
-        this.trackingDatabase = trackingDatabase;
+        this.database = database;
         this.tClass = tClass;
     }
 
@@ -31,6 +31,6 @@ public class Full_Set<T extends DataObject> extends ObjectSet<T> {
      */
     @Override
     public List<T> get() {
-        return trackingDatabase.get(tClass);
+        return database.get(tClass);
     }
 }
