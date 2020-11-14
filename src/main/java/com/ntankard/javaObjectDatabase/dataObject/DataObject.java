@@ -130,7 +130,7 @@ public abstract class DataObject {
         } while (paramIndexes.size() != 0);
 
         for (Map.Entry<String, DataField<?>> field : blackObject.fieldMap.entrySet()) {
-            field.getValue().add(); // Possible error here, this may need to be done AFTER being put into the database
+            field.getValue().initialFilter(); // Possible error here, this may need to be done AFTER being put into the database
         }
 
         for (Map.Entry<String, DataField<?>> field : blackObject.fieldMap.entrySet()) {

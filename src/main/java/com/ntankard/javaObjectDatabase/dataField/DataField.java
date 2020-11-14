@@ -90,7 +90,7 @@ public class DataField<FieldType> {
         this.notifyParentListener = (field, oldValue, newValue) -> {
             if (DataObject.class.isAssignableFrom(field.dataFieldSchema.getType())) {
                 if (field.dataFieldSchema.isTellParent()) {
-                    if (field.getState().equals(N_ACTIVE)) {
+                    if (field.getState().equals(N_ACTIVE)) { // Here, this is the reason you cant get rid of N_INITIALIZED, if you do you will double notify
                         if (oldValue != null) {
                             ((DataObject) oldValue).notifyChildUnLink(field.getContainer());
                         }
@@ -123,12 +123,9 @@ public class DataField<FieldType> {
     /**
      * Add this field to the database along with its container object
      */
-    public void add() {
+    public void initialFilter() {
         if (!getState().equals(N_INITIALIZED))
             throw new IllegalStateException("The field has not been configured, added or had its initial value set yet");
-
-        if (!doFilterCheck(value, oldValue))
-            throw new IllegalArgumentException("The field has been initially set but with an invalid value");
         this.state = N_ACTIVE;
     }
 
@@ -282,10 +279,8 @@ public class DataField<FieldType> {
      * @param toCheck The value to set
      */
     private void set_preCheck(FieldType toCheck) {
-        if (state.equals(N_ACTIVE)) {
-            if (!doFilterCheck(toCheck, value)) {
-                throw new IllegalArgumentException("Attempting to set a invalid value");
-            }
+        if (!doFilterCheck(toCheck, value)) {
+            throw new IllegalArgumentException("Attempting to set a invalid value");
         }
     }
 
