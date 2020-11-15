@@ -24,7 +24,7 @@ public abstract class DataObject {
     /**
      * The method name to get the fields
      */
-    public static String FieldName = "getFieldContainer";
+    public static String FieldName = "getDataObjectSchema";
 
     /**
      * Set all the fields for this object, should be called by a solid object constructor
@@ -34,13 +34,24 @@ public abstract class DataObject {
     public void setFields(List<DataField<?>> fields) {
         for (DataField<?> field : fields) {
             fieldMap.put(field.getDataFieldSchema().getIdentifierName(), field);
+            instanceList.add(field);
         }
     }
+
+    /**
+     * The schema of this object
+     */
+    private final DataObject_Schema dataObjectSchema;
 
     /**
      * The fields for this DataObject
      */
     protected Map<String, DataField<?>> fieldMap = new HashMap<>();
+
+    /**
+     * A list of the fields on this DataObject
+     */
+    private final List<DataField<?>> instanceList = new ArrayList<>();
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################### Constructor ##################################################
@@ -51,7 +62,7 @@ public abstract class DataObject {
     /**
      * Get all the fields for this object
      */
-    public static DataObject_Schema getFieldContainer() {
+    public static DataObject_Schema getDataObjectSchema() {
         DataObject_Schema dataObjectSchema = new DataObject_Schema();
         // ID ==========================================================================================================
         dataObjectSchema.add(new DataField_Schema<>(DataObject_Id, Integer.class));
@@ -61,29 +72,57 @@ public abstract class DataObject {
     }
 
     /**
-     * Construct an object with initialised values
-     *
-     * @param dataObjectSchema The Fields of the object
-     * @param blackObject      The constructed object without the fields attached yet
-     * @param args             The values for the fields
-     * @param <T>              The object type
-     * @return The assembled object
+     * Constructor
      */
-    public static <T extends DataObject> T assembleDataObject(Database database, DataObject_Schema dataObjectSchema, T blackObject, Object... args) {
-        if (args.length / 2 * 2 != args.length)
-            throw new IllegalArgumentException("Wrong amount of arguments");
-
-        blackObject.setTrackingDatabase(database);
+    public DataObject(Database database) {
+        this.database = database;
+        this.dataObjectSchema = database.getSchema().getClassSchema(this.getClass());
 
         // Link the fields to the object
         List<DataField<?>> instanceList = new ArrayList<>();
         for (DataField_Schema<?> field : dataObjectSchema.getList()) {
-            DataField<?> instance = field.generate(blackObject);
+            DataField<?> instance = field.generate(this);
             instanceList.add(instance);
         }
-        blackObject.setFields(instanceList);
+        this.setFields(instanceList);
+    }
 
-        blackObject.allValid = true;
+    /**
+     * Constructor
+     */
+    public DataObject(DataObject_Schema dataObjectSchema) {
+        this.dataObjectSchema = dataObjectSchema;
+
+        // Link the fields to the object
+        List<DataField<?>> instanceList = new ArrayList<>();
+        for (DataField_Schema<?> field : dataObjectSchema.getList()) {
+            DataField<?> instance = field.generate(this);
+            instanceList.add(instance);
+        }
+        this.setFields(instanceList);
+    }
+
+    /**
+     * Initialise all the values of the field.
+     *
+     * @param database The database this will link to
+     * @param args     ALl fields to initialize
+     * @return This
+     */
+    public DataObject setAllValues(Database database, Object... args) {
+        this.database = database;
+        return setAllValues(args);
+    }
+
+    /**
+     * Initialise all the values of the field.
+     *
+     * @param args ALl fields to initialize
+     * @return This
+     */
+    public DataObject setAllValues(Object... args) {
+        if (args.length / 2 * 2 != args.length)
+            throw new IllegalArgumentException("Wrong amount of arguments");
 
         // Start sharing data
         instanceList.forEach(DataField::allowValue);
@@ -124,27 +163,17 @@ public abstract class DataObject {
             }
 
             // Load the field
-            blackObject.getField(identifier).set(value);
+            this.getField(identifier).set(value);
             paramIndexes.remove(0);
             done.add(identifier);
         } while (paramIndexes.size() != 0);
 
-        for (Map.Entry<String, DataField<?>> field : blackObject.fieldMap.entrySet()) {
-            field.getValue().initialFilter(); // Possible error here, this may need to be done AFTER being put into the database
-        }
+        // phase 3, database read write
 
-        for (Map.Entry<String, DataField<?>> field : blackObject.fieldMap.entrySet()) {
-            if (!field.getValue().getState().equals(N_ACTIVE)) {
-                throw new RuntimeException();
-            }
-        }
 
-        for (ObjectFactory<?> factory : dataObjectSchema.getObjectFactories()) {
-            factory.generate(blackObject);
-        }
-
-        return blackObject;
+        return this;
     }
+
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################# Database access ################################################
@@ -216,8 +245,6 @@ public abstract class DataObject {
     //#################################################### General #####################################################
     //------------------------------------------------------------------------------------------------------------------
 
-    public boolean allValid = false;
-
     /**
      * {@inheritDoc
      */
@@ -235,6 +262,19 @@ public abstract class DataObject {
      */
     public void add() {
 
+        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
+            field.getValue().initialFilter(); // Possible error here, this may need to be done AFTER being put into the database
+        }
+
+        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
+            if (!field.getValue().getState().equals(N_ACTIVE)) {
+                throw new RuntimeException();
+            }
+        }
+
+        for (ObjectFactory<?> factory : dataObjectSchema.getObjectFactories()) {
+            factory.generate(this);
+        }
 
         for (Map.Entry<String, DataField<?>> field : this.fieldMap.entrySet()) {
             field.getValue().forceNotify(); // possible error here, this may need to be done AFTER being put into the database
@@ -481,9 +521,5 @@ public abstract class DataObject {
                 throw new RuntimeException("Not registered with a child");
             }
         }
-    }
-
-    public boolean isAllValid() {
-        return allValid;
     }
 }

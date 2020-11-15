@@ -121,12 +121,6 @@ public class ListDataField<T> extends DataField<List<T>> {
             throw new IllegalArgumentException("Trying to add a value that has already been added");
         }
 
-        if (toAdd instanceof DataObject) {
-            if (!((DataObject) toAdd).isAllValid()) {
-                throw new IllegalStateException("Can not set an object that is not all valid");
-            }
-        }
-
         if (!doFilterCheck(Collections.singletonList(toAdd), value)) {
             throw new IllegalArgumentException("Attempting to set a invalid value");
         }

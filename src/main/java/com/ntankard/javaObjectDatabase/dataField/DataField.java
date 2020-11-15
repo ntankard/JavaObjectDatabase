@@ -258,11 +258,6 @@ public class DataField<FieldType> {
         if (!state.equals(N_ACTIVE) && !state.equals(N_ATTACHED_TO_OBJECT) && !getState().equals(N_INITIALIZED))
             throw new IllegalStateException("Wrong state for setting a value");
 
-        if (value instanceof DataObject) {
-            if (!((DataObject) value).isAllValid())
-                throw new IllegalStateException("Can not set an object that is not all valid");
-        }
-
         set_preCheck(value);
         set_set(value);
 

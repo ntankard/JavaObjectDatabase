@@ -7,6 +7,7 @@ import com.ntankard.javaObjectDatabase.database.Database;
 import com.ntankard.javaObjectDatabase.util.FileUtil;
 import com.ntankard.javaObjectDatabase.util.Timer;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -287,14 +288,24 @@ public class Database_IO_Reader {
         }
 
         // Build the base object
-        DataObject newDataObject;
+        DataObject newDataObject = null;
         try {
-            newDataObject = (DataObject) aClass.getConstructors()[0].newInstance();
+            Constructor<?>[] constructors = aClass.getConstructors();
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterCount() == 1 && constructor.getParameterTypes()[0].equals(Database.class)) {
+                    newDataObject = (DataObject) constructor.newInstance(database);
+                    break;
+                }
+                // TODO add a check for the constructor with the schema
+            }
+            if (newDataObject == null) {
+                throw new RuntimeException();
+            }
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
 
-        return DataObject.assembleDataObject(database, database.getSchema().getClassSchema(aClass), newDataObject, args.toArray());
+        return newDataObject.setAllValues(args.toArray());
     }
 
     /**
