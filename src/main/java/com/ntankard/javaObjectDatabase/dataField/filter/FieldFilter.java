@@ -1,6 +1,5 @@
 package com.ntankard.javaObjectDatabase.dataField.filter;
 
-import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 
 /**
@@ -18,20 +17,4 @@ public abstract class FieldFilter<T, ContainerType extends DataObject> {
      * @return True if the newValue is valid
      */
     public abstract boolean isValid(T newValue, T pastValue, ContainerType container);
-
-    /**
-     * Called when this filter is attached to a field, run all required attachments now
-     *
-     * @param field the field i was attached to
-     */
-    public void attachedToField(DataField_Schema<T> field) {
-    }
-
-    /**
-     * Called when this filter is detached from a field. Clean up all attachments
-     *
-     * @param field The field i was removed from
-     */
-    public void detachedFromField(DataField_Schema<T> field) {
-    }
 }

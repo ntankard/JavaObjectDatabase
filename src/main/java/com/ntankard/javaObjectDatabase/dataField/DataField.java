@@ -152,9 +152,6 @@ public class DataField<FieldType> {
         if (fieldChangeListeners.size() > 1 || (fieldChangeListeners.size() == 1 && !fieldChangeListeners.contains(notifyParentListener)))
             throw new IllegalStateException("Trying to delete and object that has change listeners attached");
 
-        if (!dataFieldSchema.getDependantFields().isEmpty())
-            throw new IllegalStateException("Trying to remove a field that still has dependant fields attached");
-
         // Unlink this object from others in the database
         this.removeChangeListener(notifyParentListener);
         if (DataObject.class.isAssignableFrom(dataFieldSchema.getType())) {

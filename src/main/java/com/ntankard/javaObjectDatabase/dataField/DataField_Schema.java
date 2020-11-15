@@ -89,11 +89,6 @@ public class DataField_Schema<FieldType> {
     private final Display_Properties displayProperties = new Display_Properties();
 
     /**
-     * A list of fields this one depends on (must be part of the same container as this one)
-     */
-    private List<String> dependantFields = new ArrayList<>();
-
-    /**
      * The fillers used to check the data
      */
     private List<FieldFilter<FieldType, ?>> filters = new ArrayList<>();
@@ -144,7 +139,6 @@ public class DataField_Schema<FieldType> {
 
         this.displayProperties.finish();
         this.filters = Collections.unmodifiableList(this.filters);
-        this.dependantFields = Collections.unmodifiableList(this.dependantFields);
     }
 
     /**
@@ -221,10 +215,6 @@ public class DataField_Schema<FieldType> {
         return displayProperties;
     }
 
-    public List<String> getDependantFields() {
-        return dependantFields;
-    }
-
     public List<FieldFilter<FieldType, ?>> getFilters() {
         return filters;
     }
@@ -263,13 +253,8 @@ public class DataField_Schema<FieldType> {
         this.source = source;
     }
 
-    public void addDependantField(String field) {
-        this.dependantFields.add(field);
-    }
-
     public void addFilter(FieldFilter<FieldType, ?> filter) {
         this.filters.add(filter);
-        filter.attachedToField(this);
     }
 
     //------------------------------------------------------------------------------------------------------------------

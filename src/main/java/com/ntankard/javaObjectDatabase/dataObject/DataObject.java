@@ -127,49 +127,12 @@ public abstract class DataObject {
         // Start sharing data
         instanceList.forEach(DataField::allowValue);
 
-        List<String> done = new ArrayList<>();
-        List<Integer> paramIndexes = new ArrayList<>();
-        for (int i = 0; i < (args.length / 2); i++) {
-            paramIndexes.add(i);
-        }
-
         // Load each of the fields
-        int attempt = paramIndexes.size() * 2;
-        do {
-            // Check for an infinite loop
-            attempt--;
-            if (attempt <= 0)
-                throw new RuntimeException("Imposable dependency is causing an infinite loop");
-
-            // Get the next field to set
-            int toAdd = paramIndexes.get(0);
-            String identifier = args[toAdd * 2].toString();
-            Object value = args[toAdd * 2 + 1];
-            DataField_Schema<?> dataFieldSchema = dataObjectSchema.get(identifier);
-
-            // Check that all dependencies are loaded first
-            boolean canDo = true;
-            for (String dependant : dataFieldSchema.getDependantFields()) {
-                if (!done.contains(dependant)) {
-                    canDo = false;
-                    break;
-                }
-            }
-            if (!canDo) {
-                // This field depends on another that is not loaded, move it t other end of the line
-                paramIndexes.remove(0);
-                paramIndexes.add(toAdd);
-                continue;
-            }
-
-            // Load the field
+        for (int i = 0; i < args.length / 2; i++) {
+            String identifier = args[i * 2].toString();
+            Object value = args[i * 2 + 1];
             this.getField(identifier).set(value);
-            paramIndexes.remove(0);
-            done.add(identifier);
-        } while (paramIndexes.size() != 0);
-
-        // phase 3, database read write
-
+        }
 
         return this;
     }
