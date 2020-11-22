@@ -27,7 +27,7 @@ public class Local_Source<ResultType, SourceType> extends Source<ResultType> imp
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public Local_Source<ResultType, SourceType> createSource(DataField<ResultType> container) {
@@ -55,7 +55,7 @@ public class Local_Source<ResultType, SourceType> extends Source<ResultType> imp
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     protected void attach_impl() {
@@ -63,7 +63,7 @@ public class Local_Source<ResultType, SourceType> extends Source<ResultType> imp
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     protected void detach_impl() {
@@ -71,7 +71,7 @@ public class Local_Source<ResultType, SourceType> extends Source<ResultType> imp
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     protected boolean isReady_impl() {
@@ -79,7 +79,7 @@ public class Local_Source<ResultType, SourceType> extends Source<ResultType> imp
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void valueChanged(DataField<SourceType> field, SourceType oldValue, SourceType newValue) {

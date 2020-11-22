@@ -52,7 +52,7 @@ public class Children_ListDataCore<FieldType extends DataObject> extends ListDat
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public Children_ListDataCore<FieldType> createCore(DataField<List<FieldType>> container) {
@@ -106,7 +106,7 @@ public class Children_ListDataCore<FieldType extends DataObject> extends ListDat
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void startInitialSet() {
@@ -116,7 +116,7 @@ public class Children_ListDataCore<FieldType extends DataObject> extends ListDat
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void detachFromField(DataField<List<FieldType>> field) {
@@ -239,7 +239,7 @@ public class Children_ListDataCore<FieldType extends DataObject> extends ListDat
             }
 
             /**
-             * {@inheritDoc
+             * @inheritDoc
              */
             public ParentAccess<?, T> generate(ListDataField<T> container) {
                 return new ParentAccess<>(container.getContainer().getField(parentFieldKey));
@@ -340,7 +340,7 @@ public class Children_ListDataCore<FieldType extends DataObject> extends ListDat
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public void valueChanged(DataField<ParentType> field, ParentType oldValue, ParentType newValue) {
@@ -358,7 +358,7 @@ public class Children_ListDataCore<FieldType extends DataObject> extends ListDat
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public void childAdded(DataObject dataObject) {
@@ -379,7 +379,7 @@ public class Children_ListDataCore<FieldType extends DataObject> extends ListDat
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @SuppressWarnings("unchecked")
         @Override

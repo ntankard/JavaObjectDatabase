@@ -27,7 +27,7 @@ public class Full_Set<T extends DataObject> extends ObjectSet<T> {
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public List<T> get() {

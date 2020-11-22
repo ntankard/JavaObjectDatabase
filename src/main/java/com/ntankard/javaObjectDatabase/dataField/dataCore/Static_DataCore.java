@@ -37,7 +37,7 @@ public class Static_DataCore<FieldType> extends DataCore<FieldType> {
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public Static_DataCore<FieldType> createCore(DataField<FieldType> container) {
@@ -80,7 +80,7 @@ public class Static_DataCore<FieldType> extends DataCore<FieldType> {
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void startInitialSet() {

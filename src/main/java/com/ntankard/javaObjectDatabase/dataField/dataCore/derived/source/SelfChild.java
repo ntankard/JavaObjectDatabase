@@ -12,7 +12,7 @@ public class SelfChild<ResultType, SourceType extends DataObject> extends Source
     public static class SelfChildSource_Factory<ResultType, SourceType extends DataObject> extends Source_Factory<ResultType, SelfChild<ResultType, SourceType>> {
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public SelfChild<ResultType, SourceType> createSource(DataField<ResultType> container) {
@@ -32,7 +32,7 @@ public class SelfChild<ResultType, SourceType extends DataObject> extends Source
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public boolean isReady_impl() {
@@ -40,7 +40,7 @@ public class SelfChild<ResultType, SourceType extends DataObject> extends Source
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void attach_impl() {
@@ -48,7 +48,7 @@ public class SelfChild<ResultType, SourceType extends DataObject> extends Source
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void detach_impl() {
@@ -56,7 +56,7 @@ public class SelfChild<ResultType, SourceType extends DataObject> extends Source
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void childAdded(SourceType dataObject) {
@@ -64,7 +64,7 @@ public class SelfChild<ResultType, SourceType extends DataObject> extends Source
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void childRemoved(SourceType dataObject) {

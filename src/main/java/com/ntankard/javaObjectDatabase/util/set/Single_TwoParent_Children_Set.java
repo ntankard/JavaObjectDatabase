@@ -21,7 +21,7 @@ public class Single_TwoParent_Children_Set<T extends DataObject, PrimaryParentTy
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public List<T> get() {

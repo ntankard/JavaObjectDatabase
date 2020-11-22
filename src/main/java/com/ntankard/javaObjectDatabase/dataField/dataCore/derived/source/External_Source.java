@@ -35,7 +35,7 @@ public class External_Source<ResultType, SourceContainerType extends DataObject,
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public External_Source<ResultType, SourceContainerType, SourceType> createSource(DataField<ResultType> container) {
@@ -110,7 +110,7 @@ public class External_Source<ResultType, SourceContainerType extends DataObject,
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     protected boolean isReady_impl() {
@@ -130,7 +130,7 @@ public class External_Source<ResultType, SourceContainerType extends DataObject,
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void valueChanged(DataField<SourceType> field, SourceType oldValue, SourceType newValue) {

@@ -81,7 +81,7 @@ public class DoubleParentFactory<GeneratedType extends DataObject, PrimaryGenera
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -129,7 +129,7 @@ public class DoubleParentFactory<GeneratedType extends DataObject, PrimaryGenera
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public List<Class<? extends DataObject>> getGenerators() {

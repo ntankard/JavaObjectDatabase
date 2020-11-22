@@ -108,7 +108,7 @@ public class Shared_FieldFilter<FirstType, SecondType, ContainerType extends Dat
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public boolean isValid(FirstType newValue, FirstType pastValue, ContainerType container) {
@@ -134,7 +134,7 @@ public class Shared_FieldFilter<FirstType, SecondType, ContainerType extends Dat
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public boolean isValid(SecondType newValue, SecondType pastValue, ContainerType container) {

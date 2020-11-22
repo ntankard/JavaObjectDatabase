@@ -16,7 +16,7 @@ public class ListDataField_Schema<FieldType> extends DataField_Schema<List<Field
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void setManualCanEdit(Boolean canEdit) {
@@ -24,7 +24,7 @@ public class ListDataField_Schema<FieldType> extends DataField_Schema<List<Field
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public DataField<List<FieldType>> generate(DataObject blackObject) {

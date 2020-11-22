@@ -94,7 +94,7 @@ public class TreeNode<T> {
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public String toString() {

@@ -77,7 +77,7 @@ public class TwoParent_Children_Set<T extends DataObject, PrimaryParentType exte
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public List<T> get() {
@@ -101,7 +101,7 @@ public class TwoParent_Children_Set<T extends DataObject, PrimaryParentType exte
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void childAdded(T dataObject) {
@@ -120,7 +120,7 @@ public class TwoParent_Children_Set<T extends DataObject, PrimaryParentType exte
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void childRemoved(T dataObject) {

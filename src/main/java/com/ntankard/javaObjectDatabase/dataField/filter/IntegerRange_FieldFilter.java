@@ -23,7 +23,7 @@ public class IntegerRange_FieldFilter<ContainerType extends DataObject> extends 
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public boolean isValid(Integer newValue, Integer pastValue, ContainerType container) {

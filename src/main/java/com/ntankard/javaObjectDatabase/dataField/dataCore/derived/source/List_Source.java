@@ -35,7 +35,7 @@ public class List_Source<ResultType, ListType extends DataObject> extends Source
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public List_Source<ResultType, ListType> createSource(DataField<ResultType> container) {
@@ -72,7 +72,7 @@ public class List_Source<ResultType, ListType extends DataObject> extends Source
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     protected boolean isReady_impl() {
@@ -80,7 +80,7 @@ public class List_Source<ResultType, ListType extends DataObject> extends Source
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     protected void attach_impl() {
@@ -93,7 +93,7 @@ public class List_Source<ResultType, ListType extends DataObject> extends Source
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     protected void detach_impl() {
@@ -101,7 +101,7 @@ public class List_Source<ResultType, ListType extends DataObject> extends Source
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void valueChanged(DataField<List<ListType>> field, List<ListType> oldValue, List<ListType> newValue) {

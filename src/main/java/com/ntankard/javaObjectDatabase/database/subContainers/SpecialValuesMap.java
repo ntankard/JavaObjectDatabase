@@ -9,7 +9,7 @@ import java.util.Map;
 public class SpecialValuesMap extends Container<Class, Map<Integer, DataObject>> {
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void add(DataObject dataObject) {
@@ -33,7 +33,7 @@ public class SpecialValuesMap extends Container<Class, Map<Integer, DataObject>>
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void remove(DataObject dataObject) {

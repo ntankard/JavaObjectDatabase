@@ -7,7 +7,7 @@ import java.util.Comparator;
 public class Ordered_Comparator implements Comparator<DataObject> {
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public int compare(DataObject o1, DataObject o2) {

@@ -7,7 +7,7 @@ public class DefaultObjectMap extends Container<Class, DataObject> {
 
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void add(DataObject dataObject) {
@@ -22,7 +22,7 @@ public class DefaultObjectMap extends Container<Class, DataObject> {
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void remove(DataObject dataObject) {

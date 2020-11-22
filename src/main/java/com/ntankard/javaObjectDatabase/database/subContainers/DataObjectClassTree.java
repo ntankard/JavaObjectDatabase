@@ -9,7 +9,7 @@ public class DataObjectClassTree extends Container<Integer, Integer> {
     private TreeNode<Class<? extends DataObject>> classTreeRoot = new TreeNode<>(DataObject.class);
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void add(DataObject toAdd) {
@@ -56,7 +56,7 @@ public class DataObjectClassTree extends Container<Integer, Integer> {
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public void remove(DataObject dataObject) {

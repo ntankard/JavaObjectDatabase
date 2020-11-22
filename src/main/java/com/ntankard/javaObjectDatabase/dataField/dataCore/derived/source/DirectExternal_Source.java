@@ -47,7 +47,7 @@ public class DirectExternal_Source<ResultType, SourceContainerType extends DataO
         }
 
         /**
-         * {@inheritDoc
+         * @inheritDoc
          */
         @Override
         public DirectExternal_Source<ResultType, SourceContainerType> createSource(DataField<ResultType> container) {

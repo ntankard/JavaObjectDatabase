@@ -34,7 +34,7 @@ public class OneParent_Children_Set<T extends DataObject, ParentType extends Dat
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public List<T> get() {

@@ -20,7 +20,7 @@ public class ListDataField<T> extends DataField<List<T>> {
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public List<T> get() {
@@ -32,7 +32,7 @@ public class ListDataField<T> extends DataField<List<T>> {
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     protected void set_impl(List<T> value) {

@@ -262,7 +262,7 @@ public class DataField_Schema<FieldType> {
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public boolean equals(Object o) {
@@ -274,7 +274,7 @@ public class DataField_Schema<FieldType> {
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public int hashCode() {
@@ -282,7 +282,7 @@ public class DataField_Schema<FieldType> {
     }
 
     /**
-     * {@inheritDoc
+     * @inheritDoc
      */
     @Override
     public String toString() {
