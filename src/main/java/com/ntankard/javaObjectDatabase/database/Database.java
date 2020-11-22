@@ -1,8 +1,10 @@
 package com.ntankard.javaObjectDatabase.database;
 
+import com.ntankard.javaObjectDatabase.dataField.filter.Null_FieldFilter;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.database.io.Database_IO_Reader;
 import com.ntankard.javaObjectDatabase.database.subContainers.*;
+import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +37,11 @@ public class Database {
      * The lowest ID of the loaded objects, this is stored because new objects can be created while they are loading in
      */
     private Integer IDFloor = null;
+
+    /**
+     * The last known corrupting exception for this database
+     */
+    private CorruptingException corruptingException = null;
 
     //------------------------------------------------------------------------------------------------------------------
     //############################################### Constructor ######################################################
@@ -216,5 +223,23 @@ public class Database {
      */
     public boolean shouldVerifyCalculations() {
         return true;
+    }
+
+    /**
+     * Called when a corrupting exception is raised
+     *
+     * @param corruptingException The exception that caused the corruption
+     */
+    public void notifyCorruptingException(CorruptingException corruptingException) {
+        this.corruptingException = corruptingException;
+    }
+
+    /**
+     * Is the database clear to save?
+     *
+     * @return True if the database is clear to save
+     */
+    public boolean canSave() {
+        return corruptingException == null;
     }
 }
