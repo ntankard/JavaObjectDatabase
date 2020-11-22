@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.database.subContainers;
 
-import com.ntankard.javaObjectDatabase.coreObject.DataObject;
-import com.ntankard.javaObjectDatabase.coreObject.interfaces.SpecialValues;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.dataObject.interfaces.SpecialValues;
 
 import java.util.HashMap;
 import java.util.Map;

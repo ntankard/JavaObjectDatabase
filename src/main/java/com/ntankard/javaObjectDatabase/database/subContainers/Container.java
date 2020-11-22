@@ -1,6 +1,6 @@
 package com.ntankard.javaObjectDatabase.database.subContainers;
 
-import com.ntankard.javaObjectDatabase.coreObject.DataObject;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 
 import java.util.HashMap;
 import java.util.Map;

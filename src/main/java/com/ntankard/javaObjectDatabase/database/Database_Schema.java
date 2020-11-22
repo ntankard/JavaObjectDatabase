@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.database;
 
-import com.ntankard.javaObjectDatabase.coreObject.DataObject;
-import com.ntankard.javaObjectDatabase.coreObject.DataObject_Schema;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.util.SourceCodeInspector;
 
 import java.io.IOException;
@@ -110,11 +110,11 @@ public class Database_Schema {
      */
     private void generateClassSchemas() {
         for (Class<? extends DataObject> aClass : solidClasses) {
-            knownSchemas.put(aClass, getFieldContainer(aClass));
+            knownSchemas.put(aClass, getDataObjectSchema(aClass));
         }
 
         for (Class<? extends DataObject> aClass : abstractClasses) {
-            knownSchemas.put(aClass, getFieldContainer(aClass));
+            knownSchemas.put(aClass, getDataObjectSchema(aClass));
         }
     }
 
@@ -123,7 +123,7 @@ public class Database_Schema {
      *
      * @param aClass The object to get
      */
-    private DataObject_Schema getFieldContainer(Class<?> aClass) {
+    private DataObject_Schema getDataObjectSchema(Class<?> aClass) {
         try {
             Method method = aClass.getDeclaredMethod(DataObject.FieldName);
             return ((DataObject_Schema) method.invoke(null));

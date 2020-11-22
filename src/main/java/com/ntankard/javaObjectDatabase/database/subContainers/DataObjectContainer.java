@@ -1,8 +1,8 @@
 package com.ntankard.javaObjectDatabase.database.subContainers;
 
-import com.ntankard.javaObjectDatabase.coreObject.DataObject;
-import com.ntankard.javaObjectDatabase.coreObject.interfaces.Ordered;
-import com.ntankard.javaObjectDatabase.coreObject.interfaces.Ordered_Comparator;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.dataObject.interfaces.Ordered;
+import com.ntankard.javaObjectDatabase.dataObject.interfaces.Ordered_Comparator;
 
 import java.util.*;
 

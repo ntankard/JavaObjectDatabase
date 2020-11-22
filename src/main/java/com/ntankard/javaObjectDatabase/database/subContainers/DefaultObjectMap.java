@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.database.subContainers;
 
-import com.ntankard.javaObjectDatabase.coreObject.DataObject;
-import com.ntankard.javaObjectDatabase.coreObject.interfaces.HasDefault;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.dataObject.interfaces.HasDefault;
 
 public class DefaultObjectMap extends Container<Class, DataObject> {
 
