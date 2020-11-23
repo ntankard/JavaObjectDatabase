@@ -1,8 +1,10 @@
 package com.ntankard.javaObjectDatabase.dataObject;
 
+import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
 import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore;
+import com.ntankard.javaObjectDatabase.database.Database;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -75,8 +77,8 @@ public class DataObject_Schema {
     /**
      * Add a field after the key provided
      *
-     * @param toFollowKey The key for the field to follow
-     * @param dataFieldSchema   The field to add
+     * @param toFollowKey     The key for the field to follow
+     * @param dataFieldSchema The field to add
      * @return The field that was just added
      */
     public DataField_Schema<?> add(String toFollowKey, DataField_Schema<?> dataFieldSchema) {
@@ -210,11 +212,25 @@ public class DataObject_Schema {
             // Jump up the inheritance tree
             aClass = (Class<? extends DataObject>) aClass.getSuperclass();
             inheritedObjects.remove(toTest);
+
+            // Break in the case that the object is only 1 deep
+            if (aClass.equals(DataObject.class)) {
+                break;
+            }
         } while (DataObject.class.isAssignableFrom(aClass));
 
         // Finalise all fields
         for (DataField_Schema<?> dataFieldSchema : list) {
             dataFieldSchema.containerFinished(end);
+        }
+
+        // Validate the validators
+        for (DataField_Schema<?> dataObject_schema : list) {
+            for (FieldValidator<?, ?> fieldValidator : dataObject_schema.getValidators()) {
+                if (fieldValidator instanceof ValidatableSchema) {
+                    ((ValidatableSchema) fieldValidator).validateToAttachedSchema(this);
+                }
+            }
         }
 
         solidObjectType = end;

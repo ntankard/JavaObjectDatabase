@@ -22,7 +22,9 @@ public class CorruptingException extends RuntimeException {
     public CorruptingException(Database database) {
         super();
         this.database = database;
-        database.notifyCorruptingException(this);
+        if (database != null) {
+            database.notifyCorruptingException(this);
+        }
     }
 
     /**
@@ -32,7 +34,9 @@ public class CorruptingException extends RuntimeException {
     public CorruptingException(Database database, String message) {
         super(message);
         this.database = database;
-        database.notifyCorruptingException(this);
+        if (database != null) {
+            database.notifyCorruptingException(this);
+        }
     }
 
     /**
@@ -42,7 +46,9 @@ public class CorruptingException extends RuntimeException {
     public CorruptingException(Database database, String message, Throwable cause) {
         super(message, cause);
         this.database = database;
-        database.notifyCorruptingException(this);
+        if (database != null) {
+            database.notifyCorruptingException(this);
+        }
     }
 
     /**
@@ -52,7 +58,9 @@ public class CorruptingException extends RuntimeException {
     public CorruptingException(Database database, Throwable cause) {
         super(cause);
         this.database = database;
-        database.notifyCorruptingException(this);
+        if (database != null) {
+            database.notifyCorruptingException(this);
+        }
     }
 
     /**

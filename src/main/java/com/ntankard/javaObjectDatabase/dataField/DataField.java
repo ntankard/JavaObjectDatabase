@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.dataField;
 
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
-import com.ntankard.javaObjectDatabase.dataField.filter.FieldFilter;
+import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
 import com.ntankard.javaObjectDatabase.dataField.listener.FieldChangeListener;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore;
 
@@ -301,8 +301,8 @@ public class DataField<FieldType> {
      */
     @SuppressWarnings({"rawtypes", "unchecked", "BooleanMethodIsAlwaysInverted"})
     public boolean doFilterCheck(FieldType toCheck, FieldType pastValue) {
-        for (FieldFilter filter : dataFieldSchema.getFilters()) {
-            if (!filter.isValid(toCheck, pastValue, this.getContainer())) {
+        for (FieldValidator validator : dataFieldSchema.getValidators()) {
+            if (!validator.isValid(toCheck, pastValue, this.getContainer())) {
                 return false;
             }
         }

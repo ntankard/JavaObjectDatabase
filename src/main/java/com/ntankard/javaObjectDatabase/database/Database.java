@@ -1,6 +1,5 @@
 package com.ntankard.javaObjectDatabase.database;
 
-import com.ntankard.javaObjectDatabase.dataField.filter.Null_FieldFilter;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.database.io.Database_IO_Reader;
 import com.ntankard.javaObjectDatabase.database.subContainers.*;

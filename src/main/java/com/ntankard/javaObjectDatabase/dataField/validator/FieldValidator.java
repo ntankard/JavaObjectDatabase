@@ -1,12 +1,15 @@
-package com.ntankard.javaObjectDatabase.dataField.filter;
+package com.ntankard.javaObjectDatabase.dataField.validator;
 
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 
 /**
- * @param <T>             The type of object that will need to be checked
+ * A generic interface to check if a valid is valid for a certain field
+ *
+ * @param <ToTestType>    The type of object that will need to be checked
  * @param <ContainerType> The type of the container of the field that houses this filter
+ * @author Nicholas Tankard
  */
-public abstract class FieldFilter<T, ContainerType extends DataObject> {
+public interface FieldValidator<ToTestType, ContainerType extends DataObject> {
 
     /**
      * Check that a newValue is valid fora  given field
@@ -16,5 +19,5 @@ public abstract class FieldFilter<T, ContainerType extends DataObject> {
      * @param container The object that contains the field this filter is attached to
      * @return True if the newValue is valid
      */
-    public abstract boolean isValid(T newValue, T pastValue, ContainerType container);
+    boolean isValid(ToTestType newValue, ToTestType pastValue, ContainerType container);
 }

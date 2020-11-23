@@ -1,10 +1,11 @@
 package com.ntankard.javaObjectDatabase.dataField;
 
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
-import com.ntankard.javaObjectDatabase.dataField.filter.FieldFilter;
-import com.ntankard.javaObjectDatabase.dataField.filter.Null_FieldFilter;
+import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
+import com.ntankard.javaObjectDatabase.dataField.validator.Null_FieldValidator;
 import com.ntankard.javaObjectDatabase.dataField.properties.Display_Properties;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore;
+import com.ntankard.javaObjectDatabase.exception.corrupting.DatabaseStructureException;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -91,7 +92,7 @@ public class DataField_Schema<FieldType> {
     /**
      * The fillers used to check the data
      */
-    private List<FieldFilter<FieldType, ?>> filters = new ArrayList<>();
+    private List<FieldValidator<FieldType, ?>> validators = new ArrayList<>();
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################### Constructor ##################################################
@@ -116,7 +117,7 @@ public class DataField_Schema<FieldType> {
 
         this.displayName = identifierName.replace("get", "").replace("is", "").replace("has", "");
 
-        addFilter(new Null_FieldFilter<>(canBeNull));
+        addValidator(new Null_FieldValidator<>(canBeNull));
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -138,7 +139,7 @@ public class DataField_Schema<FieldType> {
             throw new IllegalStateException("Setter function added but not data core provided");
 
         this.displayProperties.finish();
-        this.filters = Collections.unmodifiableList(this.filters);
+        this.validators = Collections.unmodifiableList(this.validators);
     }
 
     /**
@@ -215,8 +216,8 @@ public class DataField_Schema<FieldType> {
         return displayProperties;
     }
 
-    public List<FieldFilter<FieldType, ?>> getFilters() {
-        return filters;
+    public List<FieldValidator<FieldType, ?>> getValidators() {
+        return validators;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -253,8 +254,8 @@ public class DataField_Schema<FieldType> {
         this.source = source;
     }
 
-    public void addFilter(FieldFilter<FieldType, ?> filter) {
-        this.filters.add(filter);
+    public void addValidator(FieldValidator<FieldType, ?> validator) {
+        this.validators.add(validator);
     }
 
     //------------------------------------------------------------------------------------------------------------------
