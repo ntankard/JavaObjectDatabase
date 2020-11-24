@@ -1,10 +1,9 @@
 package com.ntankard.javaObjectDatabase.dataObject;
 
-import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
-import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore;
-import com.ntankard.javaObjectDatabase.database.Database;
+import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
+import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -120,7 +119,7 @@ public class DataObject_Schema {
      *
      * @param objectFactory The object factory to add
      */
-    public void addObjectFactory(ObjectFactory objectFactory) {
+    public void addObjectFactory(ObjectFactory<?> objectFactory) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
         this.objectFactories.add(objectFactory);
@@ -263,26 +262,6 @@ public class DataObject_Schema {
      */
     public List<DataField_Schema<?>> getList() {
         return new ArrayList<>(list);
-    }
-
-    /**
-     * Get the list of all fields with a certain, or above verbosity level
-     *
-     * @param verbosity The level to filter on
-     * @return The list of fields
-     */
-    public List<DataField_Schema<?>> getVerbosityDataFields(int verbosity) {
-        List<DataField_Schema<?>> fields = new ArrayList<>();
-        for (DataField_Schema<?> f : getList()) {
-            if (f.getDisplayProperties().getVerbosityLevel() > verbosity) {
-                continue;
-            }
-            if (!f.getDisplayProperties().getShouldDisplay()) {
-                continue;
-            }
-            fields.add(f);
-        }
-        return fields;
     }
 
     /**
