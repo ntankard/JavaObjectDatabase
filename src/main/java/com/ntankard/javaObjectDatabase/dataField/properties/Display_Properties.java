@@ -27,7 +27,6 @@ public class Display_Properties {
 
     private boolean shouldDisplay = true;
     private int verbosityLevel = ALWAYS_DISPLAY;
-    private int order = -1;
     private DataType dataType = DataType.AS_CLASS;
     private DataContext dataContext = DataContext.NONE;
     private int displayDecimal = 2;
@@ -47,10 +46,6 @@ public class Display_Properties {
 
     public int getVerbosityLevel() {
         return verbosityLevel;
-    }
-
-    public int getOrder() {
-        return order;
     }
 
     public DataType getDataType() {
@@ -76,13 +71,6 @@ public class Display_Properties {
         if (this.isFinished)
             throw new IllegalStateException("Cant set values once the properties are finalised");
         this.verbosityLevel = verbosityLevel;
-        return this;
-    }
-
-    public Display_Properties setOrder(int order) {
-        if (this.isFinished)
-            throw new IllegalStateException("Cant set values once the properties are finalised");
-        this.order = order;
         return this;
     }
 

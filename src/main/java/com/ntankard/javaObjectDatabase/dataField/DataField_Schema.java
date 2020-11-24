@@ -90,6 +90,11 @@ public class DataField_Schema<FieldType> {
     private final Display_Properties displayProperties = new Display_Properties();
 
     /**
+     * The order of this field relative to the other fields in the DataObject_Schema
+     */
+    private int order = -1;
+
+    /**
      * The fillers used to check the data
      */
     private List<FieldValidator<FieldType, ?>> validators = new ArrayList<>();
@@ -216,6 +221,10 @@ public class DataField_Schema<FieldType> {
         return displayProperties;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
     public List<FieldValidator<FieldType, ?>> getValidators() {
         return validators;
     }
@@ -256,6 +265,10 @@ public class DataField_Schema<FieldType> {
 
     public void addValidator(FieldValidator<FieldType, ?> validator) {
         this.validators.add(validator);
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
     }
 
     //------------------------------------------------------------------------------------------------------------------

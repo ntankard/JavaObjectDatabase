@@ -84,7 +84,7 @@ public class DataObject_Schema {
     public DataField_Schema<?> add(String toFollowKey, DataField_Schema<?> dataFieldSchema) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
-        lastOrder = masterMap.get(toFollowKey).getDisplayProperties().getOrder();
+        lastOrder = masterMap.get(toFollowKey).getOrder();
         return add(dataFieldSchema);
     }
 
@@ -106,7 +106,7 @@ public class DataObject_Schema {
         last = dataFieldSchema;
 
         lastOrder = lastOrder + orderStep;
-        dataFieldSchema.getDisplayProperties().setOrder(lastOrder);
+        dataFieldSchema.setOrder(lastOrder);
 
         return dataFieldSchema;
     }
@@ -155,7 +155,7 @@ public class DataObject_Schema {
     public DataObject_Schema endLayer(Class<? extends DataObject> endLayer, String toFollowKey) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
-        lastOrder = masterMap.get(toFollowKey).getDisplayProperties().getOrder();
+        lastOrder = masterMap.get(toFollowKey).getOrder();
         return endLayer(endLayer);
     }
 
