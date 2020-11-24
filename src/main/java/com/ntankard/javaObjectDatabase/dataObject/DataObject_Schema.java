@@ -52,6 +52,11 @@ public class DataObject_Schema {
      */
     private ObjectFactory<?> myFactory = null;
 
+    /**
+     * Factories for any custom properties to be attached to fields
+     */
+    private final List<PropertyBuilder> propertyBuilders = new ArrayList<>();
+
     // State -----------------------------------------------------------------------------------------------------------
 
     /**
@@ -99,6 +104,9 @@ public class DataObject_Schema {
         if (masterMap.containsKey(dataFieldSchema.getIdentifierName()))
             throw new IllegalArgumentException("A field with this key has been added before");
 
+        for (PropertyBuilder propertyBuilder : propertyBuilders) {
+            propertyBuilder.attachProperty(dataFieldSchema);
+        }
 
         list.add(dataFieldSchema);
         masterMap.put(dataFieldSchema.getIdentifierName(), dataFieldSchema);
@@ -108,6 +116,18 @@ public class DataObject_Schema {
         dataFieldSchema.setOrder(lastOrder);
 
         return dataFieldSchema;
+    }
+
+    /**
+     * Add a new property building that will ensure all fields have this property
+     *
+     * @param propertyBuilder The source of the property
+     */
+    public void addPropertyBuilder(PropertyBuilder propertyBuilder) {
+        for (DataField_Schema<?> dataFieldSchema : list) {
+            propertyBuilder.attachProperty(dataFieldSchema);
+        }
+        propertyBuilders.add(propertyBuilder);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -341,4 +361,22 @@ public class DataObject_Schema {
     public ObjectFactory<?> getMyFactory() {
         return myFactory;
     }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //#################################################### Interface ###################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * An interface to create the default version of any properties to add add to the fields
+     */
+    public interface PropertyBuilder {
+
+        /**
+         * Add the property to this field
+         *
+         * @param dataFieldSchema The field to add the property too
+         */
+        void attachProperty(DataField_Schema<?> dataFieldSchema);
+    }
+
 }

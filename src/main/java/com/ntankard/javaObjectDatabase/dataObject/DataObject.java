@@ -1,11 +1,10 @@
 package com.ntankard.javaObjectDatabase.dataObject;
 
-import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
-import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.DataField;
-import com.ntankard.javaObjectDatabase.dataField.properties.Display_Properties;
-import com.ntankard.javaObjectDatabase.database.subContainers.DataObjectContainer;
+import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
+import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 import com.ntankard.javaObjectDatabase.database.Database;
+import com.ntankard.javaObjectDatabase.database.subContainers.DataObjectContainer;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -66,7 +65,6 @@ public abstract class DataObject {
         DataObject_Schema dataObjectSchema = new DataObject_Schema();
         // ID ==========================================================================================================
         dataObjectSchema.add(new DataField_Schema<>(DataObject_Id, Integer.class));
-        dataObjectSchema.get(DataObject_Id).getDisplayProperties().setVerbosityLevel(Display_Properties.INFO_DISPLAY);
         //==============================================================================================================
         return dataObjectSchema.endLayer(DataObject.class);
     }

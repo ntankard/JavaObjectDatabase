@@ -1,17 +1,13 @@
 package com.ntankard.javaObjectDatabase.dataField;
 
-import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore;
+import com.ntankard.javaObjectDatabase.dataField.properties.CustomProperty;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
 import com.ntankard.javaObjectDatabase.dataField.validator.Null_FieldValidator;
-import com.ntankard.javaObjectDatabase.dataField.properties.Display_Properties;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore;
-import com.ntankard.javaObjectDatabase.exception.corrupting.DatabaseStructureException;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.ntankard.javaObjectDatabase.dataField.DataField_Schema.SourceMode.*;
 
@@ -85,9 +81,9 @@ public class DataField_Schema<FieldType> {
     private Method source = null;
 
     /**
-     * The properties to use when displaying the data
+     * Any custom properties attached to the field
      */
-    private final Display_Properties displayProperties = new Display_Properties();
+    private final Map<Class<? extends CustomProperty>, CustomProperty> properties = new HashMap<>();
 
     /**
      * The order of this field relative to the other fields in the DataObject_Schema
@@ -143,7 +139,10 @@ public class DataField_Schema<FieldType> {
         if (setterFunction != null && dataCore_factory == null)
             throw new IllegalStateException("Setter function added but not data core provided");
 
-        this.displayProperties.finish();
+        for (Map.Entry<Class<? extends CustomProperty>, CustomProperty> customProperty : properties.entrySet()) {
+            customProperty.getValue().finalise();
+        }
+
         this.validators = Collections.unmodifiableList(this.validators);
     }
 
@@ -217,8 +216,9 @@ public class DataField_Schema<FieldType> {
         return source;
     }
 
-    public Display_Properties getDisplayProperties() {
-        return displayProperties;
+    @SuppressWarnings("unchecked")
+    public <T extends CustomProperty> T getProperty(Class<T> key) {
+        return (T) properties.get(key);
     }
 
     public int getOrder() {
@@ -265,6 +265,10 @@ public class DataField_Schema<FieldType> {
 
     public void addValidator(FieldValidator<FieldType, ?> validator) {
         this.validators.add(validator);
+    }
+
+    public void setProperty(CustomProperty customProperty) {
+        properties.put(customProperty.getClass(), customProperty);
     }
 
     public void setOrder(int order) {
