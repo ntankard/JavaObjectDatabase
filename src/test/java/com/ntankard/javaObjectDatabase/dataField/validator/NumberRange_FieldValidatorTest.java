@@ -1,5 +1,6 @@
 package com.ntankard.javaObjectDatabase.dataField.validator;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 
@@ -13,14 +14,19 @@ class NumberRange_FieldValidatorTest {
 
     private static final int TEST_NUM = 100;
 
+    @BeforeAll
+    static void beforeAll() {
+        ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
+    }
+
     @Test
     @Execution(CONCURRENT)
     void constructor() {
-        assertThrows(IllegalArgumentException.class, () -> new NumberRange_FieldValidator<>(null, null));
-        assertThrows(IllegalArgumentException.class, () -> new NumberRange_FieldValidator<>(0, 0));
-        assertThrows(IllegalArgumentException.class, () -> new NumberRange_FieldValidator<>(50, 50));
-        assertThrows(IllegalArgumentException.class, () -> new NumberRange_FieldValidator<>(0, -1));
-        assertThrows(IllegalArgumentException.class, () -> new NumberRange_FieldValidator<>(50, -50));
+        assertThrows(AssertionError.class, () -> new NumberRange_FieldValidator<>(null, null));
+        assertThrows(AssertionError.class, () -> new NumberRange_FieldValidator<>(0, 0));
+        assertThrows(AssertionError.class, () -> new NumberRange_FieldValidator<>(50, 50));
+        assertThrows(AssertionError.class, () -> new NumberRange_FieldValidator<>(0, -1));
+        assertThrows(AssertionError.class, () -> new NumberRange_FieldValidator<>(50, -50));
         assertDoesNotThrow(() -> new NumberRange_FieldValidator<>(-10, 10));
         assertDoesNotThrow(() -> new NumberRange_FieldValidator<>(null, 10));
         assertDoesNotThrow(() -> new NumberRange_FieldValidator<>(-10, null));

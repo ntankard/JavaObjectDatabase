@@ -116,14 +116,10 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
      * @param onlyNewSharedValidator The validate logic to use, or null if fullSharedValidator is provided
      */
     private Shared_FieldValidator(String firstFieldKey, String secondFieldKey, FullSharedValidator<FirstType, SecondType, ContainerType> fullSharedValidator, OnlyNewSharedValidator<FirstType, SecondType, ContainerType> onlyNewSharedValidator) {
-        if (firstFieldKey == null)
-            throw new IllegalArgumentException("firstFieldKey cannot be null");
-        if (secondFieldKey == null)
-            throw new IllegalArgumentException("secondFieldKey cannot be null");
-        if (fullSharedValidator == null && onlyNewSharedValidator == null)
-            throw new IllegalArgumentException("1 validator must be provided");
-        if (fullSharedValidator != null && onlyNewSharedValidator != null)
-            throw new IllegalArgumentException("only 1 validator must be provided");
+        assert firstFieldKey != null;
+        assert secondFieldKey != null;
+        assert fullSharedValidator != null || onlyNewSharedValidator != null;
+        assert !(fullSharedValidator != null && onlyNewSharedValidator != null);
 
         this.firstFieldKey = firstFieldKey;
         this.secondFieldKey = secondFieldKey;

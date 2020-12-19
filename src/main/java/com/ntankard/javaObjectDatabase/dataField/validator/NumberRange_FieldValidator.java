@@ -29,10 +29,8 @@ public class NumberRange_FieldValidator<NumberType extends Number & Comparable<N
      * @param max The maximum value that can be set or null if there is no upper limit
      */
     public NumberRange_FieldValidator(NumberType min, NumberType max) {
-        if (max == null && min == null)
-            throw new IllegalArgumentException("Both bounds cannot be null");
-        if (min != null && max != null && min.compareTo(max) >= 0)
-            throw new IllegalArgumentException("Min must be less than max");
+        assert max != null || min != null;
+        assert min == null || max == null || min.compareTo(max) < 0;
 
         this.min = min;
         this.max = max;
