@@ -81,6 +81,11 @@ public class DataField_Schema<FieldType> {
     private Method source = null;
 
     /**
+     * Should this field be saved? Assuming all other save conditions are met
+     */
+    private boolean shouldSave = true;
+
+    /**
      * Any custom properties attached to the field
      */
     private final Map<Class<? extends CustomProperty>, CustomProperty> properties = new HashMap<>();
@@ -216,6 +221,10 @@ public class DataField_Schema<FieldType> {
         return source;
     }
 
+    public boolean isShouldSave() {
+        return shouldSave;
+    }
+
     @SuppressWarnings("unchecked")
     public <T extends CustomProperty> T getProperty(Class<T> key) {
         return (T) properties.get(key);
@@ -261,6 +270,10 @@ public class DataField_Schema<FieldType> {
 
     public void setSource(Method source) {
         this.source = source;
+    }
+
+    public void setShouldSave(boolean shouldSave) {
+        this.shouldSave = shouldSave;
     }
 
     public void addValidator(FieldValidator<FieldType, ?> validator) {

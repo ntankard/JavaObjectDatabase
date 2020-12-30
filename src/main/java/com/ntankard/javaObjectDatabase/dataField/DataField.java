@@ -255,6 +255,11 @@ public class DataField<FieldType> {
         if (!state.equals(N_ACTIVE) && !state.equals(N_ATTACHED_TO_OBJECT) && !getState().equals(N_INITIALIZED))
             throw new IllegalStateException("Wrong state for setting a value");
 
+        // TODO check if this is correct
+        if (value == this.value && value != null) {
+            return;
+        }
+
         set_preCheck(value);
         set_set(value);
 
@@ -343,5 +348,22 @@ public class DataField<FieldType> {
 
     public List<FieldChangeListener<FieldType>> getFieldChangeListeners() {
         return fieldChangeListeners;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################# Object Methods #################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public String toString() {
+        return "DataField{" +
+                "dataFieldSchema=" + ((dataFieldSchema == null) ? "null" : dataFieldSchema) +
+                ", container=" + ((container == null) ? "null" : container) +
+                ", state=" + state +
+                ", value=" + ((value == null) ? "null" : value) +
+                '}';
     }
 }

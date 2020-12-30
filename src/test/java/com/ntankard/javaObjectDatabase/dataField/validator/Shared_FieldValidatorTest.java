@@ -9,15 +9,15 @@ import com.ntankard.javaObjectDatabase.database.Database;
 import com.ntankard.javaObjectDatabase.exception.corrupting.DatabaseStructureException;
 import com.ntankard.javaObjectDatabase.testUtil.testDatabases.BlankTestDataObject;
 import com.ntankard.javaObjectDatabase.testUtil.testDatabases.DatabaseFactory;
-import com.ntankard.javaObjectDatabase.testUtil.testObjects.SharedValidator_TestObject;
+import com.ntankard.javaObjectDatabase.dataField.validator.testObjects.SharedValidator_TestObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 
 import java.util.Collections;
 
-import static com.ntankard.javaObjectDatabase.testUtil.testObjects.SharedValidator_TestObject.First;
-import static com.ntankard.javaObjectDatabase.testUtil.testObjects.SharedValidator_TestObject.Second;
+import static com.ntankard.javaObjectDatabase.dataField.validator.testObjects.SharedValidator_TestObject.First;
+import static com.ntankard.javaObjectDatabase.dataField.validator.testObjects.SharedValidator_TestObject.Second;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
 

@@ -119,6 +119,17 @@ public class DataObject_Schema {
     }
 
     /**
+     * Make all new fields that are added follow this field
+     *
+     * @param toFollowKey The field to add
+     */
+    public void follow(String toFollowKey) {
+        if (isFinalized)
+            throw new IllegalStateException("Trying to modify a finalised container");
+        lastOrder = masterMap.get(toFollowKey).getOrder();
+    }
+
+    /**
      * Add a new property building that will ensure all fields have this property
      *
      * @param propertyBuilder The source of the property
@@ -306,7 +317,7 @@ public class DataObject_Schema {
      */
     public List<DataField_Schema<?>> getSavedFields() {
         List<DataField_Schema<?>> toReturn = new ArrayList<>(list);
-        toReturn.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT));
+        toReturn.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT) || !field.isShouldSave());
         return toReturn;
     }
 
@@ -360,6 +371,10 @@ public class DataObject_Schema {
 
     public ObjectFactory<?> getMyFactory() {
         return myFactory;
+    }
+
+    public Class<? extends DataObject> getSolidObjectType() {
+        return solidObjectType;
     }
 
     //------------------------------------------------------------------------------------------------------------------
