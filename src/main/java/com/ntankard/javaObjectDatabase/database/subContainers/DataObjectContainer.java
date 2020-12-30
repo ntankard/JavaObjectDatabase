@@ -8,7 +8,7 @@ import java.util.*;
 
 public class DataObjectContainer extends Container<Class<? extends DataObject>, Map<Integer, DataObject>> {
 
-    private Map<Class<? extends DataObject>, List<DataObject>> masterContainer = new HashMap<>();
+    private final Map<Class<? extends DataObject>, List<DataObject>> masterContainer = new HashMap<>();
 
     /**
      * Add a new object
@@ -115,6 +115,16 @@ public class DataObjectContainer extends Container<Class<? extends DataObject>, 
             container.put(tClass, new HashMap<>());
         }
         return (T) container.get(tClass).get(id);
+    }
+
+    /**
+     * Dose this container contain this object at all
+     *
+     * @param id The ID to check
+     * @return True if this object is contained at all
+     */
+    public boolean contains(Integer id) {
+        return container.get(DataObject.class).containsKey(id);
     }
 
     /**

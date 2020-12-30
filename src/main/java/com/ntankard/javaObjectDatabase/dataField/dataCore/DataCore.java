@@ -80,7 +80,8 @@ public abstract class DataCore<FieldType> {
      *
      * @return The field containing this data core
      */
-    public DataField<FieldType> getDataField() {
-        return dataField;
+    @SuppressWarnings("unchecked")
+    public <DataFieldType extends DataField<FieldType>> DataFieldType getDataField() {
+        return (DataFieldType) dataField;
     }
 }

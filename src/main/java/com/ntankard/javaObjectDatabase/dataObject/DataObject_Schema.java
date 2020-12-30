@@ -1,8 +1,9 @@
 package com.ntankard.javaObjectDatabase.dataObject;
 
-import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore;
+import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
+import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -51,6 +52,11 @@ public class DataObject_Schema {
      */
     private ObjectFactory<?> myFactory = null;
 
+    /**
+     * Factories for any custom properties to be attached to fields
+     */
+    private final List<PropertyBuilder> propertyBuilders = new ArrayList<>();
+
     // State -----------------------------------------------------------------------------------------------------------
 
     /**
@@ -75,14 +81,14 @@ public class DataObject_Schema {
     /**
      * Add a field after the key provided
      *
-     * @param toFollowKey The key for the field to follow
-     * @param dataFieldSchema   The field to add
+     * @param toFollowKey     The key for the field to follow
+     * @param dataFieldSchema The field to add
      * @return The field that was just added
      */
     public DataField_Schema<?> add(String toFollowKey, DataField_Schema<?> dataFieldSchema) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
-        lastOrder = masterMap.get(toFollowKey).getDisplayProperties().getOrder();
+        lastOrder = masterMap.get(toFollowKey).getOrder();
         return add(dataFieldSchema);
     }
 
@@ -98,15 +104,41 @@ public class DataObject_Schema {
         if (masterMap.containsKey(dataFieldSchema.getIdentifierName()))
             throw new IllegalArgumentException("A field with this key has been added before");
 
+        for (PropertyBuilder propertyBuilder : propertyBuilders) {
+            propertyBuilder.attachProperty(dataFieldSchema);
+        }
 
         list.add(dataFieldSchema);
         masterMap.put(dataFieldSchema.getIdentifierName(), dataFieldSchema);
         last = dataFieldSchema;
 
         lastOrder = lastOrder + orderStep;
-        dataFieldSchema.getDisplayProperties().setOrder(lastOrder);
+        dataFieldSchema.setOrder(lastOrder);
 
         return dataFieldSchema;
+    }
+
+    /**
+     * Make all new fields that are added follow this field
+     *
+     * @param toFollowKey The field to add
+     */
+    public void follow(String toFollowKey) {
+        if (isFinalized)
+            throw new IllegalStateException("Trying to modify a finalised container");
+        lastOrder = masterMap.get(toFollowKey).getOrder();
+    }
+
+    /**
+     * Add a new property building that will ensure all fields have this property
+     *
+     * @param propertyBuilder The source of the property
+     */
+    public void addPropertyBuilder(PropertyBuilder propertyBuilder) {
+        for (DataField_Schema<?> dataFieldSchema : list) {
+            propertyBuilder.attachProperty(dataFieldSchema);
+        }
+        propertyBuilders.add(propertyBuilder);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -118,7 +150,7 @@ public class DataObject_Schema {
      *
      * @param objectFactory The object factory to add
      */
-    public void addObjectFactory(ObjectFactory objectFactory) {
+    public void addObjectFactory(ObjectFactory<?> objectFactory) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
         this.objectFactories.add(objectFactory);
@@ -153,7 +185,7 @@ public class DataObject_Schema {
     public DataObject_Schema endLayer(Class<? extends DataObject> endLayer, String toFollowKey) {
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
-        lastOrder = masterMap.get(toFollowKey).getDisplayProperties().getOrder();
+        lastOrder = masterMap.get(toFollowKey).getOrder();
         return endLayer(endLayer);
     }
 
@@ -210,11 +242,25 @@ public class DataObject_Schema {
             // Jump up the inheritance tree
             aClass = (Class<? extends DataObject>) aClass.getSuperclass();
             inheritedObjects.remove(toTest);
+
+            // Break in the case that the object is only 1 deep
+            if (aClass.equals(DataObject.class)) {
+                break;
+            }
         } while (DataObject.class.isAssignableFrom(aClass));
 
         // Finalise all fields
         for (DataField_Schema<?> dataFieldSchema : list) {
             dataFieldSchema.containerFinished(end);
+        }
+
+        // Validate the validators
+        for (DataField_Schema<?> dataObject_schema : list) {
+            for (FieldValidator<?, ?> fieldValidator : dataObject_schema.getValidators()) {
+                if (fieldValidator instanceof ValidatableSchema) {
+                    ((ValidatableSchema) fieldValidator).validateToAttachedSchema(this);
+                }
+            }
         }
 
         solidObjectType = end;
@@ -250,26 +296,6 @@ public class DataObject_Schema {
     }
 
     /**
-     * Get the list of all fields with a certain, or above verbosity level
-     *
-     * @param verbosity The level to filter on
-     * @return The list of fields
-     */
-    public List<DataField_Schema<?>> getVerbosityDataFields(int verbosity) {
-        List<DataField_Schema<?>> fields = new ArrayList<>();
-        for (DataField_Schema<?> f : getList()) {
-            if (f.getDisplayProperties().getVerbosityLevel() > verbosity) {
-                continue;
-            }
-            if (!f.getDisplayProperties().getShouldDisplay()) {
-                continue;
-            }
-            fields.add(f);
-        }
-        return fields;
-    }
-
-    /**
      * Get the last field that was added
      *
      * @param <T> The type of the field
@@ -291,7 +317,7 @@ public class DataObject_Schema {
      */
     public List<DataField_Schema<?>> getSavedFields() {
         List<DataField_Schema<?>> toReturn = new ArrayList<>(list);
-        toReturn.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT));
+        toReturn.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT) || !field.isShouldSave());
         return toReturn;
     }
 
@@ -346,4 +372,26 @@ public class DataObject_Schema {
     public ObjectFactory<?> getMyFactory() {
         return myFactory;
     }
+
+    public Class<? extends DataObject> getSolidObjectType() {
+        return solidObjectType;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //#################################################### Interface ###################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * An interface to create the default version of any properties to add add to the fields
+     */
+    public interface PropertyBuilder {
+
+        /**
+         * Add the property to this field
+         *
+         * @param dataFieldSchema The field to add the property too
+         */
+        void attachProperty(DataField_Schema<?> dataFieldSchema);
+    }
+
 }

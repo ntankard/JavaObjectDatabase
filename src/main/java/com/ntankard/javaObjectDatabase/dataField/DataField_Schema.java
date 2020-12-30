@@ -1,16 +1,13 @@
 package com.ntankard.javaObjectDatabase.dataField;
 
-import com.ntankard.javaObjectDatabase.dataObject.DataObject;
-import com.ntankard.javaObjectDatabase.dataField.filter.FieldFilter;
-import com.ntankard.javaObjectDatabase.dataField.filter.Null_FieldFilter;
-import com.ntankard.javaObjectDatabase.dataField.properties.Display_Properties;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore;
+import com.ntankard.javaObjectDatabase.dataField.properties.CustomProperty;
+import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
+import com.ntankard.javaObjectDatabase.dataField.validator.Null_FieldValidator;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.ntankard.javaObjectDatabase.dataField.DataField_Schema.SourceMode.*;
 
@@ -84,14 +81,24 @@ public class DataField_Schema<FieldType> {
     private Method source = null;
 
     /**
-     * The properties to use when displaying the data
+     * Should this field be saved? Assuming all other save conditions are met
      */
-    private final Display_Properties displayProperties = new Display_Properties();
+    private boolean shouldSave = true;
+
+    /**
+     * Any custom properties attached to the field
+     */
+    private final Map<Class<? extends CustomProperty>, CustomProperty> properties = new HashMap<>();
+
+    /**
+     * The order of this field relative to the other fields in the DataObject_Schema
+     */
+    private int order = -1;
 
     /**
      * The fillers used to check the data
      */
-    private List<FieldFilter<FieldType, ?>> filters = new ArrayList<>();
+    private List<FieldValidator<FieldType, ?>> validators = new ArrayList<>();
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################### Constructor ##################################################
@@ -116,7 +123,7 @@ public class DataField_Schema<FieldType> {
 
         this.displayName = identifierName.replace("get", "").replace("is", "").replace("has", "");
 
-        addFilter(new Null_FieldFilter<>(canBeNull));
+        addValidator(new Null_FieldValidator<>(canBeNull));
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -137,8 +144,11 @@ public class DataField_Schema<FieldType> {
         if (setterFunction != null && dataCore_factory == null)
             throw new IllegalStateException("Setter function added but not data core provided");
 
-        this.displayProperties.finish();
-        this.filters = Collections.unmodifiableList(this.filters);
+        for (Map.Entry<Class<? extends CustomProperty>, CustomProperty> customProperty : properties.entrySet()) {
+            customProperty.getValue().finalise();
+        }
+
+        this.validators = Collections.unmodifiableList(this.validators);
     }
 
     /**
@@ -211,12 +221,21 @@ public class DataField_Schema<FieldType> {
         return source;
     }
 
-    public Display_Properties getDisplayProperties() {
-        return displayProperties;
+    public boolean isShouldSave() {
+        return shouldSave;
     }
 
-    public List<FieldFilter<FieldType, ?>> getFilters() {
-        return filters;
+    @SuppressWarnings("unchecked")
+    public <T extends CustomProperty> T getProperty(Class<T> key) {
+        return (T) properties.get(key);
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public List<FieldValidator<FieldType, ?>> getValidators() {
+        return validators;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -253,8 +272,20 @@ public class DataField_Schema<FieldType> {
         this.source = source;
     }
 
-    public void addFilter(FieldFilter<FieldType, ?> filter) {
-        this.filters.add(filter);
+    public void setShouldSave(boolean shouldSave) {
+        this.shouldSave = shouldSave;
+    }
+
+    public void addValidator(FieldValidator<FieldType, ?> validator) {
+        this.validators.add(validator);
+    }
+
+    public void setProperty(CustomProperty customProperty) {
+        properties.put(customProperty.getClass(), customProperty);
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
     }
 
     //------------------------------------------------------------------------------------------------------------------

@@ -1,17 +1,15 @@
 package com.ntankard.javaObjectDatabase.dataObject;
 
-import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
-import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.DataField;
-import com.ntankard.javaObjectDatabase.dataField.properties.Display_Properties;
-import com.ntankard.javaObjectDatabase.database.subContainers.DataObjectContainer;
+import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
+import com.ntankard.javaObjectDatabase.dataField.ListDataField;
+import com.ntankard.javaObjectDatabase.dataField.ListDataField_Schema;
+import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 import com.ntankard.javaObjectDatabase.database.Database;
+import com.ntankard.javaObjectDatabase.database.subContainers.DataObjectContainer;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.ntankard.javaObjectDatabase.dataField.DataField.NewFieldState.N_ACTIVE;
 
@@ -58,6 +56,10 @@ public abstract class DataObject {
     //------------------------------------------------------------------------------------------------------------------
 
     public static final String DataObject_Id = "getId";
+    public static final String DataObject_ChildrenField = "getChildrenField";
+
+    public interface DataObjectList extends List<DataObject> {
+    }
 
     /**
      * Get all the fields for this object
@@ -66,8 +68,12 @@ public abstract class DataObject {
         DataObject_Schema dataObjectSchema = new DataObject_Schema();
         // ID ==========================================================================================================
         dataObjectSchema.add(new DataField_Schema<>(DataObject_Id, Integer.class));
-        dataObjectSchema.get(DataObject_Id).getDisplayProperties().setVerbosityLevel(Display_Properties.INFO_DISPLAY);
+        // ChildrenField ===============================================================================================
+        dataObjectSchema.add(new ListDataField_Schema<>(DataObject_ChildrenField, DataObjectList.class));
+        dataObjectSchema.get(DataObject_ChildrenField).setShouldSave(false);
         //==============================================================================================================
+
+        dataObjectSchema.follow(DataObject_Id);
         return dataObjectSchema.endLayer(DataObject.class);
     }
 
@@ -77,6 +83,7 @@ public abstract class DataObject {
     public DataObject(Database database) {
         this.database = database;
         this.dataObjectSchema = database.getSchema().getClassSchema(this.getClass());
+        assert dataObjectSchema.getSolidObjectType() == getClass();
 
         // Link the fields to the object
         List<DataField<?>> instanceList = new ArrayList<>();
@@ -91,6 +98,7 @@ public abstract class DataObject {
      * Constructor
      */
     public DataObject(DataObject_Schema dataObjectSchema) {
+        assert dataObjectSchema.getSolidObjectType() == getClass();
         this.dataObjectSchema = dataObjectSchema;
 
         // Link the fields to the object
@@ -133,6 +141,7 @@ public abstract class DataObject {
             Object value = args[i * 2 + 1];
             this.getField(identifier).set(value);
         }
+        this.getField(DataObject_ChildrenField).set(new ArrayList<DataObject>());
 
         return this;
     }
@@ -213,7 +222,11 @@ public abstract class DataObject {
      */
     @Override
     public String toString() {
-        return get(DataObject_Id).toString();
+        try {
+            return get(DataObject_Id).toString();
+        } catch (Exception e) {
+            return "NO ID";
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -223,7 +236,7 @@ public abstract class DataObject {
     /**
      * Add this object to the database. Notify everyone required and create or add supporting objects if needed
      */
-    public void add() {
+    public <T extends DataObject> T add() {
 
         for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
             field.getValue().initialFilter(); // Possible error here, this may need to be done AFTER being put into the database
@@ -244,6 +257,8 @@ public abstract class DataObject {
         }
 
         getTrackingDatabase().add(this);
+
+        return (T) this;
     }
 
     /**
@@ -381,6 +396,8 @@ public abstract class DataObject {
         for (ChildrenListener childrenListener : childrenListeners) {
             childrenListener.childAdded(linkObject);
         }
+
+        ((ListDataField<DataObject>) this.<List<DataObject>>getField(DataObject_ChildrenField)).add(linkObject);
     }
 
     /**
@@ -395,6 +412,8 @@ public abstract class DataObject {
         }
 
         children.remove(linkObject);
+
+        ((ListDataField<DataObject>) this.<List<DataObject>>getField(DataObject_ChildrenField)).remove(linkObject);
     }
 
     /**
@@ -427,6 +446,16 @@ public abstract class DataObject {
      */
     public <T extends DataObject> T getChildren(Class<T> type, Integer key) {
         return children.get(type, key);
+    }
+
+    /**
+     * Does this DataObject have this child?
+     *
+     * @param toTest The child to check for
+     * @return True if this DataObject contains the child
+     */
+    public boolean hasChild(DataObject toTest) {
+        return children.contains(toTest.getId()); // TODO if the IDs get corrupt this may return wrong, you may want to do a full equals check too
     }
 
     //------------------------------------------------------------------------------------------------------------------

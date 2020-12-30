@@ -6,13 +6,15 @@ import com.ntankard.javaObjectDatabase.dataField.listener.FieldChangeListener;
 import java.util.Collections;
 import java.util.List;
 
+import static com.ntankard.javaObjectDatabase.dataField.DataField.NewFieldState.*;
+
 public class ListDataField<T> extends DataField<List<T>> {
 
     /**
      * Constructor
      */
     public ListDataField(DataField_Schema<List<T>> dataFieldSchema, DataObject container) {
-        super(dataFieldSchema,container);
+        super(dataFieldSchema, container);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -36,8 +38,8 @@ public class ListDataField<T> extends DataField<List<T>> {
      */
     @Override
     protected void set_impl(List<T> value) {
-        if (!getState().equals(NewFieldState.N_ATTACHED_TO_OBJECT))
-            throw new IllegalStateException("This field can only be set once");
+        if (!state.equals(N_ACTIVE) && !state.equals(N_ATTACHED_TO_OBJECT) && !getState().equals(N_INITIALIZED))
+            throw new IllegalStateException("Wrong state for setting a value");
 
         if (value == null) {
             throw new IllegalArgumentException("List can never be null");
@@ -59,7 +61,7 @@ public class ListDataField<T> extends DataField<List<T>> {
         if (getDataFieldSchema().getSourceMode().equals(DataField_Schema.SourceMode.DERIVED))
             throw new IllegalStateException("Trying to set a field that is controlled by a data core");
 
-        if (!getState().equals(NewFieldState.N_INITIALIZED) || !getState().equals(NewFieldState.N_ACTIVE))
+        if (!getState().equals(NewFieldState.N_INITIALIZED) && !getState().equals(NewFieldState.N_ACTIVE))
             throw new IllegalStateException("This field can only be set once");
 
         addImpl(toAdd);
@@ -74,7 +76,7 @@ public class ListDataField<T> extends DataField<List<T>> {
         if (getDataFieldSchema().getSourceMode().equals(DataField_Schema.SourceMode.DERIVED))
             throw new IllegalStateException("Trying to set a field that is controlled by a data core");
 
-        if (!getState().equals(NewFieldState.N_INITIALIZED) || !getState().equals(NewFieldState.N_ACTIVE))
+        if (!getState().equals(NewFieldState.N_INITIALIZED) && !getState().equals(NewFieldState.N_ACTIVE))
             throw new IllegalStateException("This field can only be set once");
 
         removeImpl(toRemove);
@@ -118,7 +120,8 @@ public class ListDataField<T> extends DataField<List<T>> {
             throw new IllegalStateException("Wrong state for setting a value");
 
         if (value.contains(toAdd)) {
-            throw new IllegalArgumentException("Trying to add a value that has already been added");
+            return; // TODO check why this is happening
+            //throw new IllegalArgumentException("Trying to add a value that has already been added");
         }
 
         if (!doFilterCheck(Collections.singletonList(toAdd), value)) {

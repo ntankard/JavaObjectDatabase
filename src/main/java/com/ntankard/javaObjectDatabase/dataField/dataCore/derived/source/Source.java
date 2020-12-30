@@ -2,130 +2,142 @@ package com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore;
+import com.ntankard.javaObjectDatabase.dataField.listener.FieldChangeListener;
 
-public abstract class Source<ResultType> {
+/**
+ * A source of data that can be used to drive a DataCore either by notifying it of changes or by making incremental
+ * changes directly. Each source is attached to a DataField and can be linked together in a chain to get to data several
+ * objects away.
+ *
+ * @param <AttachedFieldType> The type of data stored in the attached field
+ * @param <SchemaType>        The type of Schema used to generate this source
+ * @author Nicholas Tankard
+ * @see Source_Schema
+ */
+public abstract class Source<AttachedFieldType, SchemaType extends Source_Schema<?>> implements FieldChangeListener<AttachedFieldType> {
 
     /**
-     * A factory to create Source object that can contain state information
+     * The Schema describing the behavior of this Source
      */
-    public static abstract class Source_Factory<ResultType, SourceType extends Source<ResultType>> {
-
-        /**
-         * Create a stand alone instance of Source that can have state information
-         *
-         * @param container The DataField this will be attached to
-         * @return A stand alone instance of Source that can have state information
-         */
-        public abstract SourceType createSource(DataField<ResultType> container);
-    }
+    protected SchemaType schema;
 
     /**
-     * The data core this is attached to
+     * The field this source listens too
      */
-    private Derived_DataCore<ResultType, ?> parent = null;
+    protected DataField<AttachedFieldType> attachedField;
 
     /**
-     * Had the field been attached?
+     * The data core this is attached to. Null if parentSource is set
      */
-    private boolean isAttached = false;
+    protected Derived_DataCore<?, ?> parentDataCore;
 
     /**
-     * Set the data core this is attached to
+     * The Source this Source is attached to. Null if parentDataCore is set
+     */
+    protected Source<?, ?> parentSource;
+
+    /**
+     * Constructor
      *
-     * @param parent The data core this is attached to
+     * @param schema         The Schema describing the behavior of this Source
+     * @param attachedField  The field this source listens too
+     * @param parentDataCore The data core this is attached to. Null if parentSource is set
+     * @param parentSource   The Source this Source is attached to. Null if parentDataCore is set
      */
-    public void setParent(Derived_DataCore<ResultType, ?> parent) {
-        if (this.parent != null)
-            throw new IllegalStateException("The parent can only be set once");
+    protected Source(SchemaType schema, DataField<AttachedFieldType> attachedField, Derived_DataCore<?, ?> parentDataCore, Source<?, ?> parentSource) {
+        assert schema != null;
+        assert attachedField != null;
+        assert parentDataCore != null || parentSource != null;
+        assert !(parentDataCore != null && parentSource != null);
 
-        if (parent == null)
-            throw new IllegalStateException("Parent cannot be null");
-
-        if (isAttached)
-            throw new IllegalStateException("Cant set the parent after the field is attached (This should never be possible)");
-
-        this.parent = parent;
+        this.schema = schema;
+        this.attachedField = attachedField;
+        this.parentDataCore = parentDataCore;
+        this.parentSource = parentSource;
     }
 
     /**
-     * Get the data core this is attached to
-     *
-     * @return The data core this is attached to
-     */
-    protected Derived_DataCore<ResultType, ?> getParent() {
-        return parent;
-    }
-
-    /**
-     * Attach the change listeners
+     * Make the Source live and attempt to connect to relevant fields
      */
     public void attach() {
-        if (parent == null)
-            throw new IllegalStateException("Cant attach the source until the parent has been set");
-
-        if (isAttached)
-            throw new IllegalStateException("Cant attach the source twice");
-
-        isAttached = true;
-        attach_impl();
-
-        doRecalculate();
-    }
-
-    /**
-     * Detach the change listeners
-     */
-    public void detach() {
-        if (parent == null || !isAttached)
-            throw new IllegalStateException("Can't detach the source until it has been attached");
-
-        detach_impl();
-        isAttached = false;
-        parent = null;
-    }
-
-    /**
-     * Is the source ready to be derived from?
-     *
-     * @return True if the source ready to be derived from
-     */
-    public boolean isReady() {
-        if (parent == null)
-            throw new IllegalStateException("The parent has not been attached yet");
-
-        if (!isAttached)
-            return false;
-
-        return isReady_impl();
-    }
-
-    /**
-     * Notify the parent to recalculate if other sources are ready
-     */
-    protected void doRecalculate() {
-        if (isReady()) {
-            parent.recalculate();
+        this.attachedField.addChangeListener(this);
+        if (this.attachedField.hasValidValue()) {
+            valueChanged(this.attachedField, null, this.attachedField.get());
         }
     }
 
-    //------------------------------------------------------------------------------------------------------------------
-    //############################################# Source Implementation ##############################################
-    //------------------------------------------------------------------------------------------------------------------
-
     /**
-     * Execute the attach
+     * Detach this source and all its children from there attached fields and clear up and other links. The source can
+     * not be used after calling this
      */
-    protected abstract void attach_impl();
+    public void detach() {
+        this.attachedField.removeChangeListener(this);
+
+        this.schema = null;
+        this.attachedField = null;
+        this.parentDataCore = null;
+        this.parentSource = null;
+    }
 
     /**
-     * Execute the detach
-     */
-    protected abstract void detach_impl();
-
-    /**
-     * Execute the is ready check. The source state is already checked
+     * Is the source ready to be derived from? Do all fields involved have valid values?
      *
      * @return True if the source ready to be derived from
      */
-    protected abstract boolean isReady_impl();
+    public abstract boolean isValid();
+
+    /**
+     * Call when the source value has changed. Either because the lowest level has changed or a parent has resulting in
+     * a new lowest source being attached
+     */
+    protected void sourceChanged(Object oldValue, Object newValue) {
+        if (parentDataCore != null) {                           // Top of the source chain
+            assert isValid();
+            if (schema.getIndividualCalculator() != null) {         // Individual calculation supported
+                if (!parentDataCore.getDataField().hasValidValue()) {   // Full recalculation has not been run once
+                    parentDataCore.recalculate();
+                } else {                                                // Full recalculation has been run once, update individual only
+                    schema.doIndividualRecalculate(parentDataCore, oldValue, newValue);
+                }
+            } else {                                                // Individual calculation not supported
+                parentDataCore.recalculate();
+            }
+        } else {                                                // Step in the source chain, forward on the update
+            parentSource.sourceChanged(oldValue, newValue);
+        }
+    }
+
+    /**
+     * Get the current value of the lowest source in the chain (the watched value)
+     *
+     * @return The current value of the lowest source in the chain
+     */
+    public abstract Object getEndFieldValue();
+
+    /**
+     * Is this the top of the chain? (Directly attached to the DataCore)
+     *
+     * @return True if this the top of the chain
+     */
+    protected boolean isTop() {
+        return parentDataCore != null;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //##################################################### Getters ####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    public DataField<AttachedFieldType> getAttachedField() {
+        assert attachedField != null; // This can be null if called before attach
+        return attachedField;
+    }
+
+    public Derived_DataCore<?, ?> getParentDataCore() {
+        assert isTop();
+        return parentDataCore;
+    }
+
+    public SchemaType getSchema() {
+        return schema;
+    }
 }
