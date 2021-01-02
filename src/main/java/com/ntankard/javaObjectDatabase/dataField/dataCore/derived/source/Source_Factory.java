@@ -1,8 +1,8 @@
 package com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source;
 
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.Source_Schema.IndividualCalculator;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.end.EndSource_Schema;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.step.StepSource_Schema;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.end.End_Source_Schema;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.step.Step_Source_Schema;
 
 /**
  * A set of methods used to simplify the creation of Source_Schema's with specific behaviors
@@ -29,9 +29,9 @@ public class Source_Factory {
     public static Source_Schema<?> makeSourceChain(IndividualCalculator<?> individualCalculator, String... fieldKeys) {
         assert fieldKeys.length != 0;
 
-        Source_Schema<?> nestedSource = new EndSource_Schema<>(fieldKeys[fieldKeys.length - 1], fieldKeys.length == 1 ? individualCalculator : null);
+        Source_Schema<?> nestedSource = new End_Source_Schema<>(fieldKeys[fieldKeys.length - 1], fieldKeys.length == 1 ? individualCalculator : null);
         for (int i = fieldKeys.length - 2; i >= 0; i--) {
-            nestedSource = new StepSource_Schema<>(fieldKeys[i], nestedSource, i == 0 ? individualCalculator : null);
+            nestedSource = new Step_Source_Schema<>(fieldKeys[i], nestedSource, i == 0 ? individualCalculator : null);
         }
         return nestedSource;
     }
@@ -45,7 +45,7 @@ public class Source_Factory {
      * @return A array of sources equal to the number of second steps
      */
     public static Source_Schema<?>[] makeSharedStepSourceChain(String firstStep, String... secondSteps) {
-        Source_Schema<?>[] sources = new StepSource_Schema[secondSteps.length];
+        Source_Schema<?>[] sources = new Step_Source_Schema[secondSteps.length];
 
         int i = 0;
         for (String field : secondSteps) {

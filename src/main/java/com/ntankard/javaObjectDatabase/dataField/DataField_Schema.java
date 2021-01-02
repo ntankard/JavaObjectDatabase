@@ -1,6 +1,6 @@
 package com.ntankard.javaObjectDatabase.dataField;
 
-import com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore_Schema;
 import com.ntankard.javaObjectDatabase.dataField.properties.CustomProperty;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
 import com.ntankard.javaObjectDatabase.dataField.validator.Null_FieldValidator;
@@ -61,7 +61,7 @@ public class DataField_Schema<FieldType> {
     /**
      * The factory for the DataCore
      */
-    private DataCore.DataCore_Factory<FieldType, ?> dataCore_factory;
+    private DataCore_Schema<FieldType> dataCore_schema;
 
     /**
      * The method to call if we are in virtual mode when a manual set happens
@@ -141,7 +141,7 @@ public class DataField_Schema<FieldType> {
         if (manualCanEdit && !sourceMode.equals(DIRECT))
             throw new IllegalStateException("Manual edit was set but the field is operating in a non direct mode");
 
-        if (setterFunction != null && dataCore_factory == null)
+        if (setterFunction != null && dataCore_schema == null)
             throw new IllegalStateException("Setter function added but not data core provided");
 
         for (Map.Entry<Class<? extends CustomProperty>, CustomProperty> customProperty : properties.entrySet()) {
@@ -203,8 +203,8 @@ public class DataField_Schema<FieldType> {
         return manualCanEdit;
     }
 
-    public DataCore.DataCore_Factory<FieldType, ?> getDataCore_factory() {
-        return dataCore_factory;
+    public DataCore_Schema<FieldType> getDataCore_schema() {
+        return dataCore_schema;
     }
 
     public SetterFunction<FieldType> getSetterFunction() {
@@ -248,8 +248,8 @@ public class DataField_Schema<FieldType> {
         this.manualCanEdit = manualCanEdit;
     }
 
-    public void setDataCore_factory(DataCore.DataCore_Factory<FieldType, ?> dataCore_factory) {
-        this.dataCore_factory = dataCore_factory;
+    public void setDataCore_schema(DataCore_Schema<FieldType> dataCore_schema) {
+        this.dataCore_schema = dataCore_schema;
         if (setterFunction != null) {
             this.sourceMode = VIRTUAL_DERIVED;
         } else {

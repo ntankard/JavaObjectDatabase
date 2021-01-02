@@ -3,9 +3,9 @@ package com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source;
 import com.ntankard.javaObjectDatabase.dataField.ListDataField;
 import com.ntankard.javaObjectDatabase.dataField.ListDataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore.Calculator;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore.Derived_DataCore_Schema;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.end.EndSource_Schema;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore_Schema;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore_Schema.Calculator;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.end.End_Source_Schema;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
@@ -109,7 +109,7 @@ public class SourceTest {
             dataObjectSchema.get(SourceTestC_StringListSecond).setManualCanEdit(true);
 
             dataObjectSchema.add(new ListDataField_Schema<>(SourceTestC_StringListSharedA, StringList.class));
-            dataObjectSchema.<List<String>>get(SourceTestC_StringListSharedA).setDataCore_factory(
+            dataObjectSchema.<List<String>>get(SourceTestC_StringListSharedA).setDataCore_schema(
                     new Derived_DataCore_Schema<>(
                             (Calculator<List<String>, SourceTestC>)
                                     container -> {
@@ -124,11 +124,11 @@ public class SourceTest {
                                         }
                                         return finalList;
                                     },
-                            new EndSource_Schema<>(SourceTestC_StringListFirst),
-                            new EndSource_Schema<>(SourceTestC_StringListSecond)));
+                            new End_Source_Schema<>(SourceTestC_StringListFirst),
+                            new End_Source_Schema<>(SourceTestC_StringListSecond)));
 
             dataObjectSchema.add(new ListDataField_Schema<>(SourceTestC_StringListSharedB, StringList.class));
-            dataObjectSchema.<List<String>>get(SourceTestC_StringListSharedB).setDataCore_factory(
+            dataObjectSchema.<List<String>>get(SourceTestC_StringListSharedB).setDataCore_schema(
                     new Derived_DataCore_Schema<>(
                             (Calculator<List<String>, SourceTestC>)
                                     container -> {
@@ -143,40 +143,41 @@ public class SourceTest {
                                         }
                                         return finalList;
                                     },
-                            new EndSource_Schema<>(SourceTestC_StringListFirst, new Source_Schema.IndividualCalculator<List<String>>() {
+                            new End_Source_Schema<>(SourceTestC_StringListFirst, new Source_Schema.IndividualCalculator<List<String>>() {
                                 @Override
                                 public void doIndividualRecalculate(Derived_DataCore<List<String>, ?> parent, List<String> oldValue, List<String> newValue) {
                                     SourceTestC castContainer = ((SourceTestC) parent.getDataField().getContainer());
                                     if (oldValue != null) {
                                         for (String removed : oldValue) {
-                                            ((ListDataField) castContainer.getField(SourceTestC_StringListSharedB)).remove(removed);
+                                            parent.doRemove(removed);
                                         }
                                     }
                                     if (newValue != null) {
                                         for (String added : newValue) {
                                             if (((ListDataField) castContainer.getField(SourceTestC_StringListSecond)).get().contains(added)) {
                                                 if (!((ListDataField) castContainer.getField(SourceTestC_StringListSharedB)).get().contains(added)) {
-                                                    ((ListDataField) castContainer.getField(SourceTestC_StringListSharedB)).add(added);
+                                                    // TODO this is never called
+                                                    parent.doAdd(added);
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }),
-                            new EndSource_Schema<>(SourceTestC_StringListSecond, new Source_Schema.IndividualCalculator<List<String>>() {
+                            new End_Source_Schema<>(SourceTestC_StringListSecond, new Source_Schema.IndividualCalculator<List<String>>() {
                                 @Override
                                 public void doIndividualRecalculate(Derived_DataCore<List<String>, ?> parent, List<String> oldValue, List<String> newValue) {
                                     SourceTestC castContainer = ((SourceTestC) parent.getDataField().getContainer());
                                     if (oldValue != null) {
                                         for (String removed : oldValue) {
-                                            ((ListDataField) castContainer.getField(SourceTestC_StringListSharedB)).removeFromDataCore(removed);
+                                            parent.doRemove(removed);
                                         }
                                     }
                                     if (newValue != null) {
                                         for (String added : newValue) {
                                             if (((ListDataField) castContainer.getField(SourceTestC_StringListFirst)).get().contains(added)) {
                                                 if (!((ListDataField) castContainer.getField(SourceTestC_StringListSharedB)).get().contains(added)) {
-                                                    ((ListDataField) castContainer.getField(SourceTestC_StringListSharedB)).addFromDataCore(added);
+                                                    parent.doAdd(added);
                                                 }
                                             }
                                         }

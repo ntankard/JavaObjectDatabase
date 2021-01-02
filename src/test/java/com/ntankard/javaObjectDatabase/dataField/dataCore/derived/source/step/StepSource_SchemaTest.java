@@ -1,6 +1,6 @@
 package com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.step;
 
-import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.end.EndSource_Schema;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.end.End_Source_Schema;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -20,12 +20,12 @@ class StepSource_SchemaTest {
     @Test
     @Execution(CONCURRENT)
     void constructor() {
-        EndSource_Schema<?> dummyEnd = new EndSource_Schema<>("TestKey");
+        End_Source_Schema<?> dummyEnd = new End_Source_Schema<>("TestKey");
 
-        assertThrows(AssertionError.class, () -> new StepSource_Schema<>(null, dummyEnd));
-        assertDoesNotThrow(() -> new StepSource_Schema<>("TestKey", dummyEnd));
-        assertDoesNotThrow(() -> new StepSource_Schema<>("TestKey", dummyEnd, null));
-        assertDoesNotThrow(() -> new StepSource_Schema<>("TestKey", dummyEnd, (parent, oldValue, newValue) -> {
+        assertThrows(AssertionError.class, () -> new Step_Source_Schema<>(null, dummyEnd));
+        assertDoesNotThrow(() -> new Step_Source_Schema<>("TestKey", dummyEnd));
+        assertDoesNotThrow(() -> new Step_Source_Schema<>("TestKey", dummyEnd, null));
+        assertDoesNotThrow(() -> new Step_Source_Schema<>("TestKey", dummyEnd, (parent, oldValue, newValue) -> {
         }));
     }
 

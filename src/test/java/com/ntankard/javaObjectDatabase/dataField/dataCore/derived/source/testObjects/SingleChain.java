@@ -1,12 +1,12 @@
 package com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore_Schema;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
 
-import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.DerivedDataCore_Factory.createDirectDerivedDataCore;
+import static com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore_Factory.createDirectDerivedDataCore;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.SingleChain.SingleEnd_TestObject.CoreData;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.SingleChain.SingleEnd_TestObject.NullableCoreData;
 
@@ -41,28 +41,28 @@ public class SingleChain {
             dataObjectSchema.get(CoreData).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(CoreData_Derived1, Integer.class));
-            dataObjectSchema.get(CoreData_Derived1).setDataCore_factory(
+            dataObjectSchema.get(CoreData_Derived1).setDataCore_schema(
                     createDirectDerivedDataCore(CoreData));
 
             dataObjectSchema.add(new DataField_Schema<>(CoreData_Derived2, Integer.class));
-            dataObjectSchema.get(CoreData_Derived2).setDataCore_factory(
+            dataObjectSchema.get(CoreData_Derived2).setDataCore_schema(
                     createDirectDerivedDataCore(CoreData_Derived1));
 
             // StaticData
 
             dataObjectSchema.add(new DataField_Schema<>(StaticData_Derived1, Integer.class));
-            dataObjectSchema.get(StaticData_Derived1).setDataCore_factory(
+            dataObjectSchema.get(StaticData_Derived1).setDataCore_schema(
                     createDirectDerivedDataCore(StaticData));
 
             dataObjectSchema.add(new DataField_Schema<>(StaticData, Integer.class));
-            dataObjectSchema.get(StaticData).setDataCore_factory(new Static_DataCore.Static_DataCore_Factory<>(dataField -> 10));
+            dataObjectSchema.get(StaticData).setDataCore_schema(new Static_DataCore_Schema<>(10));
 
             dataObjectSchema.add(new DataField_Schema<>(StaticData_Derived2, Integer.class));
-            dataObjectSchema.get(StaticData_Derived2).setDataCore_factory(
+            dataObjectSchema.get(StaticData_Derived2).setDataCore_schema(
                     createDirectDerivedDataCore(StaticData));
 
             dataObjectSchema.add(new DataField_Schema<>(StaticData_Derived3, Integer.class));
-            dataObjectSchema.get(StaticData_Derived3).setDataCore_factory(
+            dataObjectSchema.get(StaticData_Derived3).setDataCore_schema(
                     createDirectDerivedDataCore(StaticData_Derived2));
 
             // CoreData that can be set to null
@@ -71,28 +71,28 @@ public class SingleChain {
             dataObjectSchema.get(NullableCoreData).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(NullableCoreData_Derived1, Integer.class, true));
-            dataObjectSchema.get(NullableCoreData_Derived1).setDataCore_factory(
+            dataObjectSchema.get(NullableCoreData_Derived1).setDataCore_schema(
                     createDirectDerivedDataCore(NullableCoreData));
 
             dataObjectSchema.add(new DataField_Schema<>(NullableCoreData_Derived2, Integer.class, true));
-            dataObjectSchema.get(NullableCoreData_Derived2).setDataCore_factory(
+            dataObjectSchema.get(NullableCoreData_Derived2).setDataCore_schema(
                     createDirectDerivedDataCore(NullableCoreData_Derived1));
 
             // Null StaticData
 
             dataObjectSchema.add(new DataField_Schema<>(NullableStaticData_Derived1, Integer.class, true));
-            dataObjectSchema.get(NullableStaticData_Derived1).setDataCore_factory(
+            dataObjectSchema.get(NullableStaticData_Derived1).setDataCore_schema(
                     createDirectDerivedDataCore(NullableStaticData));
 
             dataObjectSchema.add(new DataField_Schema<>(NullableStaticData, Integer.class, true));
-            dataObjectSchema.get(NullableStaticData).setDataCore_factory(new Static_DataCore.Static_DataCore_Factory<>(dataField -> null));
+            dataObjectSchema.get(NullableStaticData).setDataCore_schema(new Static_DataCore_Schema<>(null));
 
             dataObjectSchema.add(new DataField_Schema<>(NullableStaticData_Derived2, Integer.class, true));
-            dataObjectSchema.get(NullableStaticData_Derived2).setDataCore_factory(
+            dataObjectSchema.get(NullableStaticData_Derived2).setDataCore_schema(
                     createDirectDerivedDataCore(NullableStaticData));
 
             dataObjectSchema.add(new DataField_Schema<>(NullableStaticData_Derived3, Integer.class, true));
-            dataObjectSchema.get(NullableStaticData_Derived3).setDataCore_factory(
+            dataObjectSchema.get(NullableStaticData_Derived3).setDataCore_schema(
                     createDirectDerivedDataCore(NullableStaticData_Derived2));
 
             return dataObjectSchema.finaliseContainer(SingleEnd_TestObject.class);
@@ -136,16 +136,16 @@ public class SingleChain {
             dataObjectSchema.get(NullableLink1).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(Link1_CoreData, Integer.class));
-            dataObjectSchema.get(Link1_CoreData).setDataCore_factory(createDirectDerivedDataCore(Link1, CoreData));
+            dataObjectSchema.get(Link1_CoreData).setDataCore_schema(createDirectDerivedDataCore(Link1, CoreData));
 
             dataObjectSchema.add(new DataField_Schema<>(Link1_NullableCoreData, Integer.class, true));
-            dataObjectSchema.get(Link1_NullableCoreData).setDataCore_factory(createDirectDerivedDataCore(Link1, NullableCoreData));
+            dataObjectSchema.get(Link1_NullableCoreData).setDataCore_schema(createDirectDerivedDataCore(Link1, NullableCoreData));
 
             dataObjectSchema.add(new DataField_Schema<>(NullableLink1_CoreData, Integer.class, true));
-            dataObjectSchema.get(NullableLink1_CoreData).setDataCore_factory(createDirectDerivedDataCore(NullableLink1, CoreData));
+            dataObjectSchema.get(NullableLink1_CoreData).setDataCore_schema(createDirectDerivedDataCore(NullableLink1, CoreData));
 
             dataObjectSchema.add(new DataField_Schema<>(NullableLink1_NullableCoreData, Integer.class, true));
-            dataObjectSchema.get(NullableLink1_NullableCoreData).setDataCore_factory(createDirectDerivedDataCore(NullableLink1, NullableCoreData));
+            dataObjectSchema.get(NullableLink1_NullableCoreData).setDataCore_schema(createDirectDerivedDataCore(NullableLink1, NullableCoreData));
 
             return dataObjectSchema.finaliseContainer(Step_TestObject.class);
         }

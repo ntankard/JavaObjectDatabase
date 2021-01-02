@@ -5,7 +5,7 @@ import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
 
-import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.DerivedDataCore_Factory.createDirectDerivedDataCore;
+import static com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore_Factory.createDirectDerivedDataCore;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.NullableMultiChain.End_N_TestObject.NData;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.NullableMultiChain.Step1_N_TestObject.NEndLink;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.NullableMultiChain.Step2_N_TestObject.NS1Link;
@@ -49,7 +49,7 @@ public class NullableMultiChain {
             dataObjectSchema.get(NEndLink).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(NEndNData, Integer.class, true));
-            dataObjectSchema.get(NEndNData).setDataCore_factory(createDirectDerivedDataCore(NEndLink, NData));
+            dataObjectSchema.get(NEndNData).setDataCore_schema(createDirectDerivedDataCore(NEndLink, NData));
 
             return dataObjectSchema.finaliseContainer(Step1_N_TestObject.class);
         }
@@ -78,7 +78,7 @@ public class NullableMultiChain {
             dataObjectSchema.get(NS1Link).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(NS1NEndNData, Integer.class, true));
-            dataObjectSchema.get(NS1NEndNData).setDataCore_factory(createDirectDerivedDataCore(NS1Link, NEndLink, NData));
+            dataObjectSchema.get(NS1NEndNData).setDataCore_schema(createDirectDerivedDataCore(NS1Link, NEndLink, NData));
 
             return dataObjectSchema.finaliseContainer(Step2_N_TestObject.class);
         }
@@ -107,7 +107,7 @@ public class NullableMultiChain {
             dataObjectSchema.get(NS2Link).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(NS2NS1NEndNData, Integer.class, true));
-            dataObjectSchema.get(NS2NS1NEndNData).setDataCore_factory(createDirectDerivedDataCore(NS2Link, NS1Link, NEndLink, NData));
+            dataObjectSchema.get(NS2NS1NEndNData).setDataCore_schema(createDirectDerivedDataCore(NS2Link, NS1Link, NEndLink, NData));
 
             return dataObjectSchema.finaliseContainer(Step3_N_TestObject.class);
         }

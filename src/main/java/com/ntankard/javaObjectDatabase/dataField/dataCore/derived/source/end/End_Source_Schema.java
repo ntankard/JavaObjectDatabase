@@ -11,19 +11,19 @@ import com.ntankard.javaObjectDatabase.dataObject.DataObject;
  * @author Nicholas Tankard
  * @see Source_Schema
  */
-public class EndSource_Schema<EndFieldType> extends Source_Schema<EndFieldType> {
+public class End_Source_Schema<EndFieldType> extends Source_Schema<EndFieldType> {
 
     /**
      * @see Source_Schema#Source_Schema(String)
      */
-    public EndSource_Schema(String sourceContainerFieldKey) {
+    public End_Source_Schema(String sourceContainerFieldKey) {
         super(sourceContainerFieldKey);
     }
 
     /**
      * @see Source_Schema#Source_Schema(String, IndividualCalculator)
      */
-    public EndSource_Schema(String sourceContainerFieldKey, IndividualCalculator<EndFieldType> individualCalculator) {
+    public End_Source_Schema(String sourceContainerFieldKey, IndividualCalculator<EndFieldType> individualCalculator) {
         super(sourceContainerFieldKey, individualCalculator);
     }
 
@@ -33,9 +33,7 @@ public class EndSource_Schema<EndFieldType> extends Source_Schema<EndFieldType> 
     @Override
     public End_Source<EndFieldType> createRootSource(Derived_DataCore<?, ?> parentDataCore) {
         assert parentDataCore != null;
-        End_Source<EndFieldType> toReturn = new End_Source<>(this, parentDataCore.getDataField().getContainer().getField(getAttachedFieldKey()), parentDataCore, null);
-        toReturn.attach();
-        return toReturn;
+        return new End_Source<>(this, parentDataCore.getDataField().getContainer().getField(getAttachedFieldKey()), parentDataCore, null);
     }
 
     /**

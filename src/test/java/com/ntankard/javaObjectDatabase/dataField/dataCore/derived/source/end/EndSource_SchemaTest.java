@@ -32,10 +32,10 @@ class EndSource_SchemaTest {
     @Test
     @Execution(CONCURRENT)
     void constructor() {
-        assertThrows(AssertionError.class, () -> new EndSource_Schema<>(null));
-        assertDoesNotThrow(() -> new EndSource_Schema<>("TestKey"));
-        assertDoesNotThrow(() -> new EndSource_Schema<>("TestKey", null));
-        assertDoesNotThrow(() -> new EndSource_Schema<>("TestKey", (parent, oldValue, newValue) -> {
+        assertThrows(AssertionError.class, () -> new End_Source_Schema<>(null));
+        assertDoesNotThrow(() -> new End_Source_Schema<>("TestKey"));
+        assertDoesNotThrow(() -> new End_Source_Schema<>("TestKey", null));
+        assertDoesNotThrow(() -> new End_Source_Schema<>("TestKey", (parent, oldValue, newValue) -> {
         }));
     }
 
@@ -48,10 +48,10 @@ class EndSource_SchemaTest {
         Step1_N_TestObject dummyStep = new Step1_N_TestObject(null, database).add();
         Derived_DataCore<?, ?> dummyCore = (Derived_DataCore<?, ?>) dummyStep.getField(NEndNData).getDataCore();
 
-        EndSource_Schema<?> valid = new EndSource_Schema<Integer>(NEndLink);
+        End_Source_Schema<?> valid = new End_Source_Schema<Integer>(NEndLink);
         assertDoesNotThrow(() -> valid.createRootSource(dummyCore));
 
-        EndSource_Schema<?> invalid = new EndSource_Schema<Integer>("TestKey");
+        End_Source_Schema<?> invalid = new End_Source_Schema<Integer>("TestKey");
         assertThrows(AssertionError.class, () -> invalid.createRootSource(dummyCore));
         assertThrows(AssertionError.class, () -> invalid.createRootSource(null));
     }
@@ -67,16 +67,16 @@ class EndSource_SchemaTest {
         Source dummySource = ((Derived_DataCore<?, ?>) dummyStep.getField(NEndNData).getDataCore()).getSources()[0];
         End_N_TestObject dummyObject = new End_N_TestObject(5, database);
 
-        EndSource_Schema<?> valid = new EndSource_Schema<Integer>(NData);
+        End_Source_Schema<?> valid = new End_Source_Schema<Integer>(NData);
         assertDoesNotThrow(() -> valid.createChildSource(dummyObject, dummySource));
 
         assertThrows(AssertionError.class, () -> valid.createChildSource(dummyObject, null));
         assertThrows(AssertionError.class, () -> valid.createChildSource(null, dummySource));
 
-        EndSource_Schema<?> invalid = new EndSource_Schema<Integer>("TestKey");
+        End_Source_Schema<?> invalid = new End_Source_Schema<Integer>("TestKey");
         assertThrows(AssertionError.class, () -> invalid.createChildSource(dummyObject, dummySource));
 
-        EndSource_Schema<?> invalid2 = new EndSource_Schema<Integer>(NData, (parent, oldValue, newValue) -> {
+        End_Source_Schema<?> invalid2 = new End_Source_Schema<Integer>(NData, (parent, oldValue, newValue) -> {
         });
         assertThrows(AssertionError.class, () -> invalid2.createChildSource(dummyObject, dummySource));
     }

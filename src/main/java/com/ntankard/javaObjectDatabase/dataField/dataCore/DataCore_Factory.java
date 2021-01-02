@@ -1,8 +1,7 @@
-package com.ntankard.javaObjectDatabase.dataField.dataCore.derived;
+package com.ntankard.javaObjectDatabase.dataField.dataCore;
 
-import com.ntankard.javaObjectDatabase.dataField.ListDataField;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore.Calculator;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore.Derived_DataCore_Schema;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.Source_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.Source_Schema.IndividualCalculator;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
@@ -19,7 +18,7 @@ import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.
  *
  * @author Nicholas Tankard
  */
-public class DerivedDataCore_Factory {
+public class DataCore_Factory {
 
     /**
      * Create a Derived_DataCore_Schema with a single source chain who's value is the exact values and the last field in the chain
@@ -40,7 +39,7 @@ public class DerivedDataCore_Factory {
      * Create a Derived_DataCore_Schema that will behave like a Multi Parent List. The only parent in this case will be
      * the container of the DataCore.
      *
-     * @see DerivedDataCore_Factory#createMultiParentList(Class, SetFilter, String...)
+     * @see DataCore_Factory#createMultiParentList(Class, SetFilter, String...)
      */
     public static <ListContentType extends DataObject>
     Derived_DataCore_Schema<List<ListContentType>, ?> createSelfParentList(Class<ListContentType> listContentType,
@@ -82,7 +81,7 @@ public class DerivedDataCore_Factory {
 
     /**
      * @param setFilter Any filters to remove items from the list
-     * @see DerivedDataCore_Factory#createMultiParentList(Class, String...)
+     * @see DataCore_Factory#createMultiParentList(Class, String...)
      */
     public static <ListContentType extends DataObject>
     Derived_DataCore_Schema<List<ListContentType>, ?> createMultiParentList(Class<ListContentType> listContentType,
@@ -166,13 +165,13 @@ public class DerivedDataCore_Factory {
             assert oldValue != null || newValue != null;
             if (oldValue != null) {
                 for (ListContentType toRemove : oldValue) {
-                    parent.<ListDataField<ListContentType>>getDataField().removeFromDataCore(toRemove);
+                    parent.doRemove(toRemove);
                 }
             }
             if (newValue != null) {
                 for (ListContentType toAdd : newValue) {
                     if (fullParentCalculator.shouldAdd(toAdd, parent.getDataField().getContainer(), this)) {
-                        parent.<ListDataField<ListContentType>>getDataField().addFromDataCore(toAdd);
+                        parent.doAdd(toAdd);
                     }
                 }
             }
@@ -201,7 +200,7 @@ public class DerivedDataCore_Factory {
      *
      * @param <ListContentType> The type of DataObject in the final list
      */
-    private static class FullParentCalculator<ListContentType extends DataObject> implements Calculator<List<ListContentType>, DataObject> {
+    private static class FullParentCalculator<ListContentType extends DataObject> implements Derived_DataCore_Schema.Calculator<List<ListContentType>, DataObject> {
 
         /**
          * The type of object that will be in the final list (or inherits from)

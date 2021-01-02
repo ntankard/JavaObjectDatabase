@@ -37,7 +37,7 @@ public class DataField<FieldType> {
     /**
      * The engine to control the data
      */
-    private DataCore<FieldType> dataCore = null;
+    private DataCore<FieldType, ?> dataCore = null;
 
     // Field State -----------------------------------------------------------------------------------------------------
 
@@ -113,10 +113,8 @@ public class DataField<FieldType> {
      */
     public void allowValue() {
         this.state = N_ATTACHED_TO_OBJECT;
-        if (dataFieldSchema.getDataCore_factory() != null) {
-            this.dataCore = dataFieldSchema.getDataCore_factory().createCore(this);
-            this.dataCore.attachToField(this);
-            this.dataCore.startInitialSet();
+        if (dataFieldSchema.getDataCore_schema() != null) {
+            this.dataCore = dataFieldSchema.getDataCore_schema().createCore(this);
         }
     }
 
@@ -164,7 +162,7 @@ public class DataField<FieldType> {
 
         // Detach the data core
         if (dataCore != null) {
-            dataCore.detachFromField(this);
+            dataCore.detachFromField();
             dataCore = null;
         }
 
@@ -336,7 +334,7 @@ public class DataField<FieldType> {
 
     // Setup properties ------------------------------------------------------------------------------------------------
 
-    public DataCore<FieldType> getDataCore() {
+    public DataCore<FieldType, ?> getDataCore() {
         return dataCore;
     }
 
