@@ -5,12 +5,20 @@ import com.ntankard.javaObjectDatabase.dataField.properties.CustomProperty;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
 import com.ntankard.javaObjectDatabase.dataField.validator.Null_FieldValidator;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.exception.corrupting.DatabaseStructureException;
+import com.ntankard.javaObjectDatabase.exception.nonCorrupting.NonCorruptingException;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
 import static com.ntankard.javaObjectDatabase.dataField.DataField_Schema.SourceMode.*;
 
+/**
+ * All static data necessary top create a DataField object
+ *
+ * @param <FieldType> The type of data stored in the field
+ * @author Nicholas Tankard
+ */
 public class DataField_Schema<FieldType> {
 
     // Core Data -------------------------------------------------------------------------------------------------------
@@ -21,7 +29,7 @@ public class DataField_Schema<FieldType> {
     private final String identifierName;
 
     /**
-     * The data type of the field (same as T)
+     * The data type of the field (same as FieldType)
      */
     private final Class<FieldType> type;
 
@@ -104,18 +112,23 @@ public class DataField_Schema<FieldType> {
     //################################################### Constructor ##################################################
     //------------------------------------------------------------------------------------------------------------------
 
+
     /**
      * Constructor
+     *
+     * @param identifierName The name of the Field. This must be unique and is used to identify and save the field
+     * @param type           The data type of the field (same as FieldType)
      */
     public DataField_Schema(String identifierName, Class<FieldType> type) {
         this(identifierName, type, false);
     }
 
     /**
-     * Constructor
+     * @param canBeNull Can the field be null?
+     * @see DataField_Schema#DataField_Schema(String, Class)
      */
     public DataField_Schema(String identifierName, Class<FieldType> type, Boolean canBeNull) {
-        this.sourceMode = SourceMode.DIRECT;
+        this.sourceMode = null;
 
         this.identifierName = identifierName;
         this.type = type;
@@ -138,11 +151,22 @@ public class DataField_Schema<FieldType> {
     public void containerFinished(Class<? extends DataObject> parentType) {
         this.parentType = parentType;
 
-        if (manualCanEdit && !sourceMode.equals(DIRECT))
-            throw new IllegalStateException("Manual edit was set but the field is operating in a non direct mode");
+        if (setterFunction == null && dataCore_schema == null) {
+            sourceMode = DIRECT;
+        } else {
+            if (manualCanEdit)
+                throw new DatabaseStructureException(null, "Manual editing can not be enabled if a DataCore or Virtual Setter is provided");
 
-        if (setterFunction != null && dataCore_schema == null)
-            throw new IllegalStateException("Setter function added but not data core provided");
+            if (setterFunction != null) {
+                if (dataCore_schema != null) {
+                    sourceMode = VIRTUAL_DERIVED;
+                } else {
+                    throw new DatabaseStructureException(null, "You can no set a Virtual setter but not a DataCore");
+                }
+            } else {
+                sourceMode = DERIVED;
+            }
+        }
 
         for (Map.Entry<Class<? extends CustomProperty>, CustomProperty> customProperty : properties.entrySet()) {
             customProperty.getValue().finalise();
@@ -154,11 +178,11 @@ public class DataField_Schema<FieldType> {
     /**
      * Generate a DataField_Instance for this field
      *
-     * @param blackObject The object to attach the instance too
+     * @param container The object to attach the instance too
      * @return The new instance
      */
-    public DataField<FieldType> generate(DataObject blackObject) {
-        return new DataField<>(this, blackObject);
+    public DataField<FieldType> generate(DataObject container) {
+        return new DataField<>(this, container);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -245,21 +269,28 @@ public class DataField_Schema<FieldType> {
     // Data Control ----------------------------------------------------------------------------------------------------
 
     public void setManualCanEdit(Boolean manualCanEdit) {
+        if (setterFunction != null || dataCore_schema != null)
+            throw new NonCorruptingException("A field with a Setter function or a DataCore can not be manually edited");
+
         this.manualCanEdit = manualCanEdit;
     }
 
     public void setDataCore_schema(DataCore_Schema<FieldType> dataCore_schema) {
+        if (this.dataCore_schema != null)
+            throw new NonCorruptingException("You can not set a DataCore twice");
+        if (manualCanEdit)
+            throw new NonCorruptingException("DataCore cannot be set if manual editing is enabled");
+
         this.dataCore_schema = dataCore_schema;
-        if (setterFunction != null) {
-            this.sourceMode = VIRTUAL_DERIVED;
-        } else {
-            this.sourceMode = DERIVED;
-        }
     }
 
     public void setSetterFunction(DataField_Schema.SetterFunction<FieldType> setterFunction) {
+        if (this.setterFunction != null)
+            throw new NonCorruptingException("You can not set a Setter Function twice");
+        if (manualCanEdit)
+            throw new NonCorruptingException("Setter Function cannot be set if manual editing is enabled");
+
         this.setterFunction = setterFunction;
-        this.sourceMode = VIRTUAL_DERIVED;
     }
 
     // General Properties ----------------------------------------------------------------------------------------------
@@ -301,7 +332,8 @@ public class DataField_Schema<FieldType> {
         if (o == null || getClass() != o.getClass()) return false;
         DataField_Schema<?> dataFieldSchema = (DataField_Schema<?>) o;
         return getIdentifierName().equals(dataFieldSchema.getIdentifierName()) &&
-                getType().equals(dataFieldSchema.getType());
+                getType().equals(dataFieldSchema.getType()) &&
+                getParentType().equals(dataFieldSchema.getParentType());
     }
 
     /**
@@ -309,7 +341,7 @@ public class DataField_Schema<FieldType> {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(getIdentifierName(), getType());
+        return Objects.hash(getIdentifierName(), getType(), getParentType());
     }
 
     /**
@@ -317,7 +349,7 @@ public class DataField_Schema<FieldType> {
      */
     @Override
     public String toString() {
-        return identifierName + " - " + type.getSimpleName();
+        return identifierName + " - " + type.getSimpleName() + " - " + getParentType();
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -327,7 +359,7 @@ public class DataField_Schema<FieldType> {
     /**
      * Interface for virtual setter function
      */
-    public interface SetterFunction<T> {
+    public interface SetterFunction<FieldType> {
 
         /**
          * Called when the user invokes a the setter on a virtual field
@@ -335,6 +367,6 @@ public class DataField_Schema<FieldType> {
          * @param toSet     The values to set
          * @param container The object containing the field
          */
-        void set(T toSet, DataObject container);
+        void set(FieldType toSet, DataObject container);
     }
 }

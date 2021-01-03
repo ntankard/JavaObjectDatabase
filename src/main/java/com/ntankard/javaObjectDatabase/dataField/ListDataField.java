@@ -1,19 +1,30 @@
 package com.ntankard.javaObjectDatabase.dataField;
 
-import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataField.listener.FieldChangeListener;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
+import com.ntankard.javaObjectDatabase.exception.nonCorrupting.NonCorruptingException;
 
 import java.util.Collections;
 import java.util.List;
 
-import static com.ntankard.javaObjectDatabase.dataField.DataField.NewFieldState.*;
-
-public class ListDataField<T> extends DataField<List<T>> {
+/**
+ * A DataField specifically for list type objects. A list can be used in a regular DataField but this object makes some
+ * behavioural changes. The main change is in the listener system. When items are added to removed from the list they are
+ * sent on the change listener. A list of added items  will be sent in the new field of the change listener and the list
+ * of removed object will be sent in the old value field of the change listener. If a normal DataField is used the change
+ * listener will not be fired at all if the list is interacted with
+ *
+ * @param <ListContentType> The type of data in the list that the field contains
+ * @author Nicholas Tankard
+ * @see DataField
+ */
+public class ListDataField<ListContentType> extends DataField<List<ListContentType>> {
 
     /**
      * Constructor
      */
-    public ListDataField(DataField_Schema<List<T>> dataFieldSchema, DataObject container) {
+    public ListDataField(DataField_Schema<List<ListContentType>> dataFieldSchema, DataObject container) {
         super(dataFieldSchema, container);
     }
 
@@ -25,31 +36,12 @@ public class ListDataField<T> extends DataField<List<T>> {
      * @inheritDoc
      */
     @Override
-    public List<T> get() {
-        List<T> toReturn = super.get();
+    public List<ListContentType> get() {
+        List<ListContentType> toReturn = super.get();
         if (toReturn == null) {
-            throw new RuntimeException("The list is null when it shouldn't be");
+            throw new CorruptingException(getContainer().getTrackingDatabase(), "The list is null when it shouldn't be");
         }
         return Collections.unmodifiableList(toReturn);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    protected void set_impl(List<T> value) {
-        if (!state.equals(N_ACTIVE) && !state.equals(N_ATTACHED_TO_OBJECT) && !getState().equals(N_INITIALIZED))
-            throw new IllegalStateException("Wrong state for setting a value");
-
-        if (value == null) {
-            throw new IllegalArgumentException("List can never be null");
-        }
-
-        this.value = value;
-        this.state = NewFieldState.N_INITIALIZED;
-        for (FieldChangeListener<List<T>> fieldChangeListener : getFieldChangeListeners()) {
-            fieldChangeListener.valueChanged(this, null, null);
-        }
     }
 
     /**
@@ -57,29 +49,14 @@ public class ListDataField<T> extends DataField<List<T>> {
      *
      * @param toAdd The value to be added
      */
-    public void add(T toAdd) {
+    public void add(ListContentType toAdd) {
         if (getDataFieldSchema().getSourceMode().equals(DataField_Schema.SourceMode.DERIVED))
-            throw new IllegalStateException("Trying to set a field that is controlled by a data core");
+            throw new NonCorruptingException("Trying to set a field that is controlled by a data core");
 
-        if (!getState().equals(NewFieldState.N_INITIALIZED) && !getState().equals(NewFieldState.N_ACTIVE))
-            throw new IllegalStateException("This field can only be set once");
+        if (!hasValidValue())
+            throw new NonCorruptingException("The field has not been initially set yet");
 
         addImpl(toAdd);
-    }
-
-    /**
-     * Remove a value from the core list from the user
-     *
-     * @param toRemove The value to remove
-     */
-    public void remove(T toRemove) {
-        if (getDataFieldSchema().getSourceMode().equals(DataField_Schema.SourceMode.DERIVED))
-            throw new IllegalStateException("Trying to set a field that is controlled by a data core");
-
-        if (!getState().equals(NewFieldState.N_INITIALIZED) && !getState().equals(NewFieldState.N_ACTIVE))
-            throw new IllegalStateException("This field can only be set once");
-
-        removeImpl(toRemove);
     }
 
     /**
@@ -87,11 +64,27 @@ public class ListDataField<T> extends DataField<List<T>> {
      *
      * @param toAdd The value to be added
      */
-    public void addFromDataCore(T toAdd) {
+    public void addFromDataCore(ListContentType toAdd) {
         if (getDataFieldSchema().getSourceMode().equals(DataField_Schema.SourceMode.DIRECT))
-            throw new IllegalStateException("A dataCore is trying to set a field controlled by the user");
+            throw new NonCorruptingException("A dataCore is trying to set a field controlled by the user");
 
         addImpl(toAdd);
+    }
+
+
+    /**
+     * Remove a value from the core list from the user
+     *
+     * @param toRemove The value to remove
+     */
+    public void remove(ListContentType toRemove) {
+        if (getDataFieldSchema().getSourceMode().equals(DataField_Schema.SourceMode.DERIVED))
+            throw new NonCorruptingException("Trying to set a field that is controlled by a data core");
+
+        if (!hasValidValue())
+            throw new NonCorruptingException("The field has not been initially set yet");
+
+        removeImpl(toRemove);
     }
 
     /**
@@ -99,9 +92,9 @@ public class ListDataField<T> extends DataField<List<T>> {
      *
      * @param toRemove The value to remove
      */
-    public void removeFromDataCore(T toRemove) {
+    public void removeFromDataCore(ListContentType toRemove) {
         if (getDataFieldSchema().getSourceMode().equals(DataField_Schema.SourceMode.DIRECT))
-            throw new IllegalStateException("A dataCore is trying to set a field controlled by the user");
+            throw new NonCorruptingException("A dataCore is trying to set a field controlled by the user");
 
         removeImpl(toRemove);
     }
@@ -115,24 +108,17 @@ public class ListDataField<T> extends DataField<List<T>> {
      *
      * @param toAdd The value to add
      */
-    private void addImpl(T toAdd) {
-        if (!getState().equals(NewFieldState.N_ACTIVE) && !getState().equals(NewFieldState.N_ATTACHED_TO_OBJECT) && !getState().equals(NewFieldState.N_INITIALIZED))
-            throw new IllegalStateException("Wrong state for setting a value");
+    private void addImpl(ListContentType toAdd) {
+        if (!getState().equals(NewFieldState.ACTIVE) && !getState().equals(NewFieldState.READY_FOR_VALUE) && !getState().equals(NewFieldState.READY_TO_ADD))
+            throw new NonCorruptingException("Wrong state for adding a value");
 
-        if (value.contains(toAdd)) {
-            return; // TODO check why this is happening
-            //throw new IllegalArgumentException("Trying to add a value that has already been added");
-        }
+        if (value.contains(toAdd))
+            throw new NonCorruptingException("Trying to add a value that has already been added");
 
-        if (!doFilterCheck(Collections.singletonList(toAdd), value)) {
-            throw new IllegalArgumentException("Attempting to set a invalid value");
-        }
+        set_preCheck(Collections.singletonList(toAdd));
+        value.add(toAdd);
 
-        if (!value.contains(toAdd)) {
-            value.add(toAdd);
-        }
-
-        for (FieldChangeListener<List<T>> fieldChangeListener : getFieldChangeListeners()) {
+        for (FieldChangeListener<List<ListContentType>> fieldChangeListener : getFieldChangeListeners()) {
             fieldChangeListener.valueChanged(this, null, Collections.singletonList(toAdd));
         }
     }
@@ -142,17 +128,16 @@ public class ListDataField<T> extends DataField<List<T>> {
      *
      * @param toRemove The value to remove
      */
-    private void removeImpl(T toRemove) {
-        if (!getState().equals(NewFieldState.N_ACTIVE) && !getState().equals(NewFieldState.N_ATTACHED_TO_OBJECT))
-            throw new IllegalStateException("Wrong state for setting a value");
+    private void removeImpl(ListContentType toRemove) {
+        if (!getState().equals(NewFieldState.ACTIVE) && !getState().equals(NewFieldState.READY_FOR_VALUE) && !getState().equals(NewFieldState.READY_TO_ADD))
+            throw new NonCorruptingException("Wrong state for removing a value");
 
-        if (!value.contains(toRemove)) {
-            throw new IllegalArgumentException("Trying to remove a value that was never added");
-        }
+        if (!value.contains(toRemove))
+            throw new NonCorruptingException("Trying to remove a value that has never been added");
 
         value.remove(toRemove);
 
-        for (FieldChangeListener<List<T>> fieldChangeListener : getFieldChangeListeners()) {
+        for (FieldChangeListener<List<ListContentType>> fieldChangeListener : getFieldChangeListeners()) {
             fieldChangeListener.valueChanged(this, Collections.singletonList(toRemove), null);
         }
     }

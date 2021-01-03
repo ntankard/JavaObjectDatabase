@@ -7,6 +7,7 @@ import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
 import com.ntankard.javaObjectDatabase.exception.corrupting.DatabaseStructureException;
+import com.ntankard.javaObjectDatabase.exception.nonCorrupting.NonCorruptingException;
 import com.ntankard.javaObjectDatabase.testUtil.testDatabases.BlankTestDataObject;
 import com.ntankard.javaObjectDatabase.testUtil.testDatabases.DatabaseFactory;
 import com.ntankard.javaObjectDatabase.dataField.validator.testObjects.SharedValidator_TestObject;
@@ -78,9 +79,9 @@ class Shared_FieldValidatorTest {
     void dataObject_construction() {
         Database database = DatabaseFactory.getEmptyDatabase(Collections.singletonList(SharedValidator_TestObject.class));
 
-        assertThrows(IllegalArgumentException.class, () -> new SharedValidator_TestObject(7, 7, database));
-        assertThrows(IllegalArgumentException.class, () -> new SharedValidator_TestObject(4, 4, database));
-        assertThrows(IllegalArgumentException.class, () -> new SharedValidator_TestObject(-345, -345, database));
+        assertThrows(NonCorruptingException.class, () -> new SharedValidator_TestObject(7, 7, database));
+        assertThrows(NonCorruptingException.class, () -> new SharedValidator_TestObject(4, 4, database));
+        assertThrows(NonCorruptingException.class, () -> new SharedValidator_TestObject(-345, -345, database));
         assertDoesNotThrow(() -> new SharedValidator_TestObject(24, 345, database));
         assertDoesNotThrow(() -> new SharedValidator_TestObject(123, 34, database));
         assertDoesNotThrow(() -> new SharedValidator_TestObject(-23423, 675, database));
@@ -92,28 +93,28 @@ class Shared_FieldValidatorTest {
         Database database = DatabaseFactory.getEmptyDatabase(Collections.singletonList(SharedValidator_TestObject.class));
         SharedValidator_TestObject sharedValidatorTestObject = new SharedValidator_TestObject(-10, 10, database);
 
-        assertThrows(IllegalArgumentException.class, () -> sharedValidatorTestObject.set(First, 10));
+        assertThrows(NonCorruptingException.class, () -> sharedValidatorTestObject.set(First, 10));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(First, -20));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(First, -10));
-        assertThrows(IllegalArgumentException.class, () -> sharedValidatorTestObject.set(First, 10));
+        assertThrows(NonCorruptingException.class, () -> sharedValidatorTestObject.set(First, 10));
 
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(Second, 20));
 
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(First, 10));
-        assertThrows(IllegalArgumentException.class, () -> sharedValidatorTestObject.set(First, 20));
+        assertThrows(NonCorruptingException.class, () -> sharedValidatorTestObject.set(First, 20));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(First, -10));
 
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(Second, 10));
 
-        assertThrows(IllegalArgumentException.class, () -> sharedValidatorTestObject.set(Second, -10));
+        assertThrows(NonCorruptingException.class, () -> sharedValidatorTestObject.set(Second, -10));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(Second, 20));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(Second, 10));
-        assertThrows(IllegalArgumentException.class, () -> sharedValidatorTestObject.set(Second, -10));
+        assertThrows(NonCorruptingException.class, () -> sharedValidatorTestObject.set(Second, -10));
 
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(First, -20));
 
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(Second, -10));
-        assertThrows(IllegalArgumentException.class, () -> sharedValidatorTestObject.set(Second, -20));
+        assertThrows(NonCorruptingException.class, () -> sharedValidatorTestObject.set(Second, -20));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(Second, 10));
     }
 
@@ -265,8 +266,8 @@ class Shared_FieldValidatorTest {
         }
 
         @Override
-        public DataField<Integer> generate(DataObject blackObject) {
-            return new Test_DataField(this, blackObject);
+        public DataField<Integer> generate(DataObject container) {
+            return new Test_DataField(this, container);
         }
     }
 
