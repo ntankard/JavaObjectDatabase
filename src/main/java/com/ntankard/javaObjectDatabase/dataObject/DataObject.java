@@ -11,8 +11,6 @@ import com.ntankard.javaObjectDatabase.database.subContainers.DataObjectContaine
 import java.lang.reflect.Method;
 import java.util.*;
 
-import static com.ntankard.javaObjectDatabase.dataField.DataField.NewFieldState.N_ACTIVE;
-
 public abstract class DataObject {
 
     //------------------------------------------------------------------------------------------------------------------
@@ -133,7 +131,7 @@ public abstract class DataObject {
             throw new IllegalArgumentException("Wrong amount of arguments");
 
         // Start sharing data
-        instanceList.forEach(DataField::allowValue);
+        instanceList.forEach(DataField::linkWithingDataObject);
 
         // Load each of the fields
         for (int i = 0; i < args.length / 2; i++) {
@@ -236,14 +234,11 @@ public abstract class DataObject {
     /**
      * Add this object to the database. Notify everyone required and create or add supporting objects if needed
      */
-    public <T extends DataObject> T add() {
+    @SuppressWarnings("unchecked")
+    public <DataObjectType extends DataObject> DataObjectType add() {
 
         for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            field.getValue().initialFilter(); // Possible error here, this may need to be done AFTER being put into the database
-        }
-
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            if (!field.getValue().getState().equals(N_ACTIVE)) {
+            if (!field.getValue().hasValidValue()) {
                 throw new RuntimeException();
             }
         }
@@ -252,13 +247,13 @@ public abstract class DataObject {
             factory.generate(this);
         }
 
-        for (Map.Entry<String, DataField<?>> field : this.fieldMap.entrySet()) {
-            field.getValue().forceNotify(); // possible error here, this may need to be done AFTER being put into the database
+        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
+            field.getValue().linkToDataBase(); // Possible error here, this may need to be done AFTER being put into the database
         }
 
         getTrackingDatabase().add(this);
 
-        return (T) this;
+        return (DataObjectType) this;
     }
 
     /**

@@ -37,6 +37,13 @@ public abstract class Source<AttachedFieldType, SchemaType extends Source_Schema
     protected Source<?, ?> parentSource;
 
     /**
+     * A flag to indicate if notifications of changes from lower sources should be ignored. This is activated when this
+     * source is undergoing a change. It also guarantees that this source will take responsibility for picking up the
+     * change once the flag is turned off
+     */
+    protected boolean suppress;
+
+    /**
      * Constructor
      *
      * @param schema         The Schema describing the behavior of this Source
@@ -50,16 +57,12 @@ public abstract class Source<AttachedFieldType, SchemaType extends Source_Schema
         assert parentDataCore != null || parentSource != null;
         assert !(parentDataCore != null && parentSource != null);
 
+        this.suppress = false;
         this.schema = schema;
         this.attachedField = attachedField;
         this.parentDataCore = parentDataCore;
         this.parentSource = parentSource;
-    }
 
-    /**
-     * Make the Source live and attempt to connect to relevant fields
-     */
-    public void attach() {
         this.attachedField.addChangeListener(this);
         if (this.attachedField.hasValidValue()) {
             valueChanged(this.attachedField, null, this.attachedField.get());
@@ -91,19 +94,21 @@ public abstract class Source<AttachedFieldType, SchemaType extends Source_Schema
      * a new lowest source being attached
      */
     protected void sourceChanged(Object oldValue, Object newValue) {
-        if (parentDataCore != null) {                           // Top of the source chain
-            assert isValid();
-            if (schema.getIndividualCalculator() != null) {         // Individual calculation supported
-                if (!parentDataCore.getDataField().hasValidValue()) {   // Full recalculation has not been run once
+        if (!suppress) {                                        // Notifications are not being stopped
+            if (isTop()) {                                          // Top of the source chain
+                assert isValid();
+                if (schema.getIndividualCalculator() != null) {         // Individual calculation supported
+                    if (!parentDataCore.canIncrementalCalculate()) {         // Full recalculation has not been run once
+                        parentDataCore.recalculate();
+                    } else {                                                // Full recalculation has been run once, update individual only
+                        schema.doIndividualRecalculate(parentDataCore, oldValue, newValue);
+                    }
+                } else {                                                // Individual calculation not supported
                     parentDataCore.recalculate();
-                } else {                                                // Full recalculation has been run once, update individual only
-                    schema.doIndividualRecalculate(parentDataCore, oldValue, newValue);
                 }
-            } else {                                                // Individual calculation not supported
-                parentDataCore.recalculate();
+            } else {                                                // Step in the source chain, forward on the update
+                parentSource.sourceChanged(oldValue, newValue);
             }
-        } else {                                                // Step in the source chain, forward on the update
-            parentSource.sourceChanged(oldValue, newValue);
         }
     }
 

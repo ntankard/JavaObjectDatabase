@@ -5,7 +5,7 @@ import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
 
-import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.DerivedDataCore_Factory.createDirectDerivedDataCore;
+import static com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore_Factory.createDirectDerivedDataCore;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.MultiChain.End_TestObject.Data;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.MultiChain.Step1_TestObject.EndLink;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.MultiChain.Step2_TestObject.S1Link;
@@ -49,7 +49,7 @@ public class MultiChain {
             dataObjectSchema.get(EndLink).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(EndData, Integer.class, true));
-            dataObjectSchema.get(EndData).setDataCore_factory(createDirectDerivedDataCore(EndLink, Data));
+            dataObjectSchema.get(EndData).setDataCore_schema(createDirectDerivedDataCore(EndLink, Data));
 
             return dataObjectSchema.finaliseContainer(Step1_TestObject.class);
         }
@@ -78,7 +78,7 @@ public class MultiChain {
             dataObjectSchema.get(S1Link).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(S1EndData, Integer.class, true));
-            dataObjectSchema.get(S1EndData).setDataCore_factory(createDirectDerivedDataCore(S1Link, EndLink, Data));
+            dataObjectSchema.get(S1EndData).setDataCore_schema(createDirectDerivedDataCore(S1Link, EndLink, Data));
 
             return dataObjectSchema.finaliseContainer(Step2_TestObject.class);
         }
@@ -107,7 +107,7 @@ public class MultiChain {
             dataObjectSchema.get(S2Link).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(S2S1EndData, Integer.class, true));
-            dataObjectSchema.get(S2S1EndData).setDataCore_factory(createDirectDerivedDataCore(S2Link, S1Link, EndLink, Data));
+            dataObjectSchema.get(S2S1EndData).setDataCore_schema(createDirectDerivedDataCore(S2Link, S1Link, EndLink, Data));
 
             return dataObjectSchema.finaliseContainer(Step3_TestObject.class);
         }

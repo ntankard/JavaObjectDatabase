@@ -7,7 +7,7 @@ import org.junit.jupiter.api.parallel.Execution;
 import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
 
 @Execution(CONCURRENT)
-class DerivedDataCore_FactoryTest {
+class DerivedDataCore_SchemaTest {
 
     @BeforeAll
     static void beforeAll() {

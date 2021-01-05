@@ -17,17 +17,17 @@ import java.util.*;
  * @author Nicholas Tankard
  * @see Source
  */
-public class ListStep_Source<EndFieldType, AttachedFieldType extends List<? extends DataObject>> extends Source<AttachedFieldType, StepSource_Schema<EndFieldType>> {
+public class ListStep_Source<EndFieldType, AttachedFieldType extends List<? extends DataObject>> extends Source<AttachedFieldType, Step_Source_Schema<EndFieldType>> {
 
     /**
      * The next Sources below this one in the chain, may be the last one or another step
      */
-    private final Map<DataObject, Source<?, ?>> lowerSources = new HashMap<>();
+    private Map<DataObject, Source<?, ?>> lowerSources = new HashMap<>();
 
     /**
      * @see Source#Source(Source_Schema, DataField, Derived_DataCore, Source)
      */
-    protected ListStep_Source(StepSource_Schema<EndFieldType> schema, DataField<AttachedFieldType> attachedField, Derived_DataCore<?, ?> parentDataCore, Source<?, ?> parentSource) {
+    protected ListStep_Source(Step_Source_Schema<EndFieldType> schema, DataField<AttachedFieldType> attachedField, Derived_DataCore<?, ?> parentDataCore, Source<?, ?> parentSource) {
         super(schema, attachedField, parentDataCore, parentSource);
         assert ListDataField.class.isAssignableFrom(attachedField.getClass());
     }
@@ -37,39 +37,43 @@ public class ListStep_Source<EndFieldType, AttachedFieldType extends List<? exte
      */
     @Override
     public void valueChanged(DataField<AttachedFieldType> field, AttachedFieldType oldValue, AttachedFieldType newValue) {
+        suppress = true;
         ArrayList<Object> toSendOld = null;
         ArrayList<Object> toSendNew = null;
-
-        if (oldValue != null) {
-            toSendOld = new ArrayList<>();
-            for (DataObject dataField : oldValue) {
-                Object toRemove = lowerSources.get(dataField).getEndFieldValue();
-                if (Collection.class.isAssignableFrom(toRemove.getClass())) {
-                    toSendOld.addAll((Collection<?>) toRemove);
-                } else {
-                    toSendOld.add(toRemove);
-                }
-                assert lowerSources.containsKey(dataField);
-                lowerSources.get(dataField).detach();
-                lowerSources.remove(dataField);
-            }
-        }
-        if (newValue != null) {
-            toSendNew = new ArrayList<>();
-            for (DataObject dataField : newValue) {
-                assert !lowerSources.containsKey(dataField);
-                lowerSources.put(dataField, schema.getChildSourceSchema().createChildSource(dataField, this));
-                lowerSources.get(dataField).attach();
-                Object toAdd = lowerSources.get(dataField).getEndFieldValue();
-                if (Collection.class.isAssignableFrom(toAdd.getClass())) {
-                    toSendNew.addAll((Collection<?>) toAdd);
-                } else {
-                    toSendNew.add(toAdd);
+        try {
+            if (oldValue != null) {
+                toSendOld = new ArrayList<>();
+                for (DataObject dataField : oldValue) {
+                    Object toRemove = lowerSources.get(dataField).getEndFieldValue();
+                    if (Collection.class.isAssignableFrom(toRemove.getClass())) {
+                        toSendOld.addAll((Collection<?>) toRemove);
+                    } else {
+                        toSendOld.add(toRemove);
+                    }
+                    assert lowerSources.containsKey(dataField);
+                    lowerSources.get(dataField).detach();
+                    lowerSources.remove(dataField);
                 }
             }
-        }
+            if (newValue != null) {
+                toSendNew = new ArrayList<>();
+                for (DataObject dataField : newValue) {
+                    assert !lowerSources.containsKey(dataField);
+                    lowerSources.put(dataField, schema.getChildSourceSchema().createChildSource(dataField, this));
+                    Object toAdd = lowerSources.get(dataField).getEndFieldValue();
+                    if (Collection.class.isAssignableFrom(toAdd.getClass())) {
+                        toSendNew.addAll((Collection<?>) toAdd);
+                    } else {
+                        toSendNew.add(toAdd);
+                    }
+                }
+            }
 
-        sourceChanged(toSendOld, toSendNew);
+            suppress = false;
+            sourceChanged(toSendOld, toSendNew);
+        } finally {
+            suppress = false;
+        }
     }
 
     /**
@@ -101,6 +105,7 @@ public class ListStep_Source<EndFieldType, AttachedFieldType extends List<? exte
             lowerSources.get(key).detach();
             lowerSources.remove(key);
         }
+        lowerSources = null;
     }
 
     /**

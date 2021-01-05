@@ -14,7 +14,7 @@ import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
  * @author Nicholas Tankard
  * @see Source
  */
-public class Step_Source<SourceEndType, AttachedFieldType extends DataObject> extends Source<AttachedFieldType, StepSource_Schema<SourceEndType>> {
+public class Step_Source<SourceEndType, AttachedFieldType extends DataObject> extends Source<AttachedFieldType, Step_Source_Schema<SourceEndType>> {
 
     /**
      * The next Source below this one in the chain, may be the last one or another step
@@ -24,7 +24,7 @@ public class Step_Source<SourceEndType, AttachedFieldType extends DataObject> ex
     /**
      * @see Source#Source(Source_Schema, DataField, Derived_DataCore, Source)
      */
-    protected Step_Source(StepSource_Schema<SourceEndType> schema, DataField<AttachedFieldType> attachedField, Derived_DataCore<?, ?> parentDataCore, Source<?, ?> parentSource) {
+    protected Step_Source(Step_Source_Schema<SourceEndType> schema, DataField<AttachedFieldType> attachedField, Derived_DataCore<?, ?> parentDataCore, Source<?, ?> parentSource) {
         super(schema, attachedField, parentDataCore, parentSource);
         assert !ListDataField.class.isAssignableFrom(attachedField.getClass());
     }
@@ -34,21 +34,26 @@ public class Step_Source<SourceEndType, AttachedFieldType extends DataObject> ex
      */
     @Override
     public void valueChanged(DataField<AttachedFieldType> field, AttachedFieldType oldValue, AttachedFieldType newValue) {
+        suppress = true;
         Object toSendOld = null;
         Object toSendNew = null;
-        if (oldValue != null) {
-            assert oldValue == lowerSource.getAttachedField().getContainer();
-            toSendOld = lowerSource.getEndFieldValue();
-            lowerSource.detach();
-            lowerSource = null;
+        try {
+            if (oldValue != null) {
+                assert oldValue == lowerSource.getAttachedField().getContainer();
+                toSendOld = lowerSource.getEndFieldValue();
+                lowerSource.detach();
+                lowerSource = null;
+            }
+            if (newValue != null) {
+                lowerSource = getSchema().getChildSourceSchema().createChildSource(newValue, this);
+                assert newValue == lowerSource.getAttachedField().getContainer();
+                toSendNew = lowerSource.getEndFieldValue();
+            }
+            suppress = false;
+            sourceChanged(toSendOld, toSendNew);
+        } finally {
+            suppress = false;
         }
-        if (newValue != null) {
-            lowerSource = getSchema().getChildSourceSchema().createChildSource(newValue, this);
-            assert newValue == lowerSource.getAttachedField().getContainer();
-            lowerSource.attach();
-            toSendNew = lowerSource.getEndFieldValue();
-        }
-        sourceChanged(toSendOld, toSendNew);
     }
 
     /**
@@ -73,6 +78,7 @@ public class Step_Source<SourceEndType, AttachedFieldType extends DataObject> ex
         super.detach();
         if (lowerSource != null) {
             lowerSource.detach();
+            lowerSource = null;
         }
     }
 

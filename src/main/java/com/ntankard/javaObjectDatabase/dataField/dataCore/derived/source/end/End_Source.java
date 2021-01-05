@@ -11,12 +11,12 @@ import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.Source_
  * @author Nicholas Tankard
  * @see Source
  */
-public class End_Source<EndFieldType> extends Source<EndFieldType, EndSource_Schema<EndFieldType>> {
+public class End_Source<EndFieldType> extends Source<EndFieldType, End_Source_Schema<EndFieldType>> {
 
     /**
      * @see Source#Source(Source_Schema, DataField, Derived_DataCore, Source)
      */
-    protected End_Source(EndSource_Schema<EndFieldType> schema, DataField<EndFieldType> attachedField, Derived_DataCore<?, ?> parentDataCore, Source<?, ?> parentSource) {
+    protected End_Source(End_Source_Schema<EndFieldType> schema, DataField<EndFieldType> attachedField, Derived_DataCore<?, ?> parentDataCore, Source<?, ?> parentSource) {
         super(schema, attachedField, parentDataCore, parentSource);
     }
 

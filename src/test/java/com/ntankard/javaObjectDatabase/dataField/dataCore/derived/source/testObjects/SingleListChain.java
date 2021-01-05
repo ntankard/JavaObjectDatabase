@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore_Schema;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
@@ -21,7 +21,7 @@ public class SingleListChain {
             dataObjectSchema.get(CoreData).setManualCanEdit(true);
 
             dataObjectSchema.add(new DataField_Schema<>(SCoreData, Integer.class));
-            dataObjectSchema.get(SCoreData).setDataCore_factory(new Static_DataCore.Static_DataCore_Factory<>(dataField -> -1));
+            dataObjectSchema.get(SCoreData).setDataCore_schema(new Static_DataCore_Schema<>(-1));
 
             dataObjectSchema.add(new DataField_Schema<>(NCoreData, Integer.class, true));
             dataObjectSchema.get(NCoreData).setManualCanEdit(true);

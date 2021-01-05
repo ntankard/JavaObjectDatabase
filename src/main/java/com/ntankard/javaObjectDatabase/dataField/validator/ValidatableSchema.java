@@ -1,4 +1,6 @@
-package com.ntankard.javaObjectDatabase.dataObject;
+package com.ntankard.javaObjectDatabase.dataField.validator;
+
+import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 
 /**
  * An interface for validating an object attached to a schema, This will be called when the DataObject_Schema is being

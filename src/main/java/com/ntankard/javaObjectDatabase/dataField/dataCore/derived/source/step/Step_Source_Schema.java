@@ -13,7 +13,7 @@ import com.ntankard.javaObjectDatabase.dataObject.DataObject;
  * @author Nicholas Tankard
  * @see Source_Schema
  */
-public class StepSource_Schema<EndFieldType> extends Source_Schema<EndFieldType> {
+public class Step_Source_Schema<EndFieldType> extends Source_Schema<EndFieldType> {
 
     /**
      * The Schema that can be used to create the next source in the chain
@@ -24,7 +24,7 @@ public class StepSource_Schema<EndFieldType> extends Source_Schema<EndFieldType>
      * @param childSourceSchema The Schema that can be used to create the next source in the chain
      * @see Source_Schema#Source_Schema(String)
      */
-    public StepSource_Schema(String sourceContainerFieldKey, Source_Schema<?> childSourceSchema, IndividualCalculator<EndFieldType> individualCalculator) {
+    public Step_Source_Schema(String sourceContainerFieldKey, Source_Schema<?> childSourceSchema, IndividualCalculator<EndFieldType> individualCalculator) {
         super(sourceContainerFieldKey, individualCalculator);
         this.childSourceSchema = childSourceSchema;
     }
@@ -33,7 +33,7 @@ public class StepSource_Schema<EndFieldType> extends Source_Schema<EndFieldType>
      * @param childSourceSchema The Schema that can be used to create the next source in the chain
      * @see Source_Schema#Source_Schema(String, IndividualCalculator)
      */
-    public StepSource_Schema(String sourceContainerFieldKey, Source_Schema<EndFieldType> childSourceSchema) {
+    public Step_Source_Schema(String sourceContainerFieldKey, Source_Schema<EndFieldType> childSourceSchema) {
         super(sourceContainerFieldKey);
         this.childSourceSchema = childSourceSchema;
     }
@@ -43,19 +43,15 @@ public class StepSource_Schema<EndFieldType> extends Source_Schema<EndFieldType>
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public Source<?, StepSource_Schema<EndFieldType>> createRootSource(Derived_DataCore<?, ?> parentDataCore) {
+    public Source<?, Step_Source_Schema<EndFieldType>> createRootSource(Derived_DataCore<?, ?> parentDataCore) {
         DataField<?> attachedField = parentDataCore.getDataField().getContainer().getField(getAttachedFieldKey());
-        Source source;
 
         if (ListDataField.class.isAssignableFrom(attachedField.getClass())) {
-            source = new ListStep_Source(this, attachedField, parentDataCore, null);
+            return new ListStep_Source(this, attachedField, parentDataCore, null);
         } else {
             assert DataObject.class.isAssignableFrom(attachedField.getDataFieldSchema().getType());
-            source = new Step_Source(this, attachedField, parentDataCore, null);
+            return new Step_Source(this, attachedField, parentDataCore, null);
         }
-
-        source.attach();
-        return source;
     }
 
     /**
@@ -63,19 +59,16 @@ public class StepSource_Schema<EndFieldType> extends Source_Schema<EndFieldType>
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public Source<?, StepSource_Schema<EndFieldType>> createChildSource(DataObject attachedFieldContainer, Source<?, ?> parentSource) {
+    public Source<?, Step_Source_Schema<EndFieldType>> createChildSource(DataObject attachedFieldContainer, Source<?, ?> parentSource) {
         assert getIndividualCalculator() == null;
         DataField<?> attachedField = attachedFieldContainer.getField(getAttachedFieldKey());
-        Source source;
 
         if (ListDataField.class.isAssignableFrom(attachedField.getClass())) {
-            source = new ListStep_Source(this, attachedField, null, parentSource);
+            return new ListStep_Source(this, attachedField, null, parentSource);
         } else {
             assert DataObject.class.isAssignableFrom(attachedField.getDataFieldSchema().getType());
-            source = new Step_Source(this, attachedField, null, parentSource);
+            return new Step_Source(this, attachedField, null, parentSource);
         }
-
-        return source;
     }
 
     //------------------------------------------------------------------------------------------------------------------

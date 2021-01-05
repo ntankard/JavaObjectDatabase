@@ -1,18 +1,25 @@
 package com.ntankard.javaObjectDatabase.dataField;
 
-import com.ntankard.javaObjectDatabase.dataObject.DataObject;
-import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
-import com.ntankard.javaObjectDatabase.dataField.listener.FieldChangeListener;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore;
+import com.ntankard.javaObjectDatabase.dataField.listener.FieldChangeListener;
+import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
+import com.ntankard.javaObjectDatabase.exception.nonCorrupting.NonCorruptingException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.ntankard.javaObjectDatabase.dataField.DataField.NewFieldState.*;
 import static com.ntankard.javaObjectDatabase.dataField.DataField_Schema.SourceMode.DERIVED;
 import static com.ntankard.javaObjectDatabase.dataField.DataField_Schema.SourceMode.VIRTUAL_DERIVED;
-import static com.ntankard.javaObjectDatabase.dataField.DataField.NewFieldState.*;
 
-
+/**
+ * A field is an container for a single piece of data in a DataObject. The DataField is responsible for contains the
+ * data, filtering it as needed and linking it to other fields in the system as needed.
+ *
+ * @param <FieldType> The type of data in the field
+ * @author Nicholas Tankard
+ */
 public class DataField<FieldType> {
 
     // Fixed properties ------------------------------------------------------------------------------------------------
@@ -37,16 +44,19 @@ public class DataField<FieldType> {
     /**
      * The engine to control the data
      */
-    private DataCore<FieldType> dataCore = null;
+    private DataCore<FieldType, ?> dataCore = null;
 
     // Field State -----------------------------------------------------------------------------------------------------
 
+    /**
+     * The possible states of the fields, tied heavily to the states of the DataObject
+     */
     public enum NewFieldState {
-        N_ALL_FIELDS_FINISHED,  // All fields are finished and grouped into a container
-        N_ATTACHED_TO_OBJECT,   // The field is attached to its container
-        N_INITIALIZED,          // The field is fully setup and the initial value has been set
-        N_ACTIVE,               // The object the field is attached to is in the database and in active use
-        N_REMOVED               // The object this field is attached to has been removed, it can not be added again and should have all ties cut
+        UNDER_CONSTRUCTION, // The field has been constructed but not connected to other object yet
+        READY_FOR_VALUE,    // All fields in the DataObject are constructed. This field is attached to all required other fields and is ready to have its value set
+        READY_TO_ADD,       // The field has a valid value and is now valid itself but its attached DataObjects is not fully ready yet (other fields are still being set)
+        ACTIVE,             // The object the field is attached to is in the database and in active use
+        REMOVED,            // The object this field is attached to has been removed, it can not be added again and should have all ties cut
     }
 
     /**
@@ -66,7 +76,6 @@ public class DataField<FieldType> {
      */
     private FieldType oldValue = null;
 
-
     // Change Listeners ------------------------------------------------------------------------------------------------
 
     /**
@@ -84,13 +93,11 @@ public class DataField<FieldType> {
     public DataField(DataField_Schema<FieldType> dataFieldSchema, DataObject container) {
         this.dataFieldSchema = dataFieldSchema;
         this.container = container;
-
-        this.state = N_ALL_FIELDS_FINISHED;
-
+        this.state = UNDER_CONSTRUCTION;
         this.notifyParentListener = (field, oldValue, newValue) -> {
             if (DataObject.class.isAssignableFrom(field.dataFieldSchema.getType())) {
                 if (field.dataFieldSchema.isTellParent()) {
-                    if (field.getState().equals(N_ACTIVE)) { // Here, this is the reason you cant get rid of N_INITIALIZED, if you do you will double notify
+                    if (field.getState().equals(ACTIVE)) {
                         if (oldValue != null) {
                             ((DataObject) oldValue).notifyChildUnLink(field.getContainer());
                         }
@@ -101,6 +108,7 @@ public class DataField<FieldType> {
                 }
             }
         };
+
         addChangeListener(notifyParentListener);
     }
 
@@ -109,30 +117,27 @@ public class DataField<FieldType> {
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Call to allow a data core to start receiving values
+     * The Field can now be attached to other fields in the same DataObject. If a DataCore is provide it will be created
      */
-    public void allowValue() {
-        this.state = N_ATTACHED_TO_OBJECT;
-        if (dataFieldSchema.getDataCore_factory() != null) {
-            this.dataCore = dataFieldSchema.getDataCore_factory().createCore(this);
-            this.dataCore.attachToField(this);
-            this.dataCore.startInitialSet();
+    public void linkWithingDataObject() {
+        if (!getState().equals(UNDER_CONSTRUCTION))
+            throw new NonCorruptingException("linkWithingDataObject can only be called once at the start of the Fields lifecycle");
+        this.state = READY_FOR_VALUE;
+        if (dataFieldSchema.getDataCore_schema() != null) {
+            this.dataCore = dataFieldSchema.getDataCore_schema().createCore(this);
         }
     }
 
     /**
-     * Add this field to the database along with its container object
+     * The Field can no register its presence as a child of parent object. It will also enable this being done
+     * automatically from now on
      */
-    public void initialFilter() {
-        if (!getState().equals(N_INITIALIZED))
-            throw new IllegalStateException("The field has not been configured, added or had its initial value set yet");
-        this.state = N_ACTIVE;
-    }
+    public void linkToDataBase() {
+        if (!getState().equals(READY_TO_ADD))
+            throw new NonCorruptingException("The field has not been configured, added or had its initial value set yet");
 
-    /**
-     * Notify all linked objects
-     */
-    public void forceNotify() {
+        this.state = ACTIVE;
+
         if (DataObject.class.isAssignableFrom(dataFieldSchema.getType())) {
             if (dataFieldSchema.isTellParent()) {
                 if (value != null) {
@@ -145,14 +150,12 @@ public class DataField<FieldType> {
     /**
      * Remove this field from the database
      */
+    // TODO
     public void remove() {
-        if (!getState().equals(N_ACTIVE))
-            throw new IllegalStateException("The field has not been configured, added or had its initial value set yet");
+        if (!getState().equals(ACTIVE))
+            throw new NonCorruptingException("The field has not been configured, added or had its initial value set yet");
 
-        if (fieldChangeListeners.size() > 1 || (fieldChangeListeners.size() == 1 && !fieldChangeListeners.contains(notifyParentListener)))
-            throw new IllegalStateException("Trying to delete and object that has change listeners attached");
-
-        // Unlink this object from others in the database
+        // Soft unlink the object from the database
         this.removeChangeListener(notifyParentListener);
         if (DataObject.class.isAssignableFrom(dataFieldSchema.getType())) {
             if (dataFieldSchema.isTellParent()) {
@@ -162,13 +165,26 @@ public class DataField<FieldType> {
             }
         }
 
+        // Check that nothing else links to this field. If it dose, undo the change and throw
+        if (fieldChangeListeners.size() != 0) {
+            this.addChangeListener(notifyParentListener);
+            if (DataObject.class.isAssignableFrom(dataFieldSchema.getType())) {
+                if (dataFieldSchema.isTellParent()) {
+                    if (get() != null) {
+                        ((DataObject) get()).notifyChildLink(getContainer());
+                    }
+                }
+            }
+            throw new NonCorruptingException("This field has change listeners attached that are not for internal use, and not part of children lists. Can not be removed");
+        }
+
         // Detach the data core
         if (dataCore != null) {
-            dataCore.detachFromField(this);
+            dataCore.detachFromField();
             dataCore = null;
         }
 
-        this.state = N_REMOVED;
+        this.state = REMOVED;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -203,8 +219,8 @@ public class DataField<FieldType> {
      * @return The current value
      */
     public FieldType get() {
-        if (!state.equals(N_INITIALIZED) && !state.equals(N_ACTIVE))
-            throw new IllegalStateException("Cant get the value until its initially set");
+        if (!hasValidValue())
+            throw new NonCorruptingException("Cant get the value until its initially set");
 
         return value;
     }
@@ -215,17 +231,16 @@ public class DataField<FieldType> {
      * @param toSet The value to set
      */
     public void set(FieldType toSet) {
-        if (!dataFieldSchema.getCanEdit() && !state.equals(N_ATTACHED_TO_OBJECT))
-            throw new IllegalStateException("This field can only be set once");
+        if (!dataFieldSchema.getCanEdit() && !state.equals(READY_FOR_VALUE))
+            throw new NonCorruptingException("This field can only be set once");
+
+        if (dataFieldSchema.getSourceMode().equals(DERIVED))
+            throw new NonCorruptingException("Trying to set a field that is controlled by a data core");
 
         if (dataFieldSchema.getSourceMode().equals(VIRTUAL_DERIVED)) {
             dataFieldSchema.getSetterFunction().set(toSet, getContainer());
             return;
         }
-
-        if (dataFieldSchema.getSourceMode().equals(DERIVED))
-            throw new IllegalStateException("Trying to set a field that is controlled by a data core");
-
 
         set_impl(toSet);
     }
@@ -237,7 +252,7 @@ public class DataField<FieldType> {
      */
     public void setFromDataCore(FieldType toSet) {
         if (dataFieldSchema.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT))
-            throw new IllegalStateException("A dataCore is trying to set a field controlled by the user");
+            throw new NonCorruptingException("A dataCore is trying to set a field controlled by the user");
 
         set_impl(toSet);
     }
@@ -252,10 +267,9 @@ public class DataField<FieldType> {
      * @param value The value to set
      */
     protected void set_impl(FieldType value) {
-        if (!state.equals(N_ACTIVE) && !state.equals(N_ATTACHED_TO_OBJECT) && !getState().equals(N_INITIALIZED))
-            throw new IllegalStateException("Wrong state for setting a value");
+        if (!state.equals(ACTIVE) && !state.equals(READY_FOR_VALUE) && !getState().equals(READY_TO_ADD))
+            throw new NonCorruptingException("Wrong state for setting a value");
 
-        // TODO check if this is correct
         if (value == this.value && value != null) {
             return;
         }
@@ -263,8 +277,8 @@ public class DataField<FieldType> {
         set_preCheck(value);
         set_set(value);
 
-        if (state.equals(N_ATTACHED_TO_OBJECT)) {
-            this.state = N_INITIALIZED;
+        if (state.equals(READY_FOR_VALUE)) {
+            this.state = READY_TO_ADD;
         }
 
         set_postSet();
@@ -275,9 +289,12 @@ public class DataField<FieldType> {
      *
      * @param toCheck The value to set
      */
-    private void set_preCheck(FieldType toCheck) {
-        if (!doFilterCheck(toCheck, value)) {
-            throw new IllegalArgumentException("Attempting to set a invalid value");
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected void set_preCheck(FieldType toCheck) {
+        for (FieldValidator validator : dataFieldSchema.getValidators()) {
+            if (!validator.isValid(toCheck, value, this.getContainer())) {
+                throw new NonCorruptingException("Attempting to set a invalid value");
+            }
         }
     }
 
@@ -294,24 +311,8 @@ public class DataField<FieldType> {
     /**
      * Perform what ever actions are required after setting a new value (register, notify ect)
      */
-    private void set_postSet() {
+    protected void set_postSet() {
         getFieldChangeListeners().forEach(fieldChangeListener -> fieldChangeListener.valueChanged(this, oldValue, value));
-    }
-
-    /**
-     * Check the value against the attached filters
-     *
-     * @param toCheck The value to check
-     * @return True if the value is valid against all filters
-     */
-    @SuppressWarnings({"rawtypes", "unchecked", "BooleanMethodIsAlwaysInverted"})
-    public boolean doFilterCheck(FieldType toCheck, FieldType pastValue) {
-        for (FieldValidator validator : dataFieldSchema.getValidators()) {
-            if (!validator.isValid(toCheck, pastValue, this.getContainer())) {
-                return false;
-            }
-        }
-        return true;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -336,12 +337,12 @@ public class DataField<FieldType> {
 
     // Setup properties ------------------------------------------------------------------------------------------------
 
-    public DataCore<FieldType> getDataCore() {
+    public DataCore<FieldType, ?> getDataCore() {
         return dataCore;
     }
 
     public boolean hasValidValue() {
-        return getState().equals(N_INITIALIZED) || getState().equals(N_ACTIVE);
+        return getState().equals(READY_TO_ADD) || getState().equals(ACTIVE);
     }
 
     // Change Listeners ------------------------------------------------------------------------------------------------

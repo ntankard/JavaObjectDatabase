@@ -1,66 +1,48 @@
 package com.ntankard.javaObjectDatabase.dataField.dataCore;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField;
+import com.ntankard.javaObjectDatabase.dataField.ListDataField;
 
-public abstract class DataCore<FieldType> {
-
-    //------------------------------------------------------------------------------------------------------------------
-    //##################################################### Factory ####################################################
-    //------------------------------------------------------------------------------------------------------------------
+/**
+ * A object used to drive data in a dataField. This is used for any application where the value is not directly set by
+ * the user
+ *
+ * @param <FieldType>  The type of data in the field this core will be attached to
+ * @param <SchemaType> The type of Schema used to generate this core
+ * @author Nicholas Tankard
+ */
+public abstract class DataCore<FieldType, SchemaType extends DataCore_Schema<FieldType>> {
 
     /**
-     * A factory to create DataCore object that can contain state information
+     * The Schema describing the behavior of this Core
      */
-    public static abstract class DataCore_Factory<FieldType, DataCoreType extends DataCore<FieldType>> {
-
-        /**
-         * Create a stand alone instance of DataCore that can have state information
-         *
-         * @param container The DataField this will be attached to
-         * @return A stand alone instance of DataCore that can have state information
-         */
-        public abstract DataCoreType createCore(DataField<FieldType> container);
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################## Core DataCore #################################################
-    //------------------------------------------------------------------------------------------------------------------
+    private SchemaType schema;
 
     /**
      * The field containing this data core
      */
-    private DataField<FieldType> dataField = null;
-
-    //------------------------------------------------------------------------------------------------------------------
-    //###################################################### Setup #####################################################
-    //------------------------------------------------------------------------------------------------------------------
+    private DataField<FieldType> dataField;
 
     /**
-     * Called when this filter is attached to a field. It is safe to call subscriptions at this point
+     * Constructor
      *
-     * @param dataField The field this object was attached to
+     * @param schema    The Schema describing the behavior of this Core
+     * @param dataField The field containing this data core
      */
-    public void attachToField(DataField<FieldType> dataField) {
+    protected DataCore(SchemaType schema, DataField<FieldType> dataField) {
+        assert schema != null;
+        assert dataField != null;
+        this.schema = schema;
         this.dataField = dataField;
     }
 
     /**
      * Called when this filter is detached from a field. Clean up all attachments
-     *
-     * @param field The field this object was removed from
      */
-    public void detachFromField(DataField<FieldType> field) {
+    public void detachFromField() {
+        this.schema = null;
         this.dataField = null;
     }
-
-    /**
-     * This is called instead of initialSet if canInitialSet is false. It is used to initialise a internal value if needed
-     */
-    public abstract void startInitialSet();
-
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################# Implementation #################################################
-    //------------------------------------------------------------------------------------------------------------------
 
     /**
      * Set the value in the dataField
@@ -71,17 +53,36 @@ public abstract class DataCore<FieldType> {
         getDataField().setFromDataCore(toSet);
     }
 
+    /**
+     * Add the value to the data field. The Field must be of type ListDataField
+     *
+     * @param toAdd The value to add
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void doAdd(Object toAdd) {
+        this.<ListDataField>getDataField().addFromDataCore(toAdd);
+    }
+
+    /**
+     * Remove the value to the data field. The Field must be of type ListDataField
+     *
+     * @param toRemove The value to remove
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void doRemove(Object toRemove) {
+        this.<ListDataField>getDataField().removeFromDataCore(toRemove);
+    }
+
     //------------------------------------------------------------------------------------------------------------------
     //#################################################### Getters #####################################################
     //------------------------------------------------------------------------------------------------------------------
 
-    /**
-     * Get the field containing this data core
-     *
-     * @return The field containing this data core
-     */
     @SuppressWarnings("unchecked")
     public <DataFieldType extends DataField<FieldType>> DataFieldType getDataField() {
         return (DataFieldType) dataField;
+    }
+
+    public SchemaType getSchema() {
+        return schema;
     }
 }
