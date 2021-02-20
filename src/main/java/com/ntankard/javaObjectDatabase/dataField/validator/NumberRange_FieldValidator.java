@@ -49,4 +49,12 @@ public class NumberRange_FieldValidator<NumberType extends Number & Comparable<N
         }
         return max == null || newValue.compareTo(max) <= 0;
     }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public String getValidatorDetails() {
+        return this.getClass().getSimpleName() + " Min:" + min + " Max:" + max;
+    }
 }

@@ -236,6 +236,7 @@ public abstract class DataObject {
      */
     @SuppressWarnings("unchecked")
     public <DataObjectType extends DataObject> DataObjectType add() {
+        // TODO lifecycle test , add, remove, remove when object are in child list that sum
 
         for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
             if (!field.getValue().hasValidValue()) {
@@ -267,6 +268,8 @@ public abstract class DataObject {
      * Safely remove this object from the database.
      */
     protected void remove_impl() {
+
+        // catch exceptions thrown by the fields and elevate them if needed
         if (this.getChildren().size() != 0) {
             throw new RuntimeException("Cant delete this kind of object. NoneFundEvent still has children");
         }

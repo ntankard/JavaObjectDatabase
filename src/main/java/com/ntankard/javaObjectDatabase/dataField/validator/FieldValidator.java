@@ -20,4 +20,11 @@ public interface FieldValidator<ToTestType, ContainerType extends DataObject> {
      * @return True if the newValue is valid
      */
     boolean isValid(ToTestType newValue, ToTestType pastValue, ContainerType container);
+
+    /**
+     * Get a description of the type of validator this is. This can be used to improve error messages
+     *
+     * @return A description of the type of validator this is
+     */
+    String getValidatorDetails();
 }

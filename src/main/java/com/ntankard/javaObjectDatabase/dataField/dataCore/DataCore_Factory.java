@@ -165,7 +165,10 @@ public class DataCore_Factory {
             assert oldValue != null || newValue != null;
             if (oldValue != null) {
                 for (ListContentType toRemove : oldValue) {
-                    parent.doRemove(toRemove);
+                    // TODO this might be unneeded, its only here to prevent an "you have not added" error in the container
+                    if (fullParentCalculator.shouldAdd(toRemove, parent.getDataField().getContainer(), this)) {
+                        parent.doRemove(toRemove);
+                    }
                 }
             }
             if (newValue != null) {

@@ -242,6 +242,7 @@ public class DataField<FieldType> {
             return;
         }
 
+        // TODO catch and rethrow as corrupting
         set_impl(toSet);
     }
 
@@ -293,7 +294,7 @@ public class DataField<FieldType> {
     protected void set_preCheck(FieldType toCheck) {
         for (FieldValidator validator : dataFieldSchema.getValidators()) {
             if (!validator.isValid(toCheck, value, this.getContainer())) {
-                throw new NonCorruptingException("Attempting to set a invalid value");
+                throw new NonCorruptingException("Validator failed: " + validator.getValidatorDetails());
             }
         }
     }

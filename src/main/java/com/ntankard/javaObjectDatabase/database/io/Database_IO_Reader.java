@@ -277,7 +277,7 @@ public class Database_IO_Reader {
     public DataObject dataObjectFromString(Class<? extends DataObject> aClass, String[] paramStrings, DataObject underConstruction) {
 
         DataObject_Schema dataObjectSchema = database.getSchema().getClassSchema(aClass);
-        List<DataField_Schema<?>> currentFields = dataObjectSchema.getList();
+        List<DataField_Schema<?>> currentFields = new ArrayList<>(dataObjectSchema.getList());
         currentFields.removeIf(field -> !field.getSourceMode().equals(DataField_Schema.SourceMode.DIRECT));
 
         // Build up the argument list
