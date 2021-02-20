@@ -32,4 +32,12 @@ public class Null_FieldValidator<ToTestType, ContainerType extends DataObject> i
     public boolean isValid(ToTestType newValue, ToTestType pastValue, ContainerType container) {
         return canBeNull || newValue != null;
     }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public String getValidatorDetails() {
+        return this.getClass().getSimpleName();
+    }
 }

@@ -33,6 +33,21 @@ public class Database_Schema {
     }
 
     /**
+     * Generate a schema for all classes in a package plus added ones
+     *
+     * @param path         The package to search
+     * @param solidClasses Classes to add
+     * @return The generated TrackingDatabase_Schema
+     */
+    public static synchronized Database_Schema getSchemaFromPackage(String path, List<Class<? extends DataObject>> solidClasses) {
+        List<Class<? extends DataObject>> all = new ArrayList<>();
+        all.addAll(solidClasses);
+        all.addAll(findClasses(path));
+
+        return new Database_Schema(all);
+    }
+
+    /**
      * Parse a package for the desired type of class
      *
      * @param path The package to search
@@ -76,7 +91,7 @@ public class Database_Schema {
     /**
      * All solid classes ordered so that if loaded in this order, all dependencies will be met
      */
-    private ArrayList<Class<? extends DataObject>> decencyOrder;
+    private ArrayList<Class<? extends DataObject>> decencyOrder = null;
 
     /**
      * Known Class schemas
@@ -102,7 +117,6 @@ public class Database_Schema {
         }
 
         generateClassSchemas();
-        generateDependencyList();
     }
 
     /**
@@ -114,7 +128,10 @@ public class Database_Schema {
         }
 
         for (Class<? extends DataObject> aClass : abstractClasses) {
-            knownSchemas.put(aClass, getDataObjectSchema(aClass));
+            DataObject_Schema schema = getDataObjectSchema(aClass);
+            // TODO test if this is needed (think it was for the databaseViewer before you disabled the hierarchy generator)
+            // schema.endNow();
+            knownSchemas.put(aClass, schema);
         }
     }
 
@@ -212,6 +229,7 @@ public class Database_Schema {
      * @return The schema for that class
      */
     public DataObject_Schema getClassSchema(Class<?> aClass) {
+        assert knownSchemas.containsKey(aClass);
         return knownSchemas.get(aClass);
     }
 
@@ -250,6 +268,9 @@ public class Database_Schema {
     }
 
     public List<Class<? extends DataObject>> getDecencyOrder() {
+        if (decencyOrder == null) {
+            generateDependencyList();
+        }
         return Collections.unmodifiableList(decencyOrder);
     }
 }

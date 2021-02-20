@@ -124,6 +124,9 @@ public class DataObjectContainer extends Container<Class<? extends DataObject>, 
      * @return True if this object is contained at all
      */
     public boolean contains(Integer id) {
+        if (!container.containsKey(DataObject.class)) {
+            return false;
+        }
         return container.get(DataObject.class).containsKey(id);
     }
 

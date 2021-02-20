@@ -85,14 +85,20 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
     private final SecondValidator<SecondType, ContainerType> secondFilter;
 
     /**
+     * A description of the validator to use in error messages
+     */
+    private final String description;
+
+    /**
      * Constructor
      *
      * @param firstFieldKey       The key for the first field this filter applies to (attach getFirstFilter() to this field as well)
      * @param secondFieldKey      The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
      * @param fullSharedValidator The validate logic to use
+     * @param description         A description of the validator to use in error messages
      */
-    public Shared_FieldValidator(String firstFieldKey, String secondFieldKey, FullSharedValidator<FirstType, SecondType, ContainerType> fullSharedValidator) {
-        this(firstFieldKey, secondFieldKey, fullSharedValidator, null);
+    public Shared_FieldValidator(String firstFieldKey, String secondFieldKey, FullSharedValidator<FirstType, SecondType, ContainerType> fullSharedValidator, String description) {
+        this(firstFieldKey, secondFieldKey, fullSharedValidator, null, description);
     }
 
     /**
@@ -101,9 +107,10 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
      * @param firstFieldKey          The key for the first field this filter applies to (attach getFirstFilter() to this field as well)
      * @param secondFieldKey         The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
      * @param onlyNewSharedValidator The validate logic to use
+     * @param description            A description of the validator to use in error messages
      */
-    public Shared_FieldValidator(String firstFieldKey, String secondFieldKey, OnlyNewSharedValidator<FirstType, SecondType, ContainerType> onlyNewSharedValidator) {
-        this(firstFieldKey, secondFieldKey, null, onlyNewSharedValidator);
+    public Shared_FieldValidator(String firstFieldKey, String secondFieldKey, OnlyNewSharedValidator<FirstType, SecondType, ContainerType> onlyNewSharedValidator, String description) {
+        this(firstFieldKey, secondFieldKey, null, onlyNewSharedValidator, description);
     }
 
     /**
@@ -113,8 +120,9 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
      * @param secondFieldKey         The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
      * @param fullSharedValidator    The validate logic to use, or null if onlyNewSharedValidator is provided
      * @param onlyNewSharedValidator The validate logic to use, or null if fullSharedValidator is provided
+     * @param description            A description of the validator to use in error messages
      */
-    private Shared_FieldValidator(String firstFieldKey, String secondFieldKey, FullSharedValidator<FirstType, SecondType, ContainerType> fullSharedValidator, OnlyNewSharedValidator<FirstType, SecondType, ContainerType> onlyNewSharedValidator) {
+    private Shared_FieldValidator(String firstFieldKey, String secondFieldKey, FullSharedValidator<FirstType, SecondType, ContainerType> fullSharedValidator, OnlyNewSharedValidator<FirstType, SecondType, ContainerType> onlyNewSharedValidator, String description) {
         assert firstFieldKey != null;
         assert secondFieldKey != null;
         assert fullSharedValidator != null || onlyNewSharedValidator != null;
@@ -126,6 +134,7 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
         this.onlyNewSharedValidator = onlyNewSharedValidator;
         this.firstFilter = new FirstValidator<>(this);
         this.secondFilter = new SecondValidator<>(this);
+        this.description = description;
     }
 
     /**
@@ -224,6 +233,14 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
          * @inheritDoc
          */
         @Override
+        public String getValidatorDetails() {
+            return parent.description;
+        }
+
+        /**
+         * @inheritDoc
+         */
+        @Override
         public void validateToAttachedSchema(DataObject_Schema dataObject_schema) {
             parent.validateToAttachedSchema(dataObject_schema);
         }
@@ -260,6 +277,14 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
         @Override
         public void validateToAttachedSchema(DataObject_Schema dataObject_schema) {
             parent.validateToAttachedSchema(dataObject_schema);
+        }
+
+        /**
+         * @inheritDoc
+         */
+        @Override
+        public String getValidatorDetails() {
+            return parent.description;
         }
     }
 

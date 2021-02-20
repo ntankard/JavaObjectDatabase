@@ -3,6 +3,7 @@ package com.ntankard.javaObjectDatabase.dataObject;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore_Schema;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
+import com.ntankard.javaObjectDatabase.dataField.validator.ValidatableSchema;
 import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 
 import java.lang.reflect.Modifier;
@@ -75,7 +76,7 @@ public class DataObject_Schema {
     public Class<? extends DataObject> solidObjectType = null;
 
     //------------------------------------------------------------------------------------------------------------------
-    //#################################################### Field IO ####################################################
+    //################################################# Field Addition #################################################
     //------------------------------------------------------------------------------------------------------------------
 
     /**
@@ -86,9 +87,7 @@ public class DataObject_Schema {
      * @return The field that was just added
      */
     public DataField_Schema<?> add(String toFollowKey, DataField_Schema<?> dataFieldSchema) {
-        if (isFinalized)
-            throw new IllegalStateException("Trying to modify a finalised container");
-        lastOrder = masterMap.get(toFollowKey).getOrder();
+        follow(toFollowKey);
         return add(dataFieldSchema);
     }
 
@@ -108,6 +107,10 @@ public class DataObject_Schema {
             propertyBuilder.attachProperty(dataFieldSchema);
         }
 
+        if (DataObject.class.isAssignableFrom(dataFieldSchema.getType())) {
+            dataFieldSchema.setSource(DataObject.getSourceOptionMethod());
+        }
+
         list.add(dataFieldSchema);
         masterMap.put(dataFieldSchema.getIdentifierName(), dataFieldSchema);
         last = dataFieldSchema;
@@ -124,8 +127,9 @@ public class DataObject_Schema {
      * @param toFollowKey The field to add
      */
     public void follow(String toFollowKey) {
-        if (isFinalized)
-            throw new IllegalStateException("Trying to modify a finalised container");
+        assert !isFinalized;
+        assert masterMap.containsKey(toFollowKey);
+
         lastOrder = masterMap.get(toFollowKey).getOrder();
     }
 
@@ -151,6 +155,8 @@ public class DataObject_Schema {
      * @param objectFactory The object factory to add
      */
     public void addObjectFactory(ObjectFactory<?> objectFactory) {
+        // TODO Check for duplicate name
+
         if (isFinalized)
             throw new IllegalStateException("Trying to modify a finalised container");
         this.objectFactories.add(objectFactory);
@@ -217,12 +223,22 @@ public class DataObject_Schema {
      * @param end The final solid class containing all the fields
      * @return This
      */
-    @SuppressWarnings("unchecked")
     public DataObject_Schema finaliseContainer(Class<? extends DataObject> end) {
-        if (isFinalized)
-            throw new IllegalStateException("Trying to modify a finalised container");
         if (Modifier.isAbstract(end.getModifiers()))
             throw new IllegalStateException("Trying to end the container on an abstract object");
+        return finaliseContainer_impl(end);
+    }
+
+    /**
+     * The the full container, no fields can be added after this. The container will be validated and the fields will be finalized
+     *
+     * @param end The final solid class containing all the fields
+     * @return This
+     */
+    @SuppressWarnings("unchecked")
+    private DataObject_Schema finaliseContainer_impl(Class<? extends DataObject> end) {
+        if (isFinalized)
+            throw new IllegalStateException("Trying to modify a finalised container");
         if (inheritedObjects.contains(end))
             throw new IllegalArgumentException("Trying end a layer twice");
 
@@ -336,7 +352,7 @@ public class DataObject_Schema {
             // Look for the direct dependency
             if (DataObject.class.isAssignableFrom(field.getType())) {
                 if (field.getDataCore_schema() != null && Static_DataCore_Schema.class.isAssignableFrom(field.getDataCore_schema().getClass())) {
-                    continue; // TODO THis is here because at least one Static_DataCore references itself resulting in a circular dependency. Some Static_DataCore may need to be added to dependency
+                    continue; // TODO This is here because at least one Static_DataCore references itself resulting in a circular dependency. Some Static_DataCore may need to be added to dependency
                 }
                 Class<? extends DataObject> primeDependencies = (Class<? extends DataObject>) field.getType();
 

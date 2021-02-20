@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
 class Shared_FieldValidatorTest {
 
     @BeforeAll
-    static void beforeAll(){
+    static void beforeAll() {
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
     }
 
@@ -36,42 +36,42 @@ class Shared_FieldValidatorTest {
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>(null, "",
                         (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
-                                true));
+                                true, ""));
 
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>("", null,
                         (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
-                                true));
+                                true, ""));
 
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>(null, "",
                         (firstNewValue, secondNewValue, container) ->
-                                true));
+                                true, ""));
 
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>("", null,
                         (firstNewValue, secondNewValue, container) ->
-                                true));
+                                true, ""));
 
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>(null, null,
                         (firstNewValue, secondNewValue, container) ->
-                                true));
+                                true, ""));
 
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>(null, null,
                         (firstNewValue, secondNewValue, container) ->
-                                true));
+                                true, ""));
 
         assertDoesNotThrow(() ->
                 new Shared_FieldValidator<>("", "",
                         (firstNewValue, secondNewValue, container) ->
-                                true));
+                                true, ""));
 
         assertDoesNotThrow(() ->
                 new Shared_FieldValidator<>("", "",
                         (firstNewValue, secondNewValue, container) ->
-                                true));
+                                true, ""));
     }
 
     @Test
@@ -126,7 +126,7 @@ class Shared_FieldValidatorTest {
                         First,
                         Second,
                         (firstNewValue, secondNewValue, container) ->
-                                !firstNewValue.equals(secondNewValue));
+                                !firstNewValue.equals(secondNewValue), "");
 
         DataObject_Schema dataObjectSchema1 = DataObject.getDataObjectSchema();
         dataObjectSchema1.add(new DataField_Schema<>(First, Integer.class));
@@ -171,7 +171,7 @@ class Shared_FieldValidatorTest {
                 new Shared_FieldValidator<>(
                         First,
                         Second,
-                        test_onlyNewSharedValidator);
+                        test_onlyNewSharedValidator, "");
 
         // Create the test schema
         DataObject_Schema dataObjectSchema = DataObject.getDataObjectSchema();

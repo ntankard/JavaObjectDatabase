@@ -132,8 +132,9 @@ public class ListDataField<ListContentType> extends DataField<List<ListContentTy
         if (!getState().equals(NewFieldState.ACTIVE) && !getState().equals(NewFieldState.READY_FOR_VALUE) && !getState().equals(NewFieldState.READY_TO_ADD))
             throw new NonCorruptingException("Wrong state for removing a value");
 
-        if (!value.contains(toRemove))
-            throw new NonCorruptingException("Trying to remove a value that has never been added");
+        // TODO review this
+        //if (!value.contains(toRemove))
+            //throw new NonCorruptingException("Trying to remove a value that has never been added");
 
         value.remove(toRemove);
 
