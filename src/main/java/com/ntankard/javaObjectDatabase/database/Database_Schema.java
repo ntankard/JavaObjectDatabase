@@ -129,8 +129,7 @@ public class Database_Schema {
 
         for (Class<? extends DataObject> aClass : abstractClasses) {
             DataObject_Schema schema = getDataObjectSchema(aClass);
-            // TODO test if this is needed (think it was for the databaseViewer before you disabled the hierarchy generator)
-            // schema.endNow();
+            schema.endNow();
             knownSchemas.put(aClass, schema);
         }
     }

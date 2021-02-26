@@ -284,6 +284,15 @@ public class DataObject_Schema {
         return this;
     }
 
+    /**
+     * End the object at the current layer (used to create a solid schema for an abstract object)
+     */
+    public void endNow() {
+        Class<? extends DataObject> endLayer = inheritedObjects.get(inheritedObjects.size() - 1);
+        inheritedObjects.remove(endLayer);
+        finaliseContainer_impl(endLayer);
+    }
+
     //------------------------------------------------------------------------------------------------------------------
     //################################################## Field Access ##################################################
     //------------------------------------------------------------------------------------------------------------------
