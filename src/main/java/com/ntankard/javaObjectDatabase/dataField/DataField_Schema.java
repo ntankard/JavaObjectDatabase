@@ -41,7 +41,7 @@ public class DataField_Schema<FieldType> {
     /**
      * The name to be displayed to the user, can be anything.
      */
-    private final String displayName;
+    private String displayName;
 
     /**
      * The type of object that contains this field
@@ -150,6 +150,8 @@ public class DataField_Schema<FieldType> {
      */
     public void containerFinished(Class<? extends DataObject> parentType) {
         this.parentType = parentType;
+
+        this.displayName = this.displayName.replace(parentType.getSimpleName() + "_" , "");
 
         if (setterFunction == null && dataCore_schema == null) {
             sourceMode = DIRECT;
