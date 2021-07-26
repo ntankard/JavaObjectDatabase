@@ -3,7 +3,7 @@ package com.ntankard.javaObjectDatabase.dataObject;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore_Schema;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
-import com.ntankard.javaObjectDatabase.dataField.validator.ValidatableSchema;
+import com.ntankard.javaObjectDatabase.dataField.validator.Shared_FieldValidator;
 import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 
 import java.lang.reflect.Modifier;
@@ -273,8 +273,11 @@ public class DataObject_Schema {
         // Validate the validators
         for (DataField_Schema<?> dataObject_schema : list) {
             for (FieldValidator<?, ?> fieldValidator : dataObject_schema.getValidators()) {
-                if (fieldValidator instanceof ValidatableSchema) {
-                    ((ValidatableSchema) fieldValidator).validateToAttachedSchema(this);
+                if (fieldValidator instanceof Shared_FieldValidator.FirstValidator) {
+                    ((Shared_FieldValidator.FirstValidator<?, ?>) fieldValidator).validateToAttachedSchema(this);
+                }
+                if (fieldValidator instanceof Shared_FieldValidator.SecondValidator) {
+                    ((Shared_FieldValidator.SecondValidator<?, ?>) fieldValidator).validateToAttachedSchema(this);
                 }
             }
         }

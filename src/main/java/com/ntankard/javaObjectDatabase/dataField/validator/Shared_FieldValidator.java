@@ -16,7 +16,7 @@ import com.ntankard.javaObjectDatabase.exception.corrupting.DatabaseStructureExc
  * @param <ContainerType> The type of the container of the field that houses this filter
  * @author Nicholas Tankard
  */
-public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends DataObject> implements ValidatableSchema {
+public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends DataObject> {
 
     //------------------------------------------------------------------------------------------------------------------
     //#################################################### Interface ###################################################
@@ -74,10 +74,10 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
     /**
      * Constructor
      *
-     * @param firstFieldKey       The key for the first field this filter applies to (attach getFirstFilter() to this field as well)
-     * @param secondFieldKey      The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
+     * @param firstFieldKey  The key for the first field this filter applies to (attach getFirstFilter() to this field as well)
+     * @param secondFieldKey The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
      * @param multiValidator The validate logic to use
-     * @param description         A description of the validator to use in error messages
+     * @param description    A description of the validator to use in error messages
      */
     public Shared_FieldValidator(String firstFieldKey, String secondFieldKey, MultiValidator<FirstType, SecondType, ContainerType> multiValidator, String description) {
         assert firstFieldKey != null;
@@ -115,9 +115,11 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
     }
 
     /**
-     * @inheritDoc
+     * Confirms that you this object is valid in regards to the schema it is attached to. If it is not it will throw an
+     * appropriate exception
+     *
+     * @param dataObject_schema The Schema this object is attached to
      */
-    @Override
     public void validateToAttachedSchema(DataObject_Schema dataObject_schema) {
         DataField_Schema<?> firstField;
         DataField_Schema<?> secondField;
@@ -150,7 +152,7 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
     /**
      * The actual filter to attach to the first field
      */
-    public static class FirstValidator<FirstType, ContainerType extends DataObject> implements FieldValidator<FirstType, ContainerType>, ValidatableSchema {
+    public static class FirstValidator<FirstType, ContainerType extends DataObject> implements FieldValidator<FirstType, ContainerType> {
 
         /**
          * The core filter calculator
@@ -181,9 +183,11 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
         }
 
         /**
-         * @inheritDoc
+         * Confirms that you this object is valid in regards to the schema it is attached to. If it is not it will throw an
+         * appropriate exception
+         *
+         * @param dataObject_schema The Schema this object is attached to
          */
-        @Override
         public void validateToAttachedSchema(DataObject_Schema dataObject_schema) {
             parent.validateToAttachedSchema(dataObject_schema);
         }
@@ -192,7 +196,7 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
     /**
      * The actual filter to attach to the second field
      */
-    public static class SecondValidator<SecondType, ContainerType extends DataObject> implements FieldValidator<SecondType, ContainerType>, ValidatableSchema {
+    public static class SecondValidator<SecondType, ContainerType extends DataObject> implements FieldValidator<SecondType, ContainerType> {
 
         /**
          * The core filter calculator
@@ -215,9 +219,11 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
         }
 
         /**
-         * @inheritDoc
+         * Confirms that you this object is valid in regards to the schema it is attached to. If it is not it will throw an
+         * appropriate exception
+         *
+         * @param dataObject_schema The Schema this object is attached to
          */
-        @Override
         public void validateToAttachedSchema(DataObject_Schema dataObject_schema) {
             parent.validateToAttachedSchema(dataObject_schema);
         }
