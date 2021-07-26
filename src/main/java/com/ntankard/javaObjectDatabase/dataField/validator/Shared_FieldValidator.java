@@ -22,7 +22,7 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
     //#################################################### Interface ###################################################
     //------------------------------------------------------------------------------------------------------------------
 
-    public interface FullSharedValidator<FirstType, SecondType, ContainerType extends DataObject> {
+    public interface MultiValidator<FirstType, SecondType, ContainerType extends DataObject> {
 
         /**
          * Validate based on values from both fields. Will only be called once both fields are valid
@@ -37,19 +37,6 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
         boolean validate(FirstType firstNewValue, FirstType firstPastValue, SecondType secondNewValue, SecondType secondPastValue, ContainerType container);
     }
 
-    public interface OnlyNewSharedValidator<FirstType, SecondType, ContainerType extends DataObject> {
-
-        /**
-         * Validate based on values from both fields. Will only be called once both fields are valid
-         *
-         * @param firstNewValue  The new value of the first field. Current if the second field is driving the change
-         * @param secondNewValue The new value of the second field. Current if the first field is driving the change
-         * @param container      The object the fields are attached to
-         * @return True of the new value is valid
-         */
-        boolean validate(FirstType firstNewValue, SecondType secondNewValue, ContainerType container);
-    }
-
     //------------------------------------------------------------------------------------------------------------------
     //#################################################### Core ###################################################
     //------------------------------------------------------------------------------------------------------------------
@@ -57,12 +44,7 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
     /**
      * The filter to run
      */
-    protected final FullSharedValidator<FirstType, SecondType, ContainerType> fullSharedValidator;
-
-    /**
-     * The filter to run
-     */
-    protected final OnlyNewSharedValidator<FirstType, SecondType, ContainerType> onlyNewSharedValidator;
+    protected final MultiValidator<FirstType, SecondType, ContainerType> multiValidator;
 
     /**
      * The key for the second field
@@ -94,44 +76,17 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
      *
      * @param firstFieldKey       The key for the first field this filter applies to (attach getFirstFilter() to this field as well)
      * @param secondFieldKey      The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
-     * @param fullSharedValidator The validate logic to use
+     * @param multiValidator The validate logic to use
      * @param description         A description of the validator to use in error messages
      */
-    public Shared_FieldValidator(String firstFieldKey, String secondFieldKey, FullSharedValidator<FirstType, SecondType, ContainerType> fullSharedValidator, String description) {
-        this(firstFieldKey, secondFieldKey, fullSharedValidator, null, description);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param firstFieldKey          The key for the first field this filter applies to (attach getFirstFilter() to this field as well)
-     * @param secondFieldKey         The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
-     * @param onlyNewSharedValidator The validate logic to use
-     * @param description            A description of the validator to use in error messages
-     */
-    public Shared_FieldValidator(String firstFieldKey, String secondFieldKey, OnlyNewSharedValidator<FirstType, SecondType, ContainerType> onlyNewSharedValidator, String description) {
-        this(firstFieldKey, secondFieldKey, null, onlyNewSharedValidator, description);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param firstFieldKey          The key for the first field this filter applies to (attach getFirstFilter() to this field as well)
-     * @param secondFieldKey         The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
-     * @param fullSharedValidator    The validate logic to use, or null if onlyNewSharedValidator is provided
-     * @param onlyNewSharedValidator The validate logic to use, or null if fullSharedValidator is provided
-     * @param description            A description of the validator to use in error messages
-     */
-    private Shared_FieldValidator(String firstFieldKey, String secondFieldKey, FullSharedValidator<FirstType, SecondType, ContainerType> fullSharedValidator, OnlyNewSharedValidator<FirstType, SecondType, ContainerType> onlyNewSharedValidator, String description) {
+    public Shared_FieldValidator(String firstFieldKey, String secondFieldKey, MultiValidator<FirstType, SecondType, ContainerType> multiValidator, String description) {
         assert firstFieldKey != null;
         assert secondFieldKey != null;
-        assert fullSharedValidator != null || onlyNewSharedValidator != null;
-        assert !(fullSharedValidator != null && onlyNewSharedValidator != null);
+        assert multiValidator != null;
 
         this.firstFieldKey = firstFieldKey;
         this.secondFieldKey = secondFieldKey;
-        this.fullSharedValidator = null;
-        this.onlyNewSharedValidator = onlyNewSharedValidator;
+        this.multiValidator = multiValidator;
         this.firstFilter = new FirstValidator<>(this);
         this.secondFilter = new SecondValidator<>(this);
         this.description = description;
@@ -143,13 +98,7 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
     private boolean doFirstFilter(FirstType newValue, FirstType pastValue, ContainerType container) {
         DataField<SecondType> secondField = container.getField(secondFieldKey);
         if (secondField.hasValidValue()) {
-            if (fullSharedValidator != null) {
-                return fullSharedValidator.validate(newValue, pastValue, secondField.get(), secondField.get(), container);
-            } else if (onlyNewSharedValidator != null) {
-                return onlyNewSharedValidator.validate(newValue, secondField.get(), container);
-            } else {
-                throw new DatabaseStructureException(null, "Filter method missing, should be impossible");
-            }
+            return multiValidator.validate(newValue, pastValue, secondField.get(), secondField.get(), container);
         }
         return true;
     }
@@ -160,13 +109,7 @@ public class Shared_FieldValidator<FirstType, SecondType, ContainerType extends 
     private boolean doSecondFilter(SecondType newValue, SecondType pastValue, ContainerType container) {
         DataField<FirstType> firstField = container.getField(firstFieldKey);
         if (firstField.hasValidValue()) {
-            if (fullSharedValidator != null) {
-                return fullSharedValidator.validate(firstField.get(), firstField.get(), newValue, pastValue, container);
-            } else if (onlyNewSharedValidator != null) {
-                return onlyNewSharedValidator.validate(firstField.get(), newValue, container);
-            } else {
-                throw new DatabaseStructureException(null, "Filter method missing, should be impossible");
-            }
+            return multiValidator.validate(firstField.get(), firstField.get(), newValue, pastValue, container);
         }
         return true;
     }

@@ -2,7 +2,7 @@ package com.ntankard.javaObjectDatabase.dataField.validator;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
-import com.ntankard.javaObjectDatabase.dataField.validator.Shared_FieldValidator.OnlyNewSharedValidator;
+import com.ntankard.javaObjectDatabase.dataField.validator.Shared_FieldValidator.MultiValidator;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
@@ -45,32 +45,36 @@ class Shared_FieldValidatorTest {
 
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>(null, "",
-                        (firstNewValue, secondNewValue, container) ->
+                        (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
                                 true, ""));
 
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>("", null,
-                        (firstNewValue, secondNewValue, container) ->
+                        (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
                                 true, ""));
 
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>(null, null,
-                        (firstNewValue, secondNewValue, container) ->
+                        (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
                                 true, ""));
 
         assertThrows(AssertionError.class, () ->
                 new Shared_FieldValidator<>(null, null,
-                        (firstNewValue, secondNewValue, container) ->
+                        (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
                                 true, ""));
 
         assertDoesNotThrow(() ->
                 new Shared_FieldValidator<>("", "",
-                        (firstNewValue, secondNewValue, container) ->
+                        (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
                                 true, ""));
+
+        assertThrows(AssertionError.class, () ->
+                new Shared_FieldValidator<>("", "",
+                        null, ""));
 
         assertDoesNotThrow(() ->
                 new Shared_FieldValidator<>("", "",
-                        (firstNewValue, secondNewValue, container) ->
+                        (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
                                 true, ""));
     }
 
@@ -125,7 +129,7 @@ class Shared_FieldValidatorTest {
                 new Shared_FieldValidator<>(
                         First,
                         Second,
-                        (firstNewValue, secondNewValue, container) ->
+                        (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
                                 !firstNewValue.equals(secondNewValue), "");
 
         DataObject_Schema dataObjectSchema1 = DataObject.getDataObjectSchema();
@@ -274,12 +278,12 @@ class Shared_FieldValidatorTest {
     /**
      * A OnlyNewSharedValidator that can report when validate is called and will always return false
      */
-    static class Test_OnlyNewSharedValidator implements OnlyNewSharedValidator<Integer, Integer, BlankTestDataObject> {
+    static class Test_OnlyNewSharedValidator implements MultiValidator<Integer, Integer, BlankTestDataObject> {
 
         public int callCount = 0;
 
         @Override
-        public boolean validate(Integer firstNewValue, Integer secondNewValue, BlankTestDataObject container) {
+        public boolean validate(Integer firstNewValue, Integer firstPastValue, Integer secondNewValue, Integer secondPastValue, BlankTestDataObject container) {
             callCount++;
             return false;
         }

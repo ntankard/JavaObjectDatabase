@@ -22,7 +22,7 @@ public class SharedValidator_TestObject extends DataObject {
         Shared_FieldValidator<Integer, Integer, ?> sharedFieldValidator = new Shared_FieldValidator<>(
                 First,
                 Second,
-                (firstNewValue, secondNewValue, container) ->
+                (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) ->
                         !firstNewValue.equals(secondNewValue), "Cant match");
 
         dataObjectSchema.add(new DataField_Schema<>(First, Integer.class));
