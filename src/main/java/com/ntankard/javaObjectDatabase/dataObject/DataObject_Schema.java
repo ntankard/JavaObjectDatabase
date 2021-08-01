@@ -3,7 +3,7 @@ package com.ntankard.javaObjectDatabase.dataObject;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore_Schema;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
-import com.ntankard.javaObjectDatabase.dataField.validator.Shared_FieldValidator;
+import com.ntankard.javaObjectDatabase.dataField.validator.shared.Shared_FieldValidator;
 import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 
 import java.lang.reflect.Modifier;

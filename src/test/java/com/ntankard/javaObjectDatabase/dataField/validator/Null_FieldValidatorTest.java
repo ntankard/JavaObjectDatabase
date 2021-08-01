@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
 class Null_FieldValidatorTest {
 
     @Test
+    @Execution(CONCURRENT)
     void isValid() {
         Null_FieldValidator<Object, ?> validator = new Null_FieldValidator<>(true);
         assertTrue(validator.isValid(null, null, null));

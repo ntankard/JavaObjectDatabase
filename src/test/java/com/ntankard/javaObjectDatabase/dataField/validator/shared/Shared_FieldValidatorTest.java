@@ -1,8 +1,9 @@
-package com.ntankard.javaObjectDatabase.dataField.validator;
+package com.ntankard.javaObjectDatabase.dataField.validator.shared;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
-import com.ntankard.javaObjectDatabase.dataField.validator.Shared_FieldValidator.MultiValidator;
+import com.ntankard.javaObjectDatabase.dataField.validator.shared.Shared_FieldValidator.MultiValidator;
+import com.ntankard.javaObjectDatabase.dataField.validator.testObjects.NonEqual_SharedValidator_TestObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
@@ -10,15 +11,14 @@ import com.ntankard.javaObjectDatabase.exception.corrupting.DatabaseStructureExc
 import com.ntankard.javaObjectDatabase.exception.nonCorrupting.NonCorruptingException;
 import com.ntankard.javaObjectDatabase.testUtil.testDatabases.BlankTestDataObject;
 import com.ntankard.javaObjectDatabase.testUtil.testDatabases.DatabaseFactory;
-import com.ntankard.javaObjectDatabase.dataField.validator.testObjects.SharedValidator_TestObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 
 import java.util.Collections;
 
-import static com.ntankard.javaObjectDatabase.dataField.validator.testObjects.SharedValidator_TestObject.First;
-import static com.ntankard.javaObjectDatabase.dataField.validator.testObjects.SharedValidator_TestObject.Second;
+import static com.ntankard.javaObjectDatabase.dataField.validator.testObjects.NonEqual_SharedValidator_TestObject.First;
+import static com.ntankard.javaObjectDatabase.dataField.validator.testObjects.NonEqual_SharedValidator_TestObject.Second;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
 
@@ -81,21 +81,21 @@ class Shared_FieldValidatorTest {
     @Test
     @Execution(CONCURRENT)
     void dataObject_construction() {
-        Database database = DatabaseFactory.getEmptyDatabase(Collections.singletonList(SharedValidator_TestObject.class));
+        Database database = DatabaseFactory.getEmptyDatabase(Collections.singletonList(NonEqual_SharedValidator_TestObject.class));
 
-        assertThrows(NonCorruptingException.class, () -> new SharedValidator_TestObject(7, 7, database));
-        assertThrows(NonCorruptingException.class, () -> new SharedValidator_TestObject(4, 4, database));
-        assertThrows(NonCorruptingException.class, () -> new SharedValidator_TestObject(-345, -345, database));
-        assertDoesNotThrow(() -> new SharedValidator_TestObject(24, 345, database));
-        assertDoesNotThrow(() -> new SharedValidator_TestObject(123, 34, database));
-        assertDoesNotThrow(() -> new SharedValidator_TestObject(-23423, 675, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(7, 7, 10, 11, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(4, 4, 10, 11, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(-345, -345, 10, 11, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(24, 345, 10, 11, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(123, 34, 10, 11, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(-23423, 675, 10, 11, database));
     }
 
     @Test
     @Execution(CONCURRENT)
     void dataObject_setter() {
-        Database database = DatabaseFactory.getEmptyDatabase(Collections.singletonList(SharedValidator_TestObject.class));
-        SharedValidator_TestObject sharedValidatorTestObject = new SharedValidator_TestObject(-10, 10, database);
+        Database database = DatabaseFactory.getEmptyDatabase(Collections.singletonList(NonEqual_SharedValidator_TestObject.class));
+        NonEqual_SharedValidator_TestObject sharedValidatorTestObject = new NonEqual_SharedValidator_TestObject(-10, 10, 10, 11, database);
 
         assertThrows(NonCorruptingException.class, () -> sharedValidatorTestObject.set(First, 10));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(First, -20));
@@ -137,34 +137,34 @@ class Shared_FieldValidatorTest {
         dataObjectSchema1.add(new DataField_Schema<>(Second, Integer.class));
         dataObjectSchema1.<Integer>get(First).addValidator(sharedFieldValidator.getFirstFilter());
         dataObjectSchema1.<Integer>get(Second).addValidator(sharedFieldValidator.getSecondFilter());
-        assertDoesNotThrow(() -> dataObjectSchema1.finaliseContainer(SharedValidator_TestObject.class));
+        assertDoesNotThrow(() -> dataObjectSchema1.finaliseContainer(NonEqual_SharedValidator_TestObject.class));
 
         DataObject_Schema dataObjectSchema2 = DataObject.getDataObjectSchema();
         dataObjectSchema2.add(new DataField_Schema<>(First, Integer.class));
         dataObjectSchema2.add(new DataField_Schema<>(Second, Integer.class));
         dataObjectSchema2.<Integer>get(First).addValidator(sharedFieldValidator.getFirstFilter());
-        assertThrows(DatabaseStructureException.class, () -> dataObjectSchema2.finaliseContainer(SharedValidator_TestObject.class));
+        assertThrows(DatabaseStructureException.class, () -> dataObjectSchema2.finaliseContainer(NonEqual_SharedValidator_TestObject.class));
 
         DataObject_Schema dataObjectSchema3 = DataObject.getDataObjectSchema();
         dataObjectSchema3.add(new DataField_Schema<>(First, Integer.class));
         dataObjectSchema3.add(new DataField_Schema<>(Second, Integer.class));
         dataObjectSchema3.<Integer>get(Second).addValidator(sharedFieldValidator.getSecondFilter());
-        assertThrows(DatabaseStructureException.class, () -> dataObjectSchema3.finaliseContainer(SharedValidator_TestObject.class));
+        assertThrows(DatabaseStructureException.class, () -> dataObjectSchema3.finaliseContainer(NonEqual_SharedValidator_TestObject.class));
 
         DataObject_Schema dataObjectSchema4 = DataObject.getDataObjectSchema();
         dataObjectSchema4.add(new DataField_Schema<>(First, Integer.class));
         dataObjectSchema4.add(new DataField_Schema<>(Second, Integer.class));
-        assertDoesNotThrow(() -> dataObjectSchema4.finaliseContainer(SharedValidator_TestObject.class));
+        assertDoesNotThrow(() -> dataObjectSchema4.finaliseContainer(NonEqual_SharedValidator_TestObject.class));
 
         DataObject_Schema dataObjectSchema5 = DataObject.getDataObjectSchema();
         dataObjectSchema5.add(new DataField_Schema<>(First, Integer.class));
         dataObjectSchema5.<Integer>get(First).addValidator(sharedFieldValidator.getFirstFilter());
-        assertThrows(DatabaseStructureException.class, () -> dataObjectSchema5.finaliseContainer(SharedValidator_TestObject.class));
+        assertThrows(DatabaseStructureException.class, () -> dataObjectSchema5.finaliseContainer(NonEqual_SharedValidator_TestObject.class));
 
         DataObject_Schema dataObjectSchema6 = DataObject.getDataObjectSchema();
         dataObjectSchema6.add(new DataField_Schema<>(Second, Integer.class));
         dataObjectSchema6.<Integer>get(Second).addValidator(sharedFieldValidator.getSecondFilter());
-        assertThrows(DatabaseStructureException.class, () -> dataObjectSchema6.finaliseContainer(SharedValidator_TestObject.class));
+        assertThrows(DatabaseStructureException.class, () -> dataObjectSchema6.finaliseContainer(NonEqual_SharedValidator_TestObject.class));
     }
 
     @Test
