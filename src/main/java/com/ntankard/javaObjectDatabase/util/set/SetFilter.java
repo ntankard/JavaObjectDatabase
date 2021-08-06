@@ -5,7 +5,7 @@ public abstract class SetFilter<T> {
     /**
      * The nested filter to run to build up a full filter
      */
-    private SetFilter<T> nestFilter;
+    private final SetFilter<T> nestFilter;
 
     /**
      * Constructor
@@ -14,6 +14,13 @@ public abstract class SetFilter<T> {
      */
     public SetFilter(SetFilter<T> nestFilter) {
         this.nestFilter = nestFilter;
+    }
+
+    /**
+     * Constructor
+     */
+    public SetFilter() {
+        nestFilter = null;
     }
 
     /**
