@@ -1,4 +1,24 @@
-## DataField (TBD)
+##### Table of Contents  
+- [TODO](#TODO)
+    - [DataField](#DataField TBD)
+        - [DataCore](#DataCore)
+            - [Static_DataCore](#Static_DataCore)
+            - [Derived_DataCore](#Derived_DataCore)
+                - [Source](#Source)
+                    - [Lists and sources](#Lists and sources)
+                    - [Shared chains](#Shared chains)
+                - [Derived_DataCore Factories](#Derived_DataCore Factories)
+                    - [Direct Derived DataCore](#Direct Derived DataCore)
+                    - [Self Parent List](#Self Parent List)
+                    - [Multi Parent List](#Multi Parent List)
+        - [FieldValidator](#FieldValidator)
+            - [Null_FieldValidator](#Null_FieldValidator)
+            - [NumberRange_FieldValidator](#NumberRange_FieldValidator)
+            - [Share_FieldValidator](#Share_FieldValidator)
+    - [CustomProperty](#CustomProperty)
+    - [Exception](#Exception)
+
+## DataField TBD
 ### DataCore
 DataField can have there data controlled either externally by users via the set method or by a DataCore. A DataCore is 
 an object that drives value changes in a field based on some programmatic input. If a DataCore is attached to a field it 
@@ -9,16 +29,16 @@ DataCores are attached by attaching a DataCore_Schema to the DataField_Schema.
 Any DataField with an attached DataCore is not saved.
 #### Static_DataCore
 A Static_DataCore is used when a field will have only one value that is assigned when the database is initialised. It 
-primarily exists for DataField's that are defines in a parent object, are dynamic in other children but have fixed values 
-in a specific child. As the name suggests the values of these fields cannot be changed.
+primarily exists for DataField's that are defines in a parent object, are dynamic in other children but have fixed 
+values in a specific child. As the name suggests the values of these fields cannot be changed.
 
-```
+```java
 dataObjectSchema.get(KEY).setDataCore_schema(new Static_DataCore_Schema<>(VALUE));
 ```
 There is a special use case Static_DataCore where the value is calculated at initialization time. This mainly exists for 
 cases there default values need to be extracted from the database. There is no guarantee that the load order will alloy 
 this, so it may cause issues. 
-```
+```java
 dataObjectSchema.get(KEY).setDataCore_schema(new Static_DataCore_Schema<>(dataField -> CALCULATION));
 ```
 @TODO 
@@ -62,7 +82,7 @@ instance of Baz from the field Bar_A. So for this problem we need 2 "Source chai
 Factories are provided to the user to generate these chains automatically, here is the example code for this case. This 
 code assumes none of the links are allowed to be null. THe source object can handle a link being null, but the 
 calculator would have to check for it.
-```
+```java
 dataObjectSchema.<Double>get(Foo_B).setDataCore_schema(
         new Derived_DataCore_Schema<>(
                 (Calculator<Double, Foo>) container -> {
@@ -94,7 +114,7 @@ fixed (https://www.wrike.com/open.htm?id=735249543)
 ###### Shared chains
 There are some cases where a DataCore may depends on multiple fields that go through a shared step in the chain. There 
 is a factory method for this case. It currently only works when the first link is the same.
-```
+```java
 dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(
         new Derived_DataCore_Schema<>(
                 (Calculator<Double, Foo>) container -> {
@@ -111,21 +131,21 @@ Some common configurations of Derived_DataCore and Source are exposed via factor
 This method will create a DataCore that makes the fields value directly equal the value of the field at the end of a 
 source chain. YOu only have to provide the chain of keys for the desired field.
 createDirectDerivedDataCore
-```
+```java
 dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(createDirectDerivedDataCore(CHAIN_1_KEY, CHAIN_2_KEY, ...));
 ```
 ###### Self Parent List
 All DataObjects have a field that contains all the DataObjects that have any fields pointing to them (unless flagged 
 otherwise). createSelfParentList is used to create a second field with a subset of this list of a certain DataObject 
 type. It can also have a set filter attached to limit it further.
-```
+```java
 dataObjectSchema.<List<TYPE>>get(KEY).setDataCore_schema(createSelfParentList(TYPE.class, SET_FILTER/null));
 ```
 ###### Multi Parent List
 The multi parent list is the most common tool to create a subset of multiple other lists. It works by creating a list of 
 DataObject that have multiple specific parents. The parents are provided by other fields. A set filter can also be 
 provided to limit the list further.
-```
+```java
 dataObjectSchema.<List<TYPE>>get(PoolSummary_TransferSet).setDataCore_schema(
     createMultiParentList(TYPE.class,SET_FILTER, PARENT_1_KEY, PARENT_2_KEY, ...));
 ```
@@ -152,10 +172,10 @@ the exception is escalated to a Corrupting Exception (https://www.wrike.com/open
 @TODO
 If an integrity check is run, and a validator fails a Corrupting_Exception is raised. 
 (https://www.wrike.com/open.htm?id=732099409)
-#### Null_FieldValidator (used by all DataField_Schema)
+#### Null_FieldValidator
 All DataField's have a null validator attached by default. It can be enabled or disabled in DataField_Schema 
 constructor. By default, DataField cannot have null values.
-```
+```java
 // Default, null value not allowed
 DataField_Schema(NAME, TYPE)
 
@@ -165,7 +185,7 @@ DataField_Schema(NAME, TYPE, true)
 #### NumberRange_FieldValidator
 Number_FieldValidator can be used for any Type extending Number and implementing Comparable. The Min and Max values are
 inclusive (Min <= value <= Max). If no min or max are provided then there is no limit in that direction.
-```
+```java
 // 1 or above
 dataObjectSchema.<TYPE>get(KEY).addValidator(new NumberRange_FieldValidator<>(1, null));
 // 1 or below
@@ -173,11 +193,11 @@ dataObjectSchema.<TYPE>get(KEY).addValidator(new NumberRange_FieldValidator<>(nu
 // between 1 and 10
 dataObjectSchema.<TYPE>get(KEY).addValidator(new NumberRange_FieldValidator<>(1, 10));
 ```
-`#####` Share_FieldValidator
+#### Share_FieldValidator
 Share_FieldValidator is a special kind of FieldValidator used when the range of a field is depended on another field. It 
 is attached for both fields and get excused when either one changes. If it is only attached to 1 field a 
 DatabaseStructureException will be thrown when the database structure is being setup.
-```
+```java
 Shared_FieldValidator<FIRST_TYPE, SECOND_TYPE, CONTAINER_TYPE> sharedFilter = 
     new Shared_FieldValidator<>(FIRST_KEY, SECOND_KEY,
     (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) -> {
@@ -190,9 +210,24 @@ dataObjectSchema.<SECOND_TYPE>get(SECOND_KEY).addValidator(sharedFilter.getSecon
 ```
 As with the normal FieldValidator you can create your own as needed or use an existing one like the 
 NonEqual_Shared_FieldValidator
-```
+```java
 NonEqual_Shared_FieldValidator<TYPE> sharedFilter = new NonEqual_Shared_FieldValidator<>(FIRST_KEY, SECOND_KEY);
 
 dataObjectSchema.<TYPE>get(FIRST_KEY).addValidator(sharedFilter.getFirstFilter());
 dataObjectSchema.<TYPE>get(SECOND_KEY).addValidator(sharedFilter.getSecondFilter());
 ```
+## CustomProperty
+
+CustomProperty is an interface to create an object that can be attached to any DataField to allow it to hold custom 
+data. There is a paired PropertyBuilder that can be attached to the DataObject_Schema to ensure all DataFields have a 
+default version attached.
+
+## Exception
+The library supports 2 types of primary custom exceptions. CorruptingException and NonCorruptingException. As the names 
+suggest in the event of a NonCorruptingException the program can continue normally. In the event of a 
+CorruptingException the database is in an unrecoverable corrupt state, and the program must be aborted. When a 
+CorruptingException is raised it notifies the database.
+
+@TODO
+When a CorruptingException is raised the database should prevent itself from saving. 
+(https://www.wrike.com/open.htm?id=735527960)

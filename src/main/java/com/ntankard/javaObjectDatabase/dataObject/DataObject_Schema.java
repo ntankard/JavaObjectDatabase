@@ -2,6 +2,7 @@ package com.ntankard.javaObjectDatabase.dataObject;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore_Schema;
+import com.ntankard.javaObjectDatabase.dataField.properties.PropertyBuilder;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
 import com.ntankard.javaObjectDatabase.dataField.validator.shared.Shared_FieldValidator;
 import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
@@ -408,18 +409,5 @@ public class DataObject_Schema {
     //------------------------------------------------------------------------------------------------------------------
     //#################################################### Interface ###################################################
     //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * An interface to create the default version of any properties to add add to the fields
-     */
-    public interface PropertyBuilder {
-
-        /**
-         * Add the property to this field
-         *
-         * @param dataFieldSchema The field to add the property too
-         */
-        void attachProperty(DataField_Schema<?> dataFieldSchema);
-    }
 
 }
