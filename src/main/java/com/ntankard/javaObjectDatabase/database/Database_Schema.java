@@ -91,7 +91,7 @@ public class Database_Schema {
     /**
      * All solid classes ordered so that if loaded in this order, all dependencies will be met
      */
-    private ArrayList<Class<? extends DataObject>> decencyOrder = null;
+    private ArrayList<Class<? extends DataObject>> dependencyOrder = null;
 
     /**
      * Known Class schemas
@@ -157,7 +157,7 @@ public class Database_Schema {
             dependencyMap.put(dataObjectClass, getSolidPreLoadDependencies(dataObjectClass));
         }
 
-        this.decencyOrder = new ArrayList<>(dependencyMap.keySet());
+        this.dependencyOrder = new ArrayList<>(dependencyMap.keySet());
 
         // Sort the list
         boolean allSorted;
@@ -165,14 +165,14 @@ public class Database_Schema {
         do {
 
             // Infinite loop catch
-            if (attempts++ > decencyOrder.size() * decencyOrder.size()) {
+            if (attempts++ > dependencyOrder.size() * dependencyOrder.size()) {
                 throw new IllegalStateException("Failed to sort dependencies, infinite loop detected");
             }
 
             allSorted = true;
-            for (int i = 0; i < decencyOrder.size(); i++) {
+            for (int i = 0; i < dependencyOrder.size(); i++) {
 
-                Class<? extends DataObject> toTest = decencyOrder.get(i);
+                Class<? extends DataObject> toTest = dependencyOrder.get(i);
                 List<Class<? extends DataObject>> toTestDependencies = dependencyMap.get(toTest);
 
                 // Check that all dependencies are earlier in the list
@@ -194,7 +194,7 @@ public class Database_Schema {
                     // Look for a dependency earlier in the list
                     boolean found = false;
                     for (int j = 0; j < i; j++) {
-                        if (dependency.isAssignableFrom(decencyOrder.get(j))) {
+                        if (dependency.isAssignableFrom(dependencyOrder.get(j))) {
                             found = true;
                             break;
                         }
@@ -208,8 +208,8 @@ public class Database_Schema {
 
                 // If one of more dependencies is not before the test object, move it to the end of the list
                 if (!allFound) {
-                    decencyOrder.remove(toTest);
-                    decencyOrder.add(toTest);
+                    dependencyOrder.remove(toTest);
+                    dependencyOrder.add(toTest);
                     allSorted = false;
                     break;
                 }
@@ -266,10 +266,10 @@ public class Database_Schema {
         return Collections.unmodifiableList(solidClasses);
     }
 
-    public List<Class<? extends DataObject>> getDecencyOrder() {
-        if (decencyOrder == null) {
+    public List<Class<? extends DataObject>> getDependencyOrder() {
+        if (dependencyOrder == null) {
             generateDependencyList();
         }
-        return Collections.unmodifiableList(decencyOrder);
+        return Collections.unmodifiableList(dependencyOrder);
     }
 }
