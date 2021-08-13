@@ -38,7 +38,7 @@ public class Source_Factory {
 
     /**
      * Create multiple source chains that all share a single starting point. This can only be exactly 2 layers deap
-     * TODO This is only here to make a drop in replacement bor the old style of use. This should be modified to actually optimize the source chains when there is a shared link (https://github.com/ntankard/JavaObjectDatabase/issues/3)
+     * TODO This is only here to make a drop in replacement bor the old style of use. This should be modified to actually optimize the source chains when there is a shared link (https://www.wrike.com/open.htm?id=734695856)
      *
      * @param firstStep   The shared first step
      * @param secondSteps All the fields in the first step to watch

@@ -102,7 +102,7 @@ public class Database_IO_Reader {
         database.setIDFloor(maxID);
 
         // Sort the objects so they are read correctly
-        List<Class<? extends DataObject>> readOrder = new ArrayList<>(database.getSchema().getDecencyOrder());
+        List<Class<? extends DataObject>> readOrder = new ArrayList<>(database.getSchema().getDependencyOrder());
 
         // TODO this needs to be fixed. This is needed because currency is not detected as a dependency for some factory children
         Class<? extends DataObject> currency = null;
