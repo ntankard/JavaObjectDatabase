@@ -2,8 +2,9 @@ package com.ntankard.javaObjectDatabase.dataObject;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore_Schema;
+import com.ntankard.javaObjectDatabase.dataField.properties.PropertyBuilder;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
-import com.ntankard.javaObjectDatabase.dataField.validator.ValidatableSchema;
+import com.ntankard.javaObjectDatabase.dataField.validator.shared.Multi_FieldValidator.EndValidator;
 import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 
 import java.lang.reflect.Modifier;
@@ -273,8 +274,8 @@ public class DataObject_Schema {
         // Validate the validators
         for (DataField_Schema<?> dataObject_schema : list) {
             for (FieldValidator<?, ?> fieldValidator : dataObject_schema.getValidators()) {
-                if (fieldValidator instanceof ValidatableSchema) {
-                    ((ValidatableSchema) fieldValidator).validateToAttachedSchema(this);
+                if (fieldValidator instanceof EndValidator) {
+                    ((EndValidator<?>) fieldValidator).validateToAttachedSchema(this);
                 }
             }
         }
@@ -405,18 +406,5 @@ public class DataObject_Schema {
     //------------------------------------------------------------------------------------------------------------------
     //#################################################### Interface ###################################################
     //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * An interface to create the default version of any properties to add add to the fields
-     */
-    public interface PropertyBuilder {
-
-        /**
-         * Add the property to this field
-         *
-         * @param dataFieldSchema The field to add the property too
-         */
-        void attachProperty(DataField_Schema<?> dataFieldSchema);
-    }
 
 }

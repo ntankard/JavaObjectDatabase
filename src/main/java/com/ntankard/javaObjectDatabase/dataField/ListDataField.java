@@ -1,6 +1,5 @@
 package com.ntankard.javaObjectDatabase.dataField;
 
-import com.ntankard.javaObjectDatabase.dataField.listener.FieldChangeListener;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
 import com.ntankard.javaObjectDatabase.exception.nonCorrupting.NonCorruptingException;

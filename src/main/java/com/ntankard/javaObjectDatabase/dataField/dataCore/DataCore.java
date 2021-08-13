@@ -37,7 +37,7 @@ public abstract class DataCore<FieldType, SchemaType extends DataCore_Schema<Fie
     }
 
     /**
-     * Called when this filter is detached from a field. Clean up all attachments
+     * Called when this DataCore is detached from a field. Clean up all attachments
      */
     public void detachFromField() {
         this.schema = null;
@@ -49,7 +49,7 @@ public abstract class DataCore<FieldType, SchemaType extends DataCore_Schema<Fie
      *
      * @param toSet The value to set
      */
-    protected void doSet(FieldType toSet) {
+    public void doSet(FieldType toSet) {
         getDataField().setFromDataCore(toSet);
     }
 
