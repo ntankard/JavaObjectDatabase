@@ -32,7 +32,7 @@ class NonEqual_Shared_FieldValidatorTest {
                 new NonEqual_Shared_FieldValidator("", null));
 
         assertDoesNotThrow(() ->
-                new NonEqual_Shared_FieldValidator("", ""));
+                new NonEqual_Shared_FieldValidator("test1", "test2"));
     }
 
     @Test
@@ -40,26 +40,30 @@ class NonEqual_Shared_FieldValidatorTest {
     void dataObject_construction() {
         Database database = DatabaseFactory.getEmptyDatabase(Collections.singletonList(NonEqual_SharedValidator_TestObject.class));
 
-        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(7, 7, 10, 11, database));
-        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(4, 4, 10, 11, database));
-        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(-345, -345, 10, 11, database));
-        assertThrows(NonCorruptingException.class,() -> new NonEqual_SharedValidator_TestObject(24, 345, null, null, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(7, 7, 8, 10, 11, 12, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(6, 7, 7, 10, 11, 12, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(7, 7, 7, 10, 11, 12, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(6, 7, 8, 10, 10, 12, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(6, 7, 8, 10, 10, 12, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(6, 7, 8, 10, 11, 11, database));
+        assertThrows(NonCorruptingException.class, () -> new NonEqual_SharedValidator_TestObject(6, 7, 8, 10, 10, 10, database));
 
-        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(24, 345, 10, 11, database));
-        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(123, 34, 10, 11, database));
-        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(-23423, 675, 10, 11, database));
-        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(null, 34, 10, 11, database));
-        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(-23423, null, 10, 11, database));
-        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(null, null, 10, 11, database));
-        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(24, 345, null, 11, database));
-        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(24, 345, 10, null, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(24, 345, 321, 10, 11, 12, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(123, 34, 3424, 10, 11, 12, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(-23423, 675, 234, 10, 11, 12, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(-23423, 675, null, 10, 11, 12, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(-23423, null, 234, 10, 11, 12, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(null, 675, 234, 10, 11, 12, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(null, null, 234, 10, 11, 12, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(-23423, null, null, 10, 11, 12, database));
+        assertDoesNotThrow(() -> new NonEqual_SharedValidator_TestObject(null, null, null, 10, 11, 12, database));
     }
 
     @Test
     @Execution(CONCURRENT)
     void dataObject_setter() {
         Database database = DatabaseFactory.getEmptyDatabase(Collections.singletonList(NonEqual_SharedValidator_TestObject.class));
-        NonEqual_SharedValidator_TestObject sharedValidatorTestObject = new NonEqual_SharedValidator_TestObject(-10, 10, 10, 11, database);
+        NonEqual_SharedValidator_TestObject sharedValidatorTestObject = new NonEqual_SharedValidator_TestObject(-10, 10, 1, 10, 11, 12, database);
 
         assertThrows(NonCorruptingException.class, () -> sharedValidatorTestObject.set(First, 10));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(First, -20));
@@ -88,6 +92,6 @@ class NonEqual_Shared_FieldValidatorTest {
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(First, null));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(Second, null));
         assertDoesNotThrow(() -> sharedValidatorTestObject.set(First_NullForbidden, null));
-        assertThrows(NonCorruptingException.class,() -> sharedValidatorTestObject.set(Second_NullForbidden, null));
+        assertThrows(NonCorruptingException.class, () -> sharedValidatorTestObject.set(Second_NullForbidden, null));
     }
 }

@@ -3,38 +3,44 @@ package com.ntankard.javaObjectDatabase.dataField.validator.shared;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 
 /**
- * A NonEqual_Shared_FieldValidator used to ensure 2 fields to not get given the same value. Both fields being null can
- * be made invalid or valid as needed. By default both fields can be null.
+ * A NonEqual_Shared_FieldValidator is used to ensure that multiple fields do not get given the same value. A
+ * combination of fields being null can be made invalid or valid as needed. By default multiple fields can be null.
  *
  * @author Nicholas Tankard
  */
-public class NonEqual_Shared_FieldValidator extends Shared_FieldValidator<Object, Object, DataObject> {
+public class NonEqual_Shared_FieldValidator extends Multi_FieldValidator<DataObject> {
 
     /**
      * Constructor
      *
-     * @param firstFieldKey  The key for the first field this filter applies to (attach getFirstFilter() to this field as well)
-     * @param secondFieldKey The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
+     * @param keys The key for all the fields that can not be the same
      */
-    public NonEqual_Shared_FieldValidator(String firstFieldKey, String secondFieldKey) {
-        this(firstFieldKey, secondFieldKey, true);
+    public NonEqual_Shared_FieldValidator(String... keys) {
+        this(true, keys);
     }
 
     /**
      * Constructor
      *
-     * @param firstFieldKey  The key for the first field this filter applies to (attach getFirstFilter() to this field as well)
-     * @param secondFieldKey The key for the second field this filter applies to (attach getSecondFilter() to this field as well)
-     * @param canBothBeNull  If both values are null, is this valid? (NOTE: this validator does not check if null values are allowed in the field itself)
+     * @param canBothBeNull If multiple values are null, is this valid? (NOTE: this validator does not check if null values are allowed in the field itself)
+     * @param keys          The key for all the fields that can not be the same
      */
-    public NonEqual_Shared_FieldValidator(String firstFieldKey, String secondFieldKey, boolean canBothBeNull) {
-        super(firstFieldKey, secondFieldKey, (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) -> {
-            if (firstNewValue != null) {
-                return !firstNewValue.equals(secondNewValue);
-            } else if (!canBothBeNull) {
-                return secondNewValue != null;
+    public NonEqual_Shared_FieldValidator(boolean canBothBeNull, String... keys) {
+        super((newValues, pastValues, container) -> {
+            for (int i = 0; i < newValues.length; i++) {
+                for (int j = i + 1; j < newValues.length; j++) {
+                    if (newValues[i] != null) {
+                        if (newValues[i].equals(newValues[j])) {
+                            return false;
+                        }
+                    } else {
+                        if (newValues[j] == null && !canBothBeNull) {
+                            return false;
+                        }
+                    }
+                }
             }
             return true;
-        }, "The value of the " + firstFieldKey + " field can not be same as the " + secondFieldKey + " field" + (canBothBeNull ? " unless both are null" : ""));
+        }, "Fields can not be equal", keys);
     }
 }

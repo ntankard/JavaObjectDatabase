@@ -1,5 +1,5 @@
 ##### Table of Contents  
-- [TODO](#TODO)
+- [TODO](TODO)
     - [DataField](#DataField TBD)
         - [DataCore](#DataCore)
             - [Static_DataCore](#Static_DataCore)
@@ -193,20 +193,24 @@ dataObjectSchema.<TYPE>get(KEY).addValidator(new NumberRange_FieldValidator<>(nu
 // between 1 and 10
 dataObjectSchema.<TYPE>get(KEY).addValidator(new NumberRange_FieldValidator<>(1, 10));
 ```
-#### Share_FieldValidator
-Share_FieldValidator is a special kind of FieldValidator used when the range of a field is depended on another field. It 
-is attached for both fields and get excused when either one changes. If it is only attached to 1 field a 
-DatabaseStructureException will be thrown when the database structure is being setup.
+#### Multi_FieldValidator
+Multi_FieldValidator is a special kind of FieldValidator used when the range of a field is depended on another fields. 
+It is attached for all the relevant fields and get excused when any of them change. If it is only attached to 1 field a 
+DatabaseStructureException will be thrown when the database structure is being setup. When the provided validator is 
+called a list of all the old and new values of the fields, in the order of the keys will be provided. If the field is 
+not changing the new and past values will be the same. Only the field that invoked the call with have a different old 
+and new value.
 ```java
-Shared_FieldValidator<FIRST_TYPE, SECOND_TYPE, CONTAINER_TYPE> sharedFilter = 
-    new Shared_FieldValidator<>(FIRST_KEY, SECOND_KEY,
-    (firstNewValue, firstPastValue, secondNewValue, secondPastValue, container) -> {
+Multi_FieldValidator<CONTAINER_TYPE> sharedFilter = 
+    new Shared_FieldValidator<>(
+    (newValues, pastValues, container) -> {
         // check
     }, 
-    "Failure description");
+    "Failure description", FIRST_KEY, SECOND_KEY, THIRD_KEY...);
 
-dataObjectSchema.<FIRST_TYPE>get(FIRST_KEY).addValidator(sharedFilter.getFirstFilter());
-dataObjectSchema.<SECOND_TYPE>get(SECOND_KEY).addValidator(sharedFilter.getSecondFilter());
+dataObjectSchema.get(FIRST_KEY).addValidator(sharedFilter.getValidator(FIRST_KEY));
+dataObjectSchema.get(SECOND_KEY).addValidator(sharedFilter.getValidator(SECOND_KEY));
+dataObjectSchema.get(THIRD_KEY).addValidator(sharedFilter.getValidator(THIRD_KEY));
 ```
 As with the normal FieldValidator you can create your own as needed or use an existing one like the 
 NonEqual_Shared_FieldValidator
