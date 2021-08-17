@@ -66,9 +66,10 @@ public class Database_IO_Reader {
     /**
      * Read all files for the database from the latest save folder
      *
-     * @param corePath The path that files are located in
+     * @param rootPackageName The root package all classes are in
+     * @param corePath        The path that files are located in
      */
-    public void read(Database database, String corePath, Map<String, String> nameMap) {
+    public void read(Database database, String rootPackageName, String corePath, Map<String, String> nameMap) {
         this.database = database;
 
         Timer timer = new Timer();
@@ -83,7 +84,7 @@ public class Database_IO_Reader {
 
         // Extract all lines from all files
         for (String file : FileUtil.findFilesInDirectory(savePath + INSTANCE_CLASSES_PATH)) {
-            validateAndExtractFile(savePath + INSTANCE_CLASSES_PATH + file, nameMap);
+            validateAndExtractFile(savePath + INSTANCE_CLASSES_PATH + file, rootPackageName, nameMap);
         }
 
         // Find the largest saved ID to prevent overlap
@@ -145,10 +146,11 @@ public class Database_IO_Reader {
     /**
      * Validate a class save file and extract the information to be processed
      *
-     * @param path    The file to parse
-     * @param nameMap Any changed names
+     * @param path            The file to parse
+     * @param rootPackageName The root package all classes are in
+     * @param nameMap         Any changed names
      */
-    private void validateAndExtractFile(String path, Map<String, String> nameMap) {
+    private void validateAndExtractFile(String path, String rootPackageName, Map<String, String> nameMap) {
         // Read the lines
         List<String[]> allLines = FileUtil.readLines(path);
 
@@ -157,10 +159,10 @@ public class Database_IO_Reader {
             throw new IllegalArgumentException("Files class name or parameter's are not formatted correctly");
 
         // Extract the class name
-        Class<? extends DataObject> fileClass = extractClass(allLines.get(0)[0], nameMap); // Here
+        Class<? extends DataObject> fileClass = extractClass(allLines.get(0)[0], rootPackageName, nameMap); // Here
 
         // Extract the params
-        List<String> params = extractParams(fileClass, allLines.get(1), nameMap);
+        List<String> params = extractParams(fileClass, allLines.get(1), nameMap, rootPackageName);
 
         // Extract the data
         List<String[]> lines = new ArrayList<>();
@@ -179,13 +181,14 @@ public class Database_IO_Reader {
     /**
      * Extract the target class from a saved file
      *
-     * @param classLine The line of data containing the class name
-     * @param nameMap   Any renames classes
+     * @param classLine       The line of data containing the class name
+     * @param rootPackageName The root package all classes are in
+     * @param nameMap         Any renames classes
      * @return The DataObject saved in the file
      */
     @SuppressWarnings("unchecked")
-    public Class<? extends DataObject> extractClass(String classLine, Map<String, String> nameMap) {
-        Class<?> baseClass = classForName(classLine, "com.ntankard.tracking.dataBase.core", nameMap);
+    public Class<? extends DataObject> extractClass(String classLine, String rootPackageName, Map<String, String> nameMap) {
+        Class<?> baseClass = classForName(classLine, rootPackageName, nameMap);
         if (!DataObject.class.isAssignableFrom(baseClass))
             throw new IllegalStateException("Object is not of type DataObject");
         return (Class<? extends DataObject>) baseClass;
@@ -194,12 +197,13 @@ public class Database_IO_Reader {
     /**
      * Extract the ordered list of saved parameter's and check that they match the current versions
      *
-     * @param fileClass    The type of object being loaded
-     * @param paramStrings The line containing the params
-     * @param nameMap      Any renamed classes
+     * @param fileClass       The type of object being loaded
+     * @param paramStrings    The line containing the params
+     * @param nameMap         Any renamed classes
+     * @param rootPackageName The root package all classes are in
      * @return An order list of the parameters
      */
-    public List<String> extractParams(Class<? extends DataObject> fileClass, String[] paramStrings, Map<String, String> nameMap) {
+    public List<String> extractParams(Class<? extends DataObject> fileClass, String[] paramStrings, Map<String, String> nameMap, String rootPackageName) {
         // Get the expected field's
         DataObject_Schema dataObjectSchema = database.getSchema().getClassSchema(fileClass);
         List<DataField_Schema<?>> currentFields = dataObjectSchema.getSavedFields();
@@ -212,7 +216,7 @@ public class Database_IO_Reader {
         List<String> params = new ArrayList<>();
         for (int i = 0; i < currentFields.size(); i++) {
             String savedName = paramStrings[i * 2];
-            Class<?> savedType = classForName(paramStrings[i * 2 + 1], "com.ntankard.tracking.dataBase.core", nameMap);
+            Class<?> savedType = classForName(paramStrings[i * 2 + 1], rootPackageName, nameMap);
 
             DataField_Schema<?> field = dataObjectSchema.get(paramStrings[i * 2]);
             if (field == null)

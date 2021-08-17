@@ -10,12 +10,13 @@ public class Database_IO {
     /**
      * Read all files for the database from the latest save folder
      *
-     * @param corePath The path that files are located in
+     * @param rootPackageName The root package all classes are in
+     * @param corePath        The path that files are located in
      */
-    public static Database read(Database_Schema schema, String corePath, Map<String, String> nameMap) {
+    public static Database read(Database_Schema schema, String rootPackageName, String corePath, Map<String, String> nameMap) {
         Database_IO_Reader reader = new Database_IO_Reader();
         Database database = new Database(schema, reader);
-        reader.read(database, corePath, nameMap);
+        reader.read(database, rootPackageName, corePath, nameMap);
         return database;
     }
 
