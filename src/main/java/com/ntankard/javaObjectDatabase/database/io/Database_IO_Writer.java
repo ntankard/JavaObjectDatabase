@@ -100,23 +100,8 @@ public class Database_IO_Writer {
         List<String> paramStrings = new ArrayList<>();
         for (DataField_Schema<?> field : fields) {
 
-            // Find the method
-            Method getter; // TODO this is wrong, it should just be using the field right?
-            try {
-                getter = dataObject.getClass().getMethod(field.getIdentifierName());
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException("\n" + "Class: " + dataObject.getClass().getSimpleName() + " Method:" + field.getIdentifierName() + "\n" + e);
-            }
-            if (!getter.getReturnType().isAssignableFrom(field.getType()))
-                throw new RuntimeException("Class:" + dataObject.getClass().getSimpleName() + " Method:" + field.getIdentifierName() + " Getter provided by ParameterMap dose not match the parameter in the constructor. Could save but would not be able to load. Aborting save");
-
             // Execute the getter
-            Object getterValue;
-            try {
-                getterValue = getter.invoke(dataObject);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
+            Object getterValue = dataObject.get(field.getIdentifierName());
 
             // Convert to String
             if (getterValue == null) {
