@@ -137,9 +137,6 @@ public class Database_IO_Reader {
             }
         }
 
-        // Load the images and paths into the database
-        database.setImagePath(corePath + ROOT_IMAGE_PATH);
-
         timer.stopPrint("End");
     }
 
@@ -331,6 +328,7 @@ public class Database_IO_Reader {
                     if (underConstruction.getId().equals(Integer.parseInt(paramString))) {
                         dataObject = underConstruction;
                     } else {
+                        System.out.println("Under construction: " + underConstruction.getClass().getSimpleName() + " Param String: " + paramString);
                         throw new RuntimeException("Trying to load an object that is not yet in the database");
                     }
                 } else if (dataObject == null) {
