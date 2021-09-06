@@ -28,23 +28,35 @@ public class Database_Schema {
      * @return The generated TrackingDatabase_Schema
      */
     public static synchronized Database_Schema getSchemaFromPackage(String path) {
-        knownGlobalSchemas.putIfAbsent(path, new Database_Schema(findClasses(path)));
+        return getSchemaFromPackage(path, new HashMap<>());
+    }
+
+    /**
+     * Generate a schema for all classes in a package
+     *
+     * @param path               The package to search
+     * @param forcedDependencies For any DataObject, what other DataObjects do they depend on (have to be loaded first) that would not be picked up by the dependency mapping process
+     * @return The generated TrackingDatabase_Schema
+     */
+    public static synchronized Database_Schema getSchemaFromPackage(String path, Map<Class<? extends DataObject>, List<Class<? extends DataObject>>> forcedDependencies) {
+        knownGlobalSchemas.putIfAbsent(path, new Database_Schema(findClasses(path), forcedDependencies));
         return knownGlobalSchemas.get(path);
     }
 
     /**
      * Generate a schema for all classes in a package plus added ones
      *
-     * @param path         The package to search
-     * @param solidClasses Classes to add
+     * @param path               The package to search
+     * @param solidClasses       Classes to add
+     * @param forcedDependencies For any DataObject, what other DataObjects do they depend on (have to be loaded first) that would not be picked up by the dependency mapping process
      * @return The generated TrackingDatabase_Schema
      */
-    public static synchronized Database_Schema getSchemaFromPackage(String path, List<Class<? extends DataObject>> solidClasses) {
+    public static synchronized Database_Schema getSchemaFromPackage(String path, List<Class<? extends DataObject>> solidClasses, Map<Class<? extends DataObject>, List<Class<? extends DataObject>>> forcedDependencies) {
         List<Class<? extends DataObject>> all = new ArrayList<>();
         all.addAll(solidClasses);
         all.addAll(findClasses(path));
 
-        return new Database_Schema(all);
+        return new Database_Schema(all, forcedDependencies);
     }
 
     /**
@@ -98,6 +110,11 @@ public class Database_Schema {
      */
     private final Map<Class<?>, DataObject_Schema> knownSchemas = new HashMap<>();
 
+    /**
+     * For any DataObject, what other DataObjects do they depend on (have to be loaded first) that would not be picked up by the dependency mapping process
+     */
+    private final Map<Class<? extends DataObject>, List<Class<? extends DataObject>>> forcedDependencies;
+
     //------------------------------------------------------------------------------------------------------------------
     //################################################### Constructor ##################################################
     //------------------------------------------------------------------------------------------------------------------
@@ -106,8 +123,16 @@ public class Database_Schema {
      * Private Constructor
      */
     public Database_Schema(List<Class<? extends DataObject>> solidClasses) {
+        this(solidClasses, new HashMap<>());
+    }
+
+    /**
+     * Private Constructor
+     */
+    public Database_Schema(List<Class<? extends DataObject>> solidClasses, Map<Class<? extends DataObject>, List<Class<? extends DataObject>>> forcedDependencies) {
         this.solidClasses = new ArrayList<>();
         this.abstractClasses = new ArrayList<>();
+        this.forcedDependencies = forcedDependencies;
         for (Class<? extends DataObject> aClass : solidClasses) {
             if (!Modifier.isAbstract(aClass.getModifiers())) {
                 this.solidClasses.add(aClass);
@@ -255,6 +280,15 @@ public class Database_Schema {
                 }
                 if (!found) {
                     throw new RuntimeException();
+                }
+            }
+        }
+
+        // Add any forced, unknown dependencies
+        if (forcedDependencies.containsKey(dataObjectClass)) {
+            for (Class<? extends DataObject> aClass : forcedDependencies.get(dataObjectClass)) {
+                if (!dependencies.contains(aClass)) {
+                    dependencies.add(aClass);
                 }
             }
         }

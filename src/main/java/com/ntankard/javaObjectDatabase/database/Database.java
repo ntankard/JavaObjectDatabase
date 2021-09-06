@@ -18,9 +18,10 @@ public class Database {
     private final SpecialValuesMap specialValuesMap = new SpecialValuesMap();
     private final DataObjectContainer masterMap = new DataObjectContainer();
     private final DataObjectClassTree dataObjectClassTree = new DataObjectClassTree();
+    private final UnprocessedFileMap unprocessedFileMap = new UnprocessedFileMap();
 
-    // Paths where images can be found
-    private String imagePath;
+    // Paths where supporting files can be found
+    private String filesPath;
 
     /**
      * The reader used to make this database
@@ -56,6 +57,7 @@ public class Database {
         containers.add(defaultObjectMap);
         containers.add(specialValuesMap);
         containers.add(dataObjectClassTree);
+        containers.add(unprocessedFileMap);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -200,15 +202,19 @@ public class Database {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    //############################################### Image access #####################################################
+    //################################################ File access #####################################################
     //------------------------------------------------------------------------------------------------------------------
 
-    public String getImagePath() {
-        return imagePath;
+    public String getFilesPath() {
+        return filesPath;
     }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
+    public void setFilesPath(String filesPath) {
+        this.filesPath = filesPath;
+    }
+
+    public UnprocessedFileMap getFileMap() {
+        return unprocessedFileMap;
     }
 
     //------------------------------------------------------------------------------------------------------------------

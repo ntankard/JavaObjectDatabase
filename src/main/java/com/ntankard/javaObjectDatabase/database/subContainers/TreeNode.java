@@ -27,7 +27,25 @@ public class TreeNode<T> {
      */
     public TreeNode(T data) {
         this.data = data;
-        this.children = new LinkedList<TreeNode<T>>();
+        this.children = new LinkedList<>();
+    }
+
+    /**
+     * Is this the top of the tree? No parent
+     *
+     * @return True if this is the top of the tree
+     */
+    public boolean isRoot() {
+        return parent == null;
+    }
+
+    /**
+     * Get the parent node, or null if root
+     *
+     * @return The parent node, or null if root
+     */
+    public TreeNode<T> getParent() {
+        return parent;
     }
 
     /**
@@ -37,7 +55,7 @@ public class TreeNode<T> {
      * @return The new child
      */
     public TreeNode<T> addChild(T child) {
-        TreeNode<T> childNode = new TreeNode<T>(child);
+        TreeNode<T> childNode = new TreeNode<>(child);
         childNode.parent = this;
         this.children.add(childNode);
         sortByChildren();
@@ -70,6 +88,21 @@ public class TreeNode<T> {
     }
 
     /**
+     * Remove and return the direct child of this Node that contains a specific value
+     *
+     * @param data The child values to remove
+     * @return The direct child of this Node that contains a specific value, or null
+     */
+    public TreeNode<T> removeChild(T data) {
+        TreeNode<T> node = getChild(data);
+        if (node == null) {
+            return null;
+        }
+        children.remove(node);
+        return node;
+    }
+
+    /**
      * Sort this Nodes children from most, to least sub children
      */
     public void sortByChildren() {
@@ -87,7 +120,7 @@ public class TreeNode<T> {
      */
     public int size() {
         int total = 0;
-        for (TreeNode treeNode : children) {
+        for (TreeNode<T> treeNode : children) {
             total = treeNode.size() + 1;
         }
         return total;
