@@ -15,4 +15,11 @@ public interface FileInterface {
      * @return The file name
      */
     String getFileName();
+
+    /**
+     * Get the fully qualified path to the file
+     *
+     * @return The fully qualified path to the file
+     */
+    String getFullPath();
 }

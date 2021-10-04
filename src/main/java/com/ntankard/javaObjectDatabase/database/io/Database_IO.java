@@ -15,8 +15,8 @@ public class Database_IO {
      */
     public static Database read(Database_Schema schema, String rootPackageName, String corePath, Map<String, String> nameMap) {
         Database_IO_Reader reader = new Database_IO_Reader();
-        Database database = new Database(schema, reader);
-        Database_IO_FileParser.readAvailableFiles(database, corePath);
+        Database database = new Database(schema, reader, corePath);
+        Database_IO_FileParser.readAvailableFiles(database);
         reader.read(database, rootPackageName, corePath, nameMap);
         return database;
     }

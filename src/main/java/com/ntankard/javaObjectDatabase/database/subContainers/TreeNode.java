@@ -1,9 +1,6 @@
 package com.ntankard.javaObjectDatabase.database.subContainers;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class TreeNode<T> {
 
@@ -60,6 +57,19 @@ public class TreeNode<T> {
         this.children.add(childNode);
         sortByChildren();
         return childNode;
+    }
+
+    /**
+     * Get all the data of the direct children in a list
+     *
+     * @return The first order children's data
+     */
+    public List<T> getChildData() {
+        List<T> data = new ArrayList<>();
+        for (TreeNode<T> child : children) {
+            data.add(child.data);
+        }
+        return data;
     }
 
     /**

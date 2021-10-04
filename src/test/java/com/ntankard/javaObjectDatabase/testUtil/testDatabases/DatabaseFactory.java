@@ -23,7 +23,7 @@ public class DatabaseFactory {
      */
     public static Database getEmptyDatabase(List<Class<? extends DataObject>> solidClasses) {
         Database_Schema databaseSchema = new Database_Schema(solidClasses);
-        Database database = new Database(databaseSchema, new Database_IO_Reader());
+        Database database = new Database(databaseSchema, new Database_IO_Reader(), "");
         database.setIDFloor(0);
         database.getFileMap().setFolderTree(new TreeNode<>(""));
         return database;

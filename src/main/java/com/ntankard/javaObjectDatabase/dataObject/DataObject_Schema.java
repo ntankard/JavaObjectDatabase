@@ -361,8 +361,8 @@ public class DataObject_Schema {
 
             // Look for the direct dependency
             if (DataObject.class.isAssignableFrom(field.getType())) {
-                if (field.getDataCore_schema() != null && Static_DataCore_Schema.class.isAssignableFrom(field.getDataCore_schema().getClass())) {
-                    continue; // TODO This is here because at least one Static_DataCore references itself resulting in a circular dependency. Some Static_DataCore may need to be added to dependency
+                if (field.getDataCore_schema() != null) {
+                    continue;
                 }
                 Class<? extends DataObject> primeDependencies = (Class<? extends DataObject>) field.getType();
 

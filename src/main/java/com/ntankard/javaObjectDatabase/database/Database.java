@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.ntankard.javaObjectDatabase.database.io.Database_IO_Util.ROOT_FILES_PATH;
+
 public class Database {
 
     // Core data objects
@@ -21,7 +23,7 @@ public class Database {
     private final UnprocessedFileMap unprocessedFileMap = new UnprocessedFileMap();
 
     // Paths where supporting files can be found
-    private String filesPath;
+    private final String filesPath;
 
     /**
      * The reader used to make this database
@@ -50,9 +52,10 @@ public class Database {
     /**
      * Private Constructor
      */
-    public Database(Database_Schema schema, Database_IO_Reader reader) {
+    public Database(Database_Schema schema, Database_IO_Reader reader, String corePath) {
         this.schema = schema;
         this.reader = reader;
+        this.filesPath = corePath + ROOT_FILES_PATH;
         containers.add(masterMap);
         containers.add(defaultObjectMap);
         containers.add(specialValuesMap);
@@ -207,10 +210,6 @@ public class Database {
 
     public String getFilesPath() {
         return filesPath;
-    }
-
-    public void setFilesPath(String filesPath) {
-        this.filesPath = filesPath;
     }
 
     public UnprocessedFileMap getFileMap() {

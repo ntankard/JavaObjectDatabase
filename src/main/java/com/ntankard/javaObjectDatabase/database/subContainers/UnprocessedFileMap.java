@@ -28,7 +28,7 @@ public class UnprocessedFileMap extends Container<String, Map<String, FileInterf
         }
         if (FileInterface.class.isAssignableFrom(dataObject.getClass())) {
             FileInterface fileInterface = (FileInterface) dataObject;
-            String[] path = fileInterface.getContainerPath().split("//");
+            String[] path = fileInterface.getContainerPath().split("\\\\");
             TreeNode<String> node = folderTree;
             for (String step : path) {
                 node = node.getChild(step);
@@ -41,7 +41,7 @@ public class UnprocessedFileMap extends Container<String, Map<String, FileInterf
             }
 
             TreeNode<String> parent;
-            while (node.isRoot()) {
+            while (!node.isRoot()) {
                 if (node.size() != 0) {
                     break;
                 }
@@ -62,7 +62,7 @@ public class UnprocessedFileMap extends Container<String, Map<String, FileInterf
         }
         if (FileInterface.class.isAssignableFrom(dataObject.getClass())) {
             FileInterface fileInterface = (FileInterface) dataObject;
-            String[] path = fileInterface.getContainerPath().split("//");
+            String[] path = fileInterface.getContainerPath().split("\\\\");
             TreeNode<String> node = folderTree;
             for (String step : path) {
                 if (node.getChild(step) == null) {

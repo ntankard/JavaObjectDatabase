@@ -13,7 +13,7 @@ public class Database_IO_Util {
 
     // Root paths
     public static String ROOT_DATA_PATH = "\\Data";
-    public static String ROOT_FILES_PATH = "\\Files\\";
+    public static String ROOT_FILES_PATH = "\\Files";
     public static String ROOT_FILE_PATH = "\\BudgetTracking.txt";
 
     // Save instance paths
