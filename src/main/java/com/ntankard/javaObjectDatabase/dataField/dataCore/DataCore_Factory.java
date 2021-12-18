@@ -21,7 +21,42 @@ import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.
 public class DataCore_Factory {
 
     /**
-     * Create a Derived_DataCore_Schema with a single source chain who's value is the exact values and the last field in the chain
+     * Create a Derived_DataCore_Schema with a single source chain who's value is the exact values of the last field in
+     * the chain. Sets a value calculated at run time if any value in the chain is null
+     *
+     * @param fieldKeys       The list of fields keys leading to the desired field.
+     * @param getter          The method to generate the default values when needed if any field in the chain is null
+     * @param <FieldType>     The type of field the DataCore is connected to
+     * @param <ContainerType> The Type of object the FieldType instance is connected to
+     * @return A newly constructed Derived_DataCore_Factory
+     */
+    public static <FieldType, ContainerType extends DataObject> Derived_DataCore_Schema<FieldType, ContainerType> createDefaultDirectDerivedDataCore(DefaultGetter<FieldType> getter, String... fieldKeys) {
+        return new Derived_DataCore_Schema<>(container -> {
+            DataObject end = getLowestContainer(container, fieldKeys);
+            return end == null ? getter.getDefault(container) : end.get(fieldKeys[fieldKeys.length - 1]);
+        }, makeSourceChain(fieldKeys));
+    }
+
+    /**
+     * Create a Derived_DataCore_Schema with a single source chain who's value is the exact values of the last field in
+     * the chain. Sets a static default value if any value in the chain is null
+     *
+     * @param fieldKeys       The list of fields keys leading to the desired field.
+     * @param defaultValue    The value to use if any field in the chain is null
+     * @param <FieldType>     The type of field the DataCore is connected to
+     * @param <ContainerType> The Type of object the FieldType instance is connected to
+     * @return A newly constructed Derived_DataCore_Factory
+     */
+    public static <FieldType, ContainerType extends DataObject> Derived_DataCore_Schema<FieldType, ContainerType> createDefaultDirectDerivedDataCore(FieldType defaultValue, String... fieldKeys) {
+        return new Derived_DataCore_Schema<>(container -> {
+            DataObject end = getLowestContainer(container, fieldKeys);
+            return end == null ? defaultValue : end.get(fieldKeys[fieldKeys.length - 1]);
+        }, makeSourceChain(fieldKeys));
+    }
+
+    /**
+     * Create a Derived_DataCore_Schema with a single source chain who's value is the exact values of the last field in
+     * the chain. Sets null if any value in the chain is null
      *
      * @param fieldKeys       The list of fields keys leading to the desired field.
      * @param <FieldType>     The type of field the DataCore is connected to
@@ -29,10 +64,7 @@ public class DataCore_Factory {
      * @return A newly constructed Derived_DataCore_Factory
      */
     public static <FieldType, ContainerType extends DataObject> Derived_DataCore_Schema<FieldType, ContainerType> createDirectDerivedDataCore(String... fieldKeys) {
-        return new Derived_DataCore_Schema<>(container -> {
-            DataObject end = getLowestContainer(container, fieldKeys);
-            return end == null ? null : end.get(fieldKeys[fieldKeys.length - 1]);
-        }, makeSourceChain(fieldKeys));
+        return createDefaultDirectDerivedDataCore(null, fieldKeys);
     }
 
     /**
@@ -110,6 +142,22 @@ public class DataCore_Factory {
     //------------------------------------------------------------------------------------------------------------------
     //################################################# Inner Classes ##################################################
     //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Interface to get a default value at run time once the database is established
+     *
+     * @param <FieldType> The type of field the DataCore is connected to
+     */
+    public interface DefaultGetter<FieldType> {
+
+        /**
+         * Generate the default value
+         *
+         * @param container The object containing the field
+         * @return The default value
+         */
+        FieldType getDefault(DataObject container);
+    }
 
     /**
      * The calculator used to modify a Multi Parent List when one of the parents has a change (either the parent changes
