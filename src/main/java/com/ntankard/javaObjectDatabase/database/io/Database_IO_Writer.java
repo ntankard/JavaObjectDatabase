@@ -3,6 +3,7 @@ package com.ntankard.javaObjectDatabase.database.io;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
+import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
 import com.ntankard.javaObjectDatabase.util.FileUtil;
 
 import java.io.File;
@@ -104,13 +105,18 @@ public class Database_IO_Writer {
             Object getterValue = dataObject.get(field.getIdentifierName());
 
             // Convert to String
+            String paramString;
             if (getterValue == null) {
-                paramStrings.add(" ");
+                paramString = " ";
             } else if (getterValue instanceof DataObject) {
-                paramStrings.add(((DataObject) getterValue).getId().toString());
+                paramString = ((DataObject) getterValue).getId().toString();
             } else {
-                paramStrings.add(getterValue.toString());
+                paramString = getterValue.toString();
             }
+            if (paramString.contains(",")) {
+                throw new CorruptingException(dataObject.getTrackingDatabase(), "Trying to data data with a illegal character in it");
+            }
+            paramStrings.add(paramString);
         }
 
         return paramStrings;

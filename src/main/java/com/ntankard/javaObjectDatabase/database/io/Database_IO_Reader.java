@@ -4,15 +4,15 @@ import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
+import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
 import com.ntankard.javaObjectDatabase.util.FileUtil;
 import com.ntankard.javaObjectDatabase.util.Timer;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static com.ntankard.javaObjectDatabase.database.io.Database_IO_Util.*;
 import static com.ntankard.javaObjectDatabase.util.SourceCodeInspector.classForName;
@@ -351,6 +351,16 @@ public class Database_IO_Reader {
                 parsedData = null;
             } else {
                 parsedData = Integer.parseInt(paramString);
+            }
+        } else if (Date.class.isAssignableFrom(paramType)) {
+            if (paramString.equals(" ")) {
+                parsedData = null;
+            } else {
+                try {
+                    parsedData = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy").parse(paramString);
+                } catch (ParseException e) {
+                    throw new CorruptingException(null, "Date can not be processed");
+                }
             }
         } else {
             throw new RuntimeException("Unknown data type");
