@@ -92,6 +92,25 @@ public class FileUtil {
     }
 
     /**
+     * Write raw lines to a csv file
+     *
+     * @param path  The path to write files too
+     * @param lines The raw lines to write
+     */
+    public static void writeRawLines(String path, List<String> lines) {
+        try {
+            FileWriter fw = new FileWriter(path, false);
+            for (String line : lines) {
+                fw.write(line);
+                fw.write('\n');
+            }
+            fw.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Find the files in a directory
      *
      * @param directoryPath The path to search
