@@ -30,7 +30,7 @@ public class DataCore_Factory {
      * @param <ContainerType> The Type of object the FieldType instance is connected to
      * @return A newly constructed Derived_DataCore_Factory
      */
-    public static <FieldType, ContainerType extends DataObject> Derived_DataCore_Schema<FieldType, ContainerType> createDefaultDirectDerivedDataCore(DefaultGetter<FieldType> getter, String... fieldKeys) {
+    public static <FieldType, ContainerType extends DataObject> Derived_DataCore_Schema<FieldType, ContainerType> createDefaultDirectDerivedDataCoreGetter(DefaultGetter<FieldType> getter, String... fieldKeys) {
         return new Derived_DataCore_Schema<>(container -> {
             DataObject end = getLowestContainer(container, fieldKeys);
             return end == null ? getter.getDefault(container) : end.get(fieldKeys[fieldKeys.length - 1]);
