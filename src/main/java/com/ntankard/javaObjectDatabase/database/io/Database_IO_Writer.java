@@ -3,6 +3,7 @@ package com.ntankard.javaObjectDatabase.database.io;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
+import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
 import com.ntankard.javaObjectDatabase.util.FileUtil;
 
 import java.io.File;
@@ -100,32 +101,22 @@ public class Database_IO_Writer {
         List<String> paramStrings = new ArrayList<>();
         for (DataField_Schema<?> field : fields) {
 
-            // Find the method
-            Method getter; // TODO this is wrong, it should just be using the field right?
-            try {
-                getter = dataObject.getClass().getMethod(field.getIdentifierName());
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException("\n" + "Class: " + dataObject.getClass().getSimpleName() + " Method:" + field.getIdentifierName() + "\n" + e);
-            }
-            if (!getter.getReturnType().isAssignableFrom(field.getType()))
-                throw new RuntimeException("Class:" + dataObject.getClass().getSimpleName() + " Method:" + field.getIdentifierName() + " Getter provided by ParameterMap dose not match the parameter in the constructor. Could save but would not be able to load. Aborting save");
-
             // Execute the getter
-            Object getterValue;
-            try {
-                getterValue = getter.invoke(dataObject);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
+            Object getterValue = dataObject.get(field.getIdentifierName());
 
             // Convert to String
+            String paramString;
             if (getterValue == null) {
-                paramStrings.add(" ");
+                paramString = " ";
             } else if (getterValue instanceof DataObject) {
-                paramStrings.add(((DataObject) getterValue).getId().toString());
+                paramString = ((DataObject) getterValue).getId().toString();
             } else {
-                paramStrings.add(getterValue.toString());
+                paramString = getterValue.toString();
             }
+            if (paramString.contains(",")) {
+                throw new CorruptingException(dataObject.getTrackingDatabase(), "Trying to data data with a illegal character in it");
+            }
+            paramStrings.add(paramString);
         }
 
         return paramStrings;

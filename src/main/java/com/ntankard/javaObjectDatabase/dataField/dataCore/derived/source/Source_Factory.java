@@ -4,12 +4,30 @@ import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.Source_
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.end.End_Source_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.step.Step_Source_Schema;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A set of methods used to simplify the creation of Source_Schema's with specific behaviors
  *
  * @author Nicholas Tankard
  */
 public class Source_Factory {
+
+    /**
+     * Add another element to the end of a list, used for multiple generated source arrays
+     *
+     * @param arr         The current array
+     * @param lastElement The element to add
+     * @param <T>         THe type of the array
+     * @return the new array
+     */
+    public static <T> T[] append(T[] arr, T lastElement) {
+        final int N = arr.length;
+        arr = java.util.Arrays.copyOf((T[]) arr, N + 1);
+        arr[N] = lastElement;
+        return arr;
+    }
 
     /**
      * Create a chain of Sources based on a list of field names. The names must be order top (the field in the container
@@ -45,7 +63,7 @@ public class Source_Factory {
      * @return A array of sources equal to the number of second steps
      */
     public static Source_Schema<?>[] makeSharedStepSourceChain(String firstStep, String... secondSteps) {
-        Source_Schema<?>[] sources = new Step_Source_Schema[secondSteps.length];
+        Source_Schema<?>[] sources = new Source_Schema[secondSteps.length];
 
         int i = 0;
         for (String field : secondSteps) {

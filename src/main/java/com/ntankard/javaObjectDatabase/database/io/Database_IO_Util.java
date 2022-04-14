@@ -13,7 +13,7 @@ public class Database_IO_Util {
 
     // Root paths
     public static String ROOT_DATA_PATH = "\\Data";
-    public static String ROOT_IMAGE_PATH = "\\Image\\";
+    public static String ROOT_FILES_PATH = "\\Files";
     public static String ROOT_FILE_PATH = "\\BudgetTracking.txt";
 
     // Save instance paths
@@ -35,9 +35,9 @@ public class Database_IO_Util {
             throw new IllegalStateException("The core database path dose not contain a data directory");
         }
 
-        File imageDir = new File(path + ROOT_IMAGE_PATH);
-        if (!imageDir.exists()) {
-            throw new IllegalStateException("The core database path dose not contain an image directory");
+        File filesDir = new File(path + ROOT_FILES_PATH);
+        if (!filesDir.exists()) {
+            throw new IllegalStateException("The core database path dose not contain a files directory");
         }
 
         File filePath = new File(path + ROOT_FILE_PATH);

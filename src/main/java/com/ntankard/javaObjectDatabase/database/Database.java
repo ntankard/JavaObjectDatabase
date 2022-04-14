@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.ntankard.javaObjectDatabase.database.io.Database_IO_Util.ROOT_FILES_PATH;
+
 public class Database {
 
     // Core data objects
@@ -18,9 +20,10 @@ public class Database {
     private final SpecialValuesMap specialValuesMap = new SpecialValuesMap();
     private final DataObjectContainer masterMap = new DataObjectContainer();
     private final DataObjectClassTree dataObjectClassTree = new DataObjectClassTree();
+    private final UnprocessedFileMap unprocessedFileMap = new UnprocessedFileMap();
 
-    // Paths where images can be found
-    private String imagePath;
+    // Paths where supporting files can be found
+    private final String filesPath;
 
     /**
      * The reader used to make this database
@@ -49,13 +52,15 @@ public class Database {
     /**
      * Private Constructor
      */
-    public Database(Database_Schema schema, Database_IO_Reader reader) {
+    public Database(Database_Schema schema, Database_IO_Reader reader, String corePath) {
         this.schema = schema;
         this.reader = reader;
+        this.filesPath = corePath + ROOT_FILES_PATH;
         containers.add(masterMap);
         containers.add(defaultObjectMap);
         containers.add(specialValuesMap);
         containers.add(dataObjectClassTree);
+        containers.add(unprocessedFileMap);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -200,15 +205,15 @@ public class Database {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    //############################################### Image access #####################################################
+    //################################################ File access #####################################################
     //------------------------------------------------------------------------------------------------------------------
 
-    public String getImagePath() {
-        return imagePath;
+    public String getFilesPath() {
+        return filesPath;
     }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
+    public UnprocessedFileMap getFileMap() {
+        return unprocessedFileMap;
     }
 
     //------------------------------------------------------------------------------------------------------------------

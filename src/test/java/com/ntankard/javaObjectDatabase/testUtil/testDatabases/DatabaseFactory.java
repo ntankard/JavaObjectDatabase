@@ -4,6 +4,7 @@ import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.database.Database;
 import com.ntankard.javaObjectDatabase.database.Database_Schema;
 import com.ntankard.javaObjectDatabase.database.io.Database_IO_Reader;
+import com.ntankard.javaObjectDatabase.database.subContainers.TreeNode;
 
 import java.util.List;
 
@@ -22,8 +23,9 @@ public class DatabaseFactory {
      */
     public static Database getEmptyDatabase(List<Class<? extends DataObject>> solidClasses) {
         Database_Schema databaseSchema = new Database_Schema(solidClasses);
-        Database database = new Database(databaseSchema, new Database_IO_Reader());
+        Database database = new Database(databaseSchema, new Database_IO_Reader(), "");
         database.setIDFloor(0);
+        database.getFileMap().setFolderTree(new TreeNode<>(""));
         return database;
     }
 }

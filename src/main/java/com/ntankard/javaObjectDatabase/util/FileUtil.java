@@ -7,6 +7,37 @@ import java.util.List;
 public class FileUtil {
 
     /**
+     * Read lines from a csv file non separated
+     *
+     * @param csvFile The path to the file to read
+     * @return ALl lines read from the file
+     */
+    public static List<String> readRawLines(String csvFile) {
+        BufferedReader br = null;
+        String line;
+        List<String> allLines = new ArrayList<>();
+
+        try {
+            br = new BufferedReader(new FileReader(csvFile));
+            while ((line = br.readLine()) != null) {
+                allLines.add(line);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return allLines;
+    }
+
+
+    /**
      * Read lines from a csv file
      *
      * @param csvFile The path to the file to read
@@ -52,6 +83,25 @@ public class FileUtil {
                     fw.write(s);
                     fw.write(",");
                 }
+                fw.write('\n');
+            }
+            fw.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Write raw lines to a csv file
+     *
+     * @param path  The path to write files too
+     * @param lines The raw lines to write
+     */
+    public static void writeRawLines(String path, List<String> lines) {
+        try {
+            FileWriter fw = new FileWriter(path, false);
+            for (String line : lines) {
+                fw.write(line);
                 fw.write('\n');
             }
             fw.close();
