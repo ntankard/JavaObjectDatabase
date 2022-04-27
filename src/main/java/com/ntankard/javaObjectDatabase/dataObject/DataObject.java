@@ -111,18 +111,6 @@ public abstract class DataObject {
     /**
      * Initialise all the values of the field.
      *
-     * @param database The database this will link to
-     * @param args     ALl fields to initialize
-     * @return This
-     */
-    public DataObject setAllValues(Database database, Object... args) {
-        this.database = database;
-        return setAllValues(args);
-    }
-
-    /**
-     * Initialise all the values of the field.
-     *
      * @param args ALl fields to initialize
      * @return This
      */

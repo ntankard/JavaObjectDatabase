@@ -2,6 +2,8 @@ package com.ntankard.javaObjectDatabase.dataObject.factory;
 
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -56,18 +58,20 @@ public class SingleParentFactory<GeneratedType extends DataObject, PrimaryGenera
 
     /**
      * @inheritDoc
+     * @return
      */
     @SuppressWarnings("unchecked")
     @Override
-    public void generate(DataObject generator) {
+    public List<GeneratedType> generate(DataObject generator) {
         if (primaryGeneratorType.isAssignableFrom(generator.getClass())) {
             PrimaryGeneratorType primaryGenerator = (PrimaryGeneratorType) generator;
             if (shouldBuild(primaryGenerator.getChildren(getGeneratedType()).size())) {
-                constructor.generate(primaryGenerator).add();
+                return Collections.singletonList(constructor.generate(primaryGenerator).add());
             }
         } else {
             throw new IllegalArgumentException("A object other than one of the listed generators is trying to generate this object");
         }
+        return new ArrayList<>();
     }
 
     /**

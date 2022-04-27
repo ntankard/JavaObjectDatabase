@@ -26,8 +26,6 @@ public class DefaultObjectMap extends Container<Class, DataObject> {
      */
     @Override
     public void remove(DataObject dataObject) {
-        checkCanDelete(dataObject);
-
         if (container.containsKey(dataObject.getClass())) {
             if (container.get(dataObject.getClass()).equals(dataObject)) {
                 container.remove(dataObject.getClass());

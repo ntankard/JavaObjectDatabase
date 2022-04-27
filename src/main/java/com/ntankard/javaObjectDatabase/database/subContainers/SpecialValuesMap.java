@@ -37,8 +37,6 @@ public class SpecialValuesMap extends Container<Class, Map<Integer, DataObject>>
      */
     @Override
     public void remove(DataObject dataObject) {
-        checkCanDelete(dataObject);
-
         if (dataObject instanceof SpecialValues) {
             for (Integer key : ((SpecialValues) dataObject).toChangeGetKeys()) {
                 if (((SpecialValues) dataObject).isValue(key)) {

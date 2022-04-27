@@ -108,8 +108,7 @@ class Multi_FieldValidatorTest {
 
         // Create the test instance
         BlankTestDataObject blankTestDataObject = new BlankTestDataObject(dataObjectSchema);
-        blankTestDataObject.setAllValues(null
-                , First, 1
+        blankTestDataObject.setAllValues(First, 1
                 , Second, 2
                 , Third, 3);
 

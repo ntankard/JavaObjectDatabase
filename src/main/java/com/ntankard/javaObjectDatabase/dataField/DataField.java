@@ -93,7 +93,14 @@ public class DataField<FieldType> {
         this.dataFieldSchema = dataFieldSchema;
         this.container = container;
         this.state = UNDER_CONSTRUCTION;
-        this.notifyParentListener = (field, oldValue, newValue) -> {
+        this.notifyParentListener = new FieldChangeListener<FieldType>() {
+            @Override
+            public DataField<FieldType> getDestinationField() {
+                return DataField.this;
+            }
+
+            @Override
+            public void valueChanged(DataField<FieldType> field, FieldType oldValue, FieldType newValue) {
             if (DataObject.class.isAssignableFrom(field.dataFieldSchema.getType())) {
                 if (field.dataFieldSchema.isTellParent()) {
                     if (field.getState().equals(ACTIVE)) {
@@ -105,6 +112,7 @@ public class DataField<FieldType> {
                         }
                     }
                 }
+            }
             }
         };
 

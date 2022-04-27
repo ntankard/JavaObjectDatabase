@@ -29,6 +29,11 @@ public abstract class ObjectFactory<GeneratedType extends DataObject> {
     private final GeneratorMode mode;
 
     /**
+     * Can the objects this factory created be deleted?
+     */
+    private boolean canDelete = false;
+
+    /**
      * Constructor
      */
     public ObjectFactory(Class<GeneratedType> generatedType) {
@@ -44,11 +49,32 @@ public abstract class ObjectFactory<GeneratedType extends DataObject> {
     }
 
     /**
+     * Get can the objects this factory created be deleted?
+     *
+     * @return True if the objects this factory created be deleted?
+     */
+    public boolean isCanDelete() {
+        return canDelete;
+    }
+
+    /**
+     * Set can the objects this factory created be deleted?
+     *
+     * @param canDelete true if the objects this factory created be deleted?
+     * @return This
+     */
+    public ObjectFactory<GeneratedType> setCanDelete(boolean canDelete) {
+        this.canDelete = canDelete;
+        return this;
+    }
+
+    /**
      * Create the new object type
      *
      * @param generator The source invoking this method, the source of the new object
+     * @return A list of the objects that were created
      */
-    public abstract void generate(DataObject generator);
+    public abstract List<GeneratedType> generate(DataObject generator);
 
     /**
      * Get the object type this factory builds

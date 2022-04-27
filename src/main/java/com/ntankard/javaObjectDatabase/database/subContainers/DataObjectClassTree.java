@@ -6,7 +6,7 @@ import java.util.*;
 
 public class DataObjectClassTree extends Container<Integer, Integer> {
 
-    private TreeNode<Class<? extends DataObject>> classTreeRoot = new TreeNode<>(DataObject.class);
+    private final TreeNode<Class<? extends DataObject>> classTreeRoot = new TreeNode<>(DataObject.class);
 
     /**
      * @inheritDoc
@@ -60,6 +60,7 @@ public class DataObjectClassTree extends Container<Integer, Integer> {
      */
     @Override
     public void remove(DataObject dataObject) {
+        // There is no way to "remove" in this case. The effect will be that we still have an empty object if the last one was deleted
     }
 
     /**
