@@ -295,6 +295,7 @@ public class Database_IO_Reader {
             for (Constructor<?> constructor : constructors) {
                 if (constructor.getParameterCount() == 1 && constructor.getParameterTypes()[0].equals(Database.class)) {
                     newDataObject = (DataObject) constructor.newInstance(database);
+                    newDataObject.setAllValues(args.toArray());
                     break;
                 }
                 // TODO add a check for the constructor with the schema
@@ -306,7 +307,7 @@ public class Database_IO_Reader {
             throw new RuntimeException(e);
         }
 
-        return newDataObject.setAllValues(args.toArray());
+        return newDataObject;
     }
 
     /**

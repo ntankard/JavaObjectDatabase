@@ -1,12 +1,11 @@
 package com.ntankard.javaObjectDatabase.dataObject;
 
-import com.ntankard.javaObjectDatabase.dataField.DataField;
-import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
-import com.ntankard.javaObjectDatabase.dataField.ListDataField;
-import com.ntankard.javaObjectDatabase.dataField.ListDataField_Schema;
+import com.ntankard.javaObjectDatabase.dataField.*;
 import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
 import com.ntankard.javaObjectDatabase.database.Database;
 import com.ntankard.javaObjectDatabase.database.subContainers.DataObjectContainer;
+import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
+import com.ntankard.javaObjectDatabase.exception.nonCorrupting.NonCorruptingException;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -48,6 +47,11 @@ public abstract class DataObject {
      * A list of the fields on this DataObject
      */
     private final List<DataField<?>> instanceList = new ArrayList<>();
+
+    /**
+     * A list of objects that were made in factories related to this object
+     */
+    private final List<DataObject> factoryConstructed = new ArrayList<>();
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################### Constructor ##################################################
@@ -151,15 +155,6 @@ public abstract class DataObject {
         return database;
     }
 
-    /**
-     * Set the core database
-     *
-     * @param database The core database
-     */
-    public void setTrackingDatabase(Database database) {
-        this.database = database;
-    }
-
     //------------------------------------------------------------------------------------------------------------------
     //################################################ Field Interface #################################################
     //------------------------------------------------------------------------------------------------------------------
@@ -233,7 +228,7 @@ public abstract class DataObject {
         }
 
         for (ObjectFactory<?> factory : dataObjectSchema.getObjectFactories()) {
-            factory.generate(this);
+            factoryConstructed.addAll(factory.generate(this));
         }
 
         for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
@@ -292,40 +287,13 @@ public abstract class DataObject {
     private final DataObjectContainer children = new DataObjectContainer();
 
     /**
-     * All object to be notified when a child is linked or unlinked
-     */
-    private final List<ChildrenListener<?>> childrenListeners = new ArrayList<>();
-
-    /**
-     * A listener for notifying when new children are added or removed to this object
-     *
-     * @param <T> THe type of child object
-     */
-    public interface ChildrenListener<T extends DataObject> {
-
-        /**
-         * Called when a new child is linked to this object
-         *
-         * @param dataObject The added object
-         */
-        void childAdded(T dataObject);
-
-        /**
-         * Called when a child is unlinked from this object
-         *
-         * @param dataObject The object that was removed
-         */
-        void childRemoved(T dataObject);
-    }
-
-    /**
      * Add a new ChildrenListener listeners
      *
      * @param childrenListener The ChildrenListener
      * @param <T>              tClass type
      */
-    public <T extends DataObject> void addChildrenListener(ChildrenListener<T> childrenListener) {
-        childrenListeners.add(childrenListener);
+    public <T extends DataObject> void addChildrenListener(FieldChangeListener<List<T>> childrenListener) {
+        this.<List<T>>getField(DataObject_ChildrenField).addChangeListener(childrenListener);
     }
 
     /**
@@ -334,40 +302,8 @@ public abstract class DataObject {
      * @param childrenListener The ChildrenListener
      * @param <T>              tClass type
      */
-    public <T extends DataObject> void removeChildrenListener(ChildrenListener<T> childrenListener) {
-        childrenListeners.remove(childrenListener);
-    }
-
-    /**
-     * Get all object to be notified when a child is linked or unlinked
-     *
-     * @return All object to be notified when a child is linked or unlinked
-     */
-    public List<ChildrenListener<?>> getChildrenListeners() {
-        return childrenListeners;
-    }
-
-    /**
-     * Get all the parents of this object
-     *
-     * @return All the parents of this object
-     */
-    private List<DataObject> getParentsImpl() {
-        List<DataObject> toReturn = new ArrayList<>();
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            if (DataObject.class.isAssignableFrom(field.getValue().getDataFieldSchema().getType())) {
-                if (field.getValue().getDataFieldSchema().isTellParent()) {
-                    if (field.getValue().get() != null) {
-                        try {
-                            toReturn.add((DataObject) field.getValue().get());
-                        } catch (Exception e) {
-                            throw new RuntimeException();
-                        }
-                    }
-                }
-            }
-        }
-        return toReturn;
+    public <T extends DataObject> void removeChildrenListener(FieldChangeListener<List<T>> childrenListener) {
+        this.<List<T>>getField(DataObject_ChildrenField).removeChangeListener(childrenListener);
     }
 
     /**
@@ -375,13 +311,8 @@ public abstract class DataObject {
      *
      * @param linkObject The child
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void notifyChildLink(DataObject linkObject) {
         children.add(linkObject);
-
-        for (ChildrenListener childrenListener : childrenListeners) {
-            childrenListener.childAdded(linkObject);
-        }
 
         ((ListDataField<DataObject>) this.<List<DataObject>>getField(DataObject_ChildrenField)).add(linkObject);
     }
@@ -391,12 +322,7 @@ public abstract class DataObject {
      *
      * @param linkObject The child
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void notifyChildUnLink(DataObject linkObject) {
-        for (ChildrenListener childrenListener : childrenListeners) {
-            childrenListener.childRemoved(linkObject);
-        }
-
         children.remove(linkObject);
 
         ((ListDataField<DataObject>) this.<List<DataObject>>getField(DataObject_ChildrenField)).remove(linkObject);
@@ -408,7 +334,7 @@ public abstract class DataObject {
      * @return The List of all children
      */
     public List<DataObject> getChildren() {
-        return children.get();
+        return this.<List<DataObject>>getField(DataObject_ChildrenField).get();
     }
 
     /**
@@ -423,25 +349,13 @@ public abstract class DataObject {
     }
 
     /**
-     * Get the list of children for a a specific class type
-     *
-     * @param type The class type to get
-     * @param key  The ID of the object to get
-     * @param <T>  The Object type
-     * @return The list of children for a a specific class type
-     */
-    public <T extends DataObject> T getChildren(Class<T> type, Integer key) {
-        return children.get(type, key);
-    }
-
-    /**
      * Does this DataObject have this child?
      *
      * @param toTest The child to check for
      * @return True if this DataObject contains the child
      */
     public boolean hasChild(DataObject toTest) {
-        return children.contains(toTest.getId()); // TODO if the IDs get corrupt this may return wrong, you may want to do a full equals check too
+        return getChildren().contains(toTest);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -450,10 +364,6 @@ public abstract class DataObject {
 
     public Integer getId() {
         return get(DataObject_Id);
-    }
-
-    public List<DataObject> getParents() {
-        return getParentsImpl();
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -477,27 +387,5 @@ public abstract class DataObject {
      */
     public <T extends DataObject> List<T> sourceOptions(Class<T> type, String fieldName) {
         return getTrackingDatabase().get(type);
-    }
-
-    /**
-     * Check that all parents are linked properly
-     */
-    public void validateParents() {
-        for (DataObject dataObject : getParents()) {
-            if (!dataObject.getChildren().contains(this)) {
-                throw new RuntimeException("Not registered with a parent");
-            }
-        }
-    }
-
-    /**
-     * Check that all children are linked properly
-     */
-    public void validateChildren() {
-        for (DataObject dataObject : children.get()) {
-            if (!dataObject.getParents().contains(this)) {
-                throw new RuntimeException("Not registered with a child");
-            }
-        }
     }
 }
