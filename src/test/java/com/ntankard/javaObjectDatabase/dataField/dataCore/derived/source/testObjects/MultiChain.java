@@ -26,14 +26,13 @@ public class MultiChain {
         }
 
         public End_TestObject(Integer data, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , Data, data
             );
         }
 
-        public End_TestObject(Database database) {
-            super(database);
+        public End_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 
@@ -55,14 +54,13 @@ public class MultiChain {
         }
 
         public Step1_TestObject(End_TestObject endLink, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , EndLink, endLink
             );
         }
 
-        public Step1_TestObject(Database database) {
-            super(database);
+        public Step1_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 
@@ -84,14 +82,13 @@ public class MultiChain {
         }
 
         public Step2_TestObject(Step1_TestObject s1Link, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , S1Link, s1Link
             );
         }
 
-        public Step2_TestObject(Database database) {
-            super(database);
+        public Step2_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 
@@ -113,14 +110,13 @@ public class MultiChain {
         }
 
         public Step3_TestObject(Step2_TestObject s2Link, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , S2Link, s2Link
             );
         }
 
-        public Step3_TestObject(Database database) {
-            super(database);
+        public Step3_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 }

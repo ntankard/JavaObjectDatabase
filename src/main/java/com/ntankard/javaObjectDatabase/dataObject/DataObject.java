@@ -8,7 +8,10 @@ import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
 import com.ntankard.javaObjectDatabase.exception.nonCorrupting.NonCorruptingException;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class DataObject {
 
@@ -29,7 +32,6 @@ public abstract class DataObject {
     public void setFields(List<DataField<?>> fields) {
         for (DataField<?> field : fields) {
             fieldMap.put(field.getDataFieldSchema().getIdentifierName(), field);
-            instanceList.add(field);
         }
     }
 
@@ -42,11 +44,6 @@ public abstract class DataObject {
      * The fields for this DataObject
      */
     protected Map<String, DataField<?>> fieldMap = new HashMap<>();
-
-    /**
-     * A list of the fields on this DataObject
-     */
-    private final List<DataField<?>> instanceList = new ArrayList<>();
 
     /**
      * A list of objects that were made in factories related to this object
@@ -81,28 +78,36 @@ public abstract class DataObject {
 
     /**
      * Constructor
+     *
+     * @param database The database this object will link to
+     * @param args     The initial values for the fields (first is the key for the field, second is the value)
      */
-    public DataObject(Database database) {
+    public DataObject(Database database, Object... args) {
         this.database = database;
         this.dataObjectSchema = database.getSchema().getClassSchema(this.getClass());
         assert dataObjectSchema.getSolidObjectType() == getClass();
 
-        // Link the fields to the object
-        List<DataField<?>> instanceList = new ArrayList<>();
-        for (DataField_Schema<?> field : dataObjectSchema.getList()) {
-            DataField<?> instance = field.generate(this);
-            instanceList.add(instance);
-        }
-        this.setFields(instanceList);
+        setup(args);
     }
 
     /**
-     * Constructor
+     * Constructor (used for test only)
+     *
+     * @param dataObjectSchema The schema for the object to generate
+     * @param args             The initial values for the fields (first is the key for the field, second is the value)
      */
-    public DataObject(DataObject_Schema dataObjectSchema) {
+    public DataObject(DataObject_Schema dataObjectSchema, Object... args) {
         assert dataObjectSchema.getSolidObjectType() == getClass();
         this.dataObjectSchema = dataObjectSchema;
+        setup(args);
+    }
 
+    /**
+     * Core impl for the constructor
+     *
+     * @param args The initial values for the fields (first is the key for the field, second is the value)
+     */
+    private void setup(Object... args) {
         // Link the fields to the object
         List<DataField<?>> instanceList = new ArrayList<>();
         for (DataField_Schema<?> field : dataObjectSchema.getList()) {
@@ -110,15 +115,11 @@ public abstract class DataObject {
             instanceList.add(instance);
         }
         this.setFields(instanceList);
+
+        if (args.length == 0) {
+            return;
     }
 
-    /**
-     * Initialise all the values of the field.
-     *
-     * @param args ALl fields to initialize
-     * @return This
-     */
-    public DataObject setAllValues(Object... args) {
         if (args.length / 2 * 2 != args.length)
             throw new IllegalArgumentException("Wrong amount of arguments");
 
@@ -126,16 +127,20 @@ public abstract class DataObject {
         instanceList.forEach(DataField::linkWithingDataObject);
 
         // Load each of the fields
+        boolean idFound = false;
         for (int i = 0; i < args.length / 2; i++) {
             String identifier = args[i * 2].toString();
             Object value = args[i * 2 + 1];
             this.getField(identifier).set(value);
+            if (!idFound && identifier.equals(DataObject_Id)) {
+                idFound = true;
+            }
+        }
+        if (!idFound) {
+            this.getField(DataObject_Id).set(getTrackingDatabase().getNextId());
         }
         this.getField(DataObject_ChildrenField).set(new ArrayList<DataObject>());
-
-        return this;
     }
-
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################# Database access ################################################

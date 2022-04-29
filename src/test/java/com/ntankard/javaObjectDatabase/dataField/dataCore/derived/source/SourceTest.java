@@ -190,15 +190,14 @@ public class SourceTest {
         }
 
         public SourceTestC(List<String> stringListFirst, List<String> stringListSecond, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , SourceTestC_StringListFirst, stringListFirst
                     , SourceTestC_StringListSecond, stringListSecond
             );
         }
 
-        public SourceTestC(Database database) {
-            super(database);
+        public SourceTestC(Database database, Object... args) {
+            super(database, args);
         }
     }
 }

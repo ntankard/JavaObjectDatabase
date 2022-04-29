@@ -51,9 +51,8 @@ public class NonEqual_SharedValidator_TestObject extends DataObject {
         return dataObjectSchema.finaliseContainer(NonEqual_SharedValidator_TestObject.class);
     }
 
-    public NonEqual_SharedValidator_TestObject(Integer sharedValidator_first, Integer sharedValidator_second, Integer sharedValidator_third, Integer sharedValidator_first_nullForbidden, Integer sharedValidator_second_nullForbidden,  Integer sharedValidator_third_nullForbidden, Database database) {
-        this(database);
-        setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+    public NonEqual_SharedValidator_TestObject(Integer sharedValidator_first, Integer sharedValidator_second, Integer sharedValidator_third, Integer sharedValidator_first_nullForbidden, Integer sharedValidator_second_nullForbidden, Integer sharedValidator_third_nullForbidden, Database database) {
+        super(database
                 , First, sharedValidator_first
                 , Second, sharedValidator_second
                 , Third, sharedValidator_third
@@ -63,7 +62,7 @@ public class NonEqual_SharedValidator_TestObject extends DataObject {
         );
     }
 
-    public NonEqual_SharedValidator_TestObject(Database database) {
-        super(database);
+    public NonEqual_SharedValidator_TestObject(Database database, Object... args) {
+        super(database, args);
     }
 }

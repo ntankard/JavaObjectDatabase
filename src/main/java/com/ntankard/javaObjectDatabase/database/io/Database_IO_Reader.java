@@ -293,12 +293,10 @@ public class Database_IO_Reader {
         try {
             Constructor<?>[] constructors = aClass.getConstructors();
             for (Constructor<?> constructor : constructors) {
-                if (constructor.getParameterCount() == 1 && constructor.getParameterTypes()[0].equals(Database.class)) {
-                    newDataObject = (DataObject) constructor.newInstance(database);
-                    newDataObject.setAllValues(args.toArray());
+                if (constructor.getParameterCount() == 2 && constructor.getParameterTypes()[0].equals(Database.class) && constructor.getParameterTypes()[1].equals(Object[].class)) {
+                    newDataObject = (DataObject) constructor.newInstance(database, args.toArray());
                     break;
                 }
-                // TODO add a check for the constructor with the schema
             }
             if (newDataObject == null) {
                 throw new RuntimeException();

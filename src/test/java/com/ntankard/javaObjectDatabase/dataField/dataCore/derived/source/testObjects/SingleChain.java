@@ -103,15 +103,14 @@ public class SingleChain {
         }
 
         public SingleEnd_TestObject(Integer coreData, Integer nullCoreData, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , CoreData, coreData
                     , NullableCoreData, nullCoreData
             );
         }
 
-        public SingleEnd_TestObject(Database database) {
-            super(database);
+        public SingleEnd_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 
@@ -155,15 +154,14 @@ public class SingleChain {
         }
 
         public Step_TestObject(SingleEnd_TestObject link1, SingleEnd_TestObject nullableLink1, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , Link1, link1
                     , NullableLink1, nullableLink1
             );
         }
 
-        public Step_TestObject(Database database) {
-            super(database);
+        public Step_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 }

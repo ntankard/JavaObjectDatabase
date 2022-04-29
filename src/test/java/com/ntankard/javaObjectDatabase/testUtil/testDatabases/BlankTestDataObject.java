@@ -9,7 +9,7 @@ import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
  * @author Nicholas Tankard
  */
 public class BlankTestDataObject extends DataObject {
-    public BlankTestDataObject(DataObject_Schema dataObjectSchema) {
-        super(dataObjectSchema);
+    public BlankTestDataObject(DataObject_Schema dataObjectSchema, Object... args) {
+        super(dataObjectSchema, args);
     }
 }
