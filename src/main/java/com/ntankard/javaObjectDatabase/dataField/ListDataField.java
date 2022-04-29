@@ -133,7 +133,7 @@ public class ListDataField<ListContentType> extends DataField<List<ListContentTy
 
         // TODO review this
         //if (!value.contains(toRemove))
-            //throw new NonCorruptingException("Trying to remove a value that has never been added");
+        //throw new NonCorruptingException("Trying to remove a value that has never been added");
 
         value.remove(toRemove);
 

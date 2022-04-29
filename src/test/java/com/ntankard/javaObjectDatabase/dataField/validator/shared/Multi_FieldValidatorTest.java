@@ -107,7 +107,7 @@ class Multi_FieldValidatorTest {
         dataObjectSchema.finaliseContainer(BlankTestDataObject.class);
 
         // Create the test instance
-        BlankTestDataObject blankTestDataObject = new BlankTestDataObject(dataObjectSchema,DataObject_Id, -1
+        BlankTestDataObject blankTestDataObject = new BlankTestDataObject(dataObjectSchema, DataObject_Id, -1
                 , First, 1
                 , Second, 2
                 , Third, 3);

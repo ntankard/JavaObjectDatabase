@@ -30,7 +30,7 @@ import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.SingleChain.SingleEnd_TestObject.CoreData;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.SingleChain.SingleEnd_TestObject.NullableCoreData;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.SingleChain.Step_TestObject.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
 
 @Execution(CONCURRENT)

@@ -37,7 +37,7 @@ public class SingleListChain {
         }
 
         public SingleListEnd_TestObject(Database database, Object... args) {
-        super(database, args);
+            super(database, args);
         }
     }
 

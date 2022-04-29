@@ -151,7 +151,7 @@ public class DataField_Schema<FieldType> {
     public void containerFinished(Class<? extends DataObject> parentType) {
         this.parentType = parentType;
 
-        this.displayName = this.displayName.replace(parentType.getSimpleName() + "_" , "");
+        this.displayName = this.displayName.replace(parentType.getSimpleName() + "_", "");
 
         if (setterFunction == null && dataCore_schema == null) {
             sourceMode = DIRECT;

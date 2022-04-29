@@ -3,7 +3,6 @@ package com.ntankard.javaObjectDatabase.dataObject.factory;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -57,8 +56,8 @@ public class SingleParentFactory<GeneratedType extends DataObject, PrimaryGenera
     }
 
     /**
-     * @inheritDoc
      * @return
+     * @inheritDoc
      */
     @SuppressWarnings("unchecked")
     @Override

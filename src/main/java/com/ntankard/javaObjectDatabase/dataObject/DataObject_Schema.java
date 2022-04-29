@@ -1,7 +1,6 @@
 package com.ntankard.javaObjectDatabase.dataObject;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore_Schema;
 import com.ntankard.javaObjectDatabase.dataField.properties.PropertyBuilder;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
 import com.ntankard.javaObjectDatabase.dataField.validator.shared.Multi_FieldValidator.EndValidator;
