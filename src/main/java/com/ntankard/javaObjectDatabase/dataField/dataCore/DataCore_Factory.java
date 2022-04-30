@@ -308,7 +308,7 @@ public class DataCore_Factory {
             for (IndividualParentCalculator<ListContentType> individual : individualParentCalculators) {
                 if (!individual.equals(sourceParent)) {
                     DataObject end = getLowestContainer(container, individual.fieldKeys);
-                    if (end == null || !end.hasChild(toTest)) {
+                    if (end == null || !end.getChildren().contains(toTest)) {
                         return false;
                     }
                 }

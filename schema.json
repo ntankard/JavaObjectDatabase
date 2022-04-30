@@ -23,6 +23,14 @@
         "CurrencyBound"
       ]
     },
+    "abstract": {
+      "type": "boolean",
+      "default": false,
+      "title": "True if this is an abstract object",
+      "examples": [
+        true
+      ]
+    },
     "listDef": {
       "type": "boolean",
       "default": false,
@@ -101,7 +109,15 @@
               true
             ]
           },
-          "properties": {
+          "string_source": {
+            "type": "boolean",
+            "default": false,
+            "title": "True if this field is the sole source of the field toString property",
+            "examples": [
+              true
+            ]
+          },
+          "attachedProperties": {
             "type": "object",
             "title": "A set of objects representing values to set in custom properties attached to the field. The object name should match the properties class name and then any internal fields should mate the properties to set",
             "required": [
@@ -141,6 +157,8 @@
                     "title": "The static value to set"
                   }
                 },
+                "additionalItems": false,
+                "additionalProperties": false,
                 "examples": [
                   {
                     "static": {
@@ -174,6 +192,8 @@
                     }
                   }
                 },
+                "additionalItems": false,
+                "additionalProperties": false,
                 "examples": [
                   {
                     "derived": {
@@ -210,6 +230,8 @@
                     ]
                   }
                 },
+                "additionalItems": false,
+                "additionalProperties": false,
                 "examples": [
                   {
                     "selfParent": {
@@ -254,7 +276,9 @@
                       "StatementTransaction_StatementFolder, StatementFolder_TranslationTypes"
                     ]
                   }
-                }
+                },
+                "additionalItems": false,
+                "additionalProperties": false
               },
               "multiParentList": {
                 "type": "object",
@@ -272,9 +296,13 @@
                       "StatementTransaction_TranslationTypes"
                     ]
                   }
-                }
+                },
+                "additionalItems": false,
+                "additionalProperties": false
               }
             },
+            "additionalItems": false,
+            "additionalProperties": false,
             "examples": [
               {
                 "selfParent": {
@@ -340,8 +368,12 @@
               }
             ]
           }
-        }
+        },
+        "additionalItems": false,
+        "additionalProperties": false
       }
     }
-  }
+  },
+  "additionalItems": false,
+  "additionalProperties": false
 }
