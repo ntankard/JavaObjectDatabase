@@ -101,18 +101,18 @@ public class DataField<FieldType> {
 
             @Override
             public void valueChanged(DataField<FieldType> field, FieldType oldValue, FieldType newValue) {
-            if (DataObject.class.isAssignableFrom(field.dataFieldSchema.getType())) {
-                if (field.dataFieldSchema.isTellParent()) {
-                    if (field.getState().equals(ACTIVE)) {
-                        if (oldValue != null) {
-                            ((DataObject) oldValue).notifyChildUnLink(field.getContainer());
-                        }
-                        if (newValue != null) {
-                            ((DataObject) newValue).notifyChildLink(field.getContainer());
+                if (DataObject.class.isAssignableFrom(field.dataFieldSchema.getType())) {
+                    if (field.dataFieldSchema.isTellParent()) {
+                        if (field.getState().equals(ACTIVE)) {
+                            if (oldValue != null) {
+                                ((DataObject) oldValue).notifyChildUnLink(field.getContainer());
+                            }
+                            if (newValue != null) {
+                                ((DataObject) newValue).notifyChildLink(field.getContainer());
+                            }
                         }
                     }
                 }
-            }
             }
         };
 
@@ -152,6 +152,30 @@ public class DataField<FieldType> {
                 }
             }
         }
+    }
+
+    public void removeFromDataBase() {
+        if (!getState().equals(ACTIVE))
+            throw new NonCorruptingException("The field is not fully in the database so it can not be removed");
+
+        if (DataObject.class.isAssignableFrom(dataFieldSchema.getType())) {
+            if (dataFieldSchema.isTellParent()) {
+                if (value != null) {
+                    ((DataObject) value).notifyChildUnLink(getContainer());
+                }
+            }
+        }
+
+        this.state = READY_TO_ADD;
+    }
+
+    public boolean isExternallyLinked() {
+        for (FieldChangeListener<FieldType> listener : fieldChangeListeners) {
+            if (listener.getDestinationField().getContainer() != this.getContainer()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

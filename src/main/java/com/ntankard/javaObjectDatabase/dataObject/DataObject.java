@@ -15,60 +15,26 @@ import java.util.Map;
 
 public abstract class DataObject {
 
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################### Field Setup ##################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * The method name to get the fields
-     */
-    public static String FieldName = "getDataObjectSchema";
-
-    /**
-     * Set all the fields for this object, should be called by a solid object constructor
-     *
-     * @param fields The fields to set
-     */
-    public void setFields(List<DataField<?>> fields) {
-        for (DataField<?> field : fields) {
-            fieldMap.put(field.getDataFieldSchema().getIdentifierName(), field);
-        }
-    }
-
-    /**
-     * The schema of this object
-     */
-    private final DataObject_Schema dataObjectSchema;
-
-    /**
-     * The fields for this DataObject
-     */
-    protected Map<String, DataField<?>> fieldMap = new HashMap<>();
-
-    /**
-     * A list of objects that were made in factories related to this object
-     */
-    private final List<DataObject> factoryConstructed = new ArrayList<>();
-
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################### Constructor ##################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    public static final String DataObject_Id = "getId";
-    public static final String DataObject_ChildrenField = "getChildrenField";
-
     public interface DataObjectList extends List<DataObject> {
     }
+
+    private static final String DataObject_Prefix = "DataObject_";
+
+    public static final String DataObject_Id = DataObject_Prefix + "Id";
+    public static final String DataObject_ChildrenField = DataObject_Prefix + "ChildrenField";
+
+    // TODO because we now do an attempt load as part of the factories, can we create and add at the same time???
 
     /**
      * Get all the fields for this object
      */
     public static DataObject_Schema getDataObjectSchema() {
         DataObject_Schema dataObjectSchema = new DataObject_Schema();
-        // ID ==========================================================================================================
+
         dataObjectSchema.add(new DataField_Schema<>(DataObject_Id, Integer.class));
-        // ChildrenField ===============================================================================================
         dataObjectSchema.add(new ListDataField_Schema<>(DataObject_ChildrenField, DataObjectList.class));
+
+        // ChildrenField ===============================================================================================
         dataObjectSchema.get(DataObject_ChildrenField).setShouldSave(false);
         //==============================================================================================================
 
@@ -85,8 +51,6 @@ public abstract class DataObject {
     public DataObject(Database database, Object... args) {
         this.database = database;
         this.dataObjectSchema = database.getSchema().getClassSchema(this.getClass());
-        assert dataObjectSchema.getSolidObjectType() == getClass();
-
         setup(args);
     }
 
@@ -97,10 +61,14 @@ public abstract class DataObject {
      * @param args             The initial values for the fields (first is the key for the field, second is the value)
      */
     public DataObject(DataObject_Schema dataObjectSchema, Object... args) {
-        assert dataObjectSchema.getSolidObjectType() == getClass();
+        this.database = null;
         this.dataObjectSchema = dataObjectSchema;
         setup(args);
     }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //###################################################### Add #######################################################
+    //------------------------------------------------------------------------------------------------------------------
 
     /**
      * Core impl for the constructor
@@ -108,116 +76,44 @@ public abstract class DataObject {
      * @param args The initial values for the fields (first is the key for the field, second is the value)
      */
     private void setup(Object... args) {
+        assert dataObjectSchema.getSolidObjectType() == getClass();
+        if (args.length / 2 * 2 != args.length || args.length == 0)
+            throw new NonCorruptingException("Wrong amount of arguments");
+
         // Link the fields to the object
-        List<DataField<?>> instanceList = new ArrayList<>();
         for (DataField_Schema<?> field : dataObjectSchema.getList()) {
             DataField<?> instance = field.generate(this);
-            instanceList.add(instance);
+            fieldMap.put(instance.getDataFieldSchema().getIdentifierName(), instance);
         }
-        this.setFields(instanceList);
-
-        if (args.length == 0) {
-            return;
-    }
-
-        if (args.length / 2 * 2 != args.length)
-            throw new IllegalArgumentException("Wrong amount of arguments");
 
         // Start sharing data
-        instanceList.forEach(DataField::linkWithingDataObject);
+        fieldMap.forEach((s, dataField) -> dataField.linkWithingDataObject());
 
         // Load each of the fields
+        List<DataField<?>> done = new ArrayList<>();
         boolean idFound = false;
         for (int i = 0; i < args.length / 2; i++) {
             String identifier = args[i * 2].toString();
             Object value = args[i * 2 + 1];
             this.getField(identifier).set(value);
+            done.add(this.getField(identifier));
             if (!idFound && identifier.equals(DataObject_Id)) {
                 idFound = true;
             }
         }
         if (!idFound) {
             this.getField(DataObject_Id).set(getTrackingDatabase().getNextId());
+            done.add(this.getField(DataObject_Id));
         }
         this.getField(DataObject_ChildrenField).set(new ArrayList<DataObject>());
-    }
+        done.add(this.getField(DataObject_ChildrenField));
 
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################# Database access ################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * The core database
-     */
-    private Database database;
-
-    /**
-     * Get the core database
-     *
-     * @return The core database
-     */
-    public Database getTrackingDatabase() {
-        return database;
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################ Field Interface #################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * Get a specific field
-     *
-     * @param field The Field to get
-     * @param <T>   THe type of the field
-     * @return The field
-     */
-    @SuppressWarnings("unchecked")
-    public <T> DataField<T> getField(String field) {
-        return (DataField<T>) fieldMap.get(field);
-    }
-
-    /**
-     * Set the value from a specific field
-     *
-     * @param field The field to set
-     * @param value THe value to set
-     * @param <T>   The type of the Field
-     */
-    public <T> void set(String field, T value) {
-        (getField(field)).set(value);
-    }
-
-    /**
-     * Get the value from a specific field
-     *
-     * @param field The Field to get
-     * @param <T>   The type of the Field
-     * @return The value of the field
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T get(String field) {
-        return (T) getField(field).get();
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //#################################################### General #####################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    /**
-     * @inheritDoc
-     */
-    @Override
-    public String toString() {
-        try {
-            return get(DataObject_Id).toString();
-        } catch (Exception e) {
-            return "NO ID";
+        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
+            if (!field.getValue().hasValidValue()) {
+                throw new CorruptingException(database, "Fields have not been setup correctly");
+            }
         }
     }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //################################################ Database access  ################################################
-    //------------------------------------------------------------------------------------------------------------------
 
     /**
      * Add this object to the database. Notify everyone required and create or add supporting objects if needed
@@ -226,11 +122,6 @@ public abstract class DataObject {
     public <DataObjectType extends DataObject> DataObjectType add() {
         // TODO lifecycle test , add, remove, remove when object are in child list that sum
 
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            if (!field.getValue().hasValidValue()) {
-                throw new RuntimeException();
-            }
-        }
 
         for (ObjectFactory<?> factory : dataObjectSchema.getObjectFactories()) {
             factoryConstructed.addAll(factory.generate(this));
@@ -245,6 +136,10 @@ public abstract class DataObject {
         return (DataObjectType) this;
     }
 
+    //------------------------------------------------------------------------------------------------------------------
+    //##################################################### Remove #####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
     /**
      * Safely remove this object from the database. Disabled by default
      */
@@ -252,44 +147,138 @@ public abstract class DataObject {
         throw new UnsupportedOperationException("Not cleared for removal");
     }
 
+    protected void checkCanRemove() {
+        // Can this object be deleted
+        if (this.getChildren().size() != 0) {
+            for (DataObject dataObject : this.getChildren()) {
+                if (!factoryConstructed.contains(dataObject)) {
+                    throw new NonCorruptingException("Cant delete this kind of object, other objects depend on it where not created by it");
+                }
+            }
+        }
+
+        // check that none of thease are savable
+        // Are all factories of a type that support deletion?
+        for (ObjectFactory<?> factory : dataObjectSchema.getObjectFactories()) {
+            if (!factory.isCanDelete()) {
+                throw new NonCorruptingException("This object has a factory attached that does not support deletion");
+            }
+        }
+
+        // Are all object made from this one cleared for deletion
+        for (DataObject children : factoryConstructed) {
+            children.checkCanRemove();
+        }
+    }
+
     /**
      * Safely remove this object from the database.
      */
     protected void remove_impl() {
 
-        // catch exceptions thrown by the fields and elevate them if needed
-        if (this.getChildren().size() != 0) {
-            throw new RuntimeException("Cant delete this kind of object. NoneFundEvent still has children");
-        }
-        if (getTrackingDatabase().getSchema().getClassSchema(this.getClass()).getObjectFactories().size() != 0) {
-            throw new UnsupportedOperationException("The code for deleting object that are factories has not been implemented yet");
-        }
+        // Will throw non corrupting if not clear to go
+        checkCanRemove();
 
-        getTrackingDatabase().remove(this);
+        // add
+        {
+            // add
+            getTrackingDatabase().remove(this);
 
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            if (field.getKey().equals(DataObject_Id)) {
-                continue;
+            // link to database
+            for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
+                field.getValue().removeFromDataBase();
             }
-            field.getValue().remove();
-        }
-        fieldMap.get(DataObject_Id).remove();
 
-        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
-            if (!field.getValue().getFieldChangeListeners().isEmpty()) {
-                throw new RuntimeException();
+            // generate
+            for (DataObject children : factoryConstructed) {
+                children.remove();
             }
+            factoryConstructed.clear();
+        }
+
+//        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
+//            field.getValue().removeFromDataBase();
+//        }
+
+        // by now it should be fully expected
+        for (Map.Entry<String, DataField<?>> field : fieldMap.entrySet()) {
+            if (field.getValue().isExternallyLinked()) {
+                //field.getValue().isExternallyLinked();
+                throw new CorruptingException(getTrackingDatabase());
+            }
+        }
+        // clear to nuke?
+
+        // setAllValues()
+        {
+            // set
+
+            // linkWithingDataObject
+        }
+
+        // Constructor
+        {
+            // generate
         }
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    //############################################### Parental Hierarchy  ##############################################
+    //#################################################### Core Data ###################################################
     //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * The core database
+     */
+    private final Database database;
+
+    /**
+     * The schema of this object
+     */
+    private final DataObject_Schema dataObjectSchema;
+
+    /**
+     * The fields for this DataObject
+     */
+    private final Map<String, DataField<?>> fieldMap = new HashMap<>();
+
+    /**
+     * A list of objects that were made in factories related to this object
+     */
+    private final List<DataObject> factoryConstructed = new ArrayList<>();
 
     /**
      * All my children
      */
     private final DataObjectContainer children = new DataObjectContainer();
+
+    //------------------------------------------------------------------------------------------------------------------
+    //#################################################### General #####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Get the core database
+     *
+     * @return The core database
+     */
+    public Database getTrackingDatabase() {
+        return database;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public String toString() {
+        try {
+            return get(DataObject_Id).toString();
+        } catch (Exception e) {
+            return "NO ID";
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //#################################################### Children ####################################################
+    //------------------------------------------------------------------------------------------------------------------
 
     /**
      * Add a new ChildrenListener listeners
@@ -334,15 +323,6 @@ public abstract class DataObject {
     }
 
     /**
-     * Get all children
-     *
-     * @return The List of all children
-     */
-    public List<DataObject> getChildren() {
-        return this.<List<DataObject>>getField(DataObject_ChildrenField).get();
-    }
-
-    /**
      * Get the list of children for a a specific class type
      *
      * @param type The class type to get
@@ -353,28 +333,15 @@ public abstract class DataObject {
         return children.get(type);
     }
 
+    //------------------------------------------------------------------------------------------------------------------
+    //################################################# Source Options #################################################
+    //------------------------------------------------------------------------------------------------------------------
+
     /**
-     * Does this DataObject have this child?
+     * Get the sourceOptions method
      *
-     * @param toTest The child to check for
-     * @return True if this DataObject contains the child
+     * @return The sourceOptions method
      */
-    public boolean hasChild(DataObject toTest) {
-        return getChildren().contains(toTest);
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //#################################################### Getters #####################################################
-    //------------------------------------------------------------------------------------------------------------------
-
-    public Integer getId() {
-        return get(DataObject_Id);
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    //#################################################### Setters #####################################################
-    //------------------------------------------------------------------------------------------------------------------
-
     public static Method getSourceOptionMethod() {
         try {
             return DataObject.class.getMethod("sourceOptions", Class.class, String.class);
@@ -392,5 +359,56 @@ public abstract class DataObject {
      */
     public <T extends DataObject> List<T> sourceOptions(Class<T> type, String fieldName) {
         return getTrackingDatabase().get(type);
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //#################################################### Getters #####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Get a specific field
+     *
+     * @param field The Field to get
+     * @param <T>   THe type of the field
+     * @return The field
+     */
+    @SuppressWarnings("unchecked")
+    public <T> DataField<T> getField(String field) {
+        return (DataField<T>) fieldMap.get(field);
+    }
+
+    /**
+     * Get the value from a specific field
+     *
+     * @param field The Field to get
+     * @param <T>   The type of the Field
+     * @return The value of the field
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T get(String field) {
+        return (T) getField(field).get();
+    }
+
+    public Integer getId() {
+        return get(DataObject_Id);
+    }
+
+    public List<DataObject> getChildren() {
+        return get(DataObject_ChildrenField);
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    //#################################################### Setters #####################################################
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Set the value from a specific field
+     *
+     * @param field The field to set
+     * @param value THe value to set
+     * @param <T>   The type of the Field
+     */
+    public <T> void set(String field, T value) {
+        (getField(field)).set(value);
     }
 }

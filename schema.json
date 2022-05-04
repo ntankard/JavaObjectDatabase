@@ -117,6 +117,14 @@
               true
             ]
           },
+          "avoid_constructor": {
+            "type": "boolean",
+            "default": false,
+            "title": "Force a field to not be added as a parameter to a constructor ",
+            "examples": [
+              true
+            ]
+          },
           "attachedProperties": {
             "type": "object",
             "title": "A set of objects representing values to set in custom properties attached to the field. The object name should match the properties class name and then any internal fields should mate the properties to set",

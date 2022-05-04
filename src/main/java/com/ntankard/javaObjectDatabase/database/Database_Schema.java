@@ -166,7 +166,7 @@ public class Database_Schema {
      */
     private DataObject_Schema getDataObjectSchema(Class<?> aClass) {
         try {
-            Method method = aClass.getDeclaredMethod(DataObject.FieldName);
+            Method method = aClass.getDeclaredMethod("getDataObjectSchema");
             return ((DataObject_Schema) method.invoke(null));
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ee) {
             throw new RuntimeException("Cant extract object fields", ee);
