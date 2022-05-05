@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.database.subContainers;
 
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
-import com.ntankard.javaObjectDatabase.dataObject.interfaces.HasDefault;
+import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
 
 public class DefaultObjectMap extends Container<Class, DataObject> {
 
@@ -11,10 +11,11 @@ public class DefaultObjectMap extends Container<Class, DataObject> {
      */
     @Override
     public void add(DataObject dataObject) {
-        if (HasDefault.class.isAssignableFrom(dataObject.getClass())) {
-            if (((HasDefault) dataObject).isDefault()) {
+        String defaultKey = dataObject.getSourceSchema().getDefaultFieldKey();
+        if (defaultKey != null) {
+            if (dataObject.get(defaultKey)) {
                 if (container.containsKey(dataObject.getClass())) {
-                    throw new RuntimeException("Default already set");
+                    throw new CorruptingException(dataObject.getTrackingDatabase(), "Default already set");
                 }
                 container.put(dataObject.getClass(), dataObject);
             }
@@ -42,12 +43,8 @@ public class DefaultObjectMap extends Container<Class, DataObject> {
      */
     @SuppressWarnings("unchecked")
     public <T extends DataObject> T getDefault(Class<T> aClass) {
-        if (HasDefault.class.isAssignableFrom(aClass)) {
-            if (container.containsKey(aClass)) {
-                return (T) container.get(aClass);
-            } else {
-                throw new RuntimeException("No default registered for this type");
-            }
+        if (container.containsKey(aClass)) {
+            return (T) container.get(aClass);
         }
         return null;
     }

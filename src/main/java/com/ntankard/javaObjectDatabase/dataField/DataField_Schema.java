@@ -48,6 +48,16 @@ public class DataField_Schema<FieldType> {
      */
     private Class<? extends DataObject> parentType;
 
+    /**
+     * Is this field a flag for if this instance of the object is a "special" instance of the object
+     */
+    private boolean isSpecialFlag = false;
+
+    /**
+     * Is this field a flag indicating that this instance is the default for its object type
+     */
+    private boolean isDefaultFlag = false;
+
     // Data Control ----------------------------------------------------------------------------------------------------
 
     public enum SourceMode {
@@ -213,6 +223,14 @@ public class DataField_Schema<FieldType> {
         return parentType;
     }
 
+    public boolean isSpecialFlag() {
+        return isSpecialFlag;
+    }
+
+    public boolean isDefaultFlag() {
+        return isDefaultFlag;
+    }
+
     // Data Control ----------------------------------------------------------------------------------------------------
 
     public SourceMode getSourceMode() {
@@ -273,6 +291,10 @@ public class DataField_Schema<FieldType> {
     public void setManualCanEdit(Boolean manualCanEdit) {
         if (setterFunction != null || dataCore_schema != null)
             throw new NonCorruptingException("A field with a Setter function or a DataCore can not be manually edited");
+        if (this.isDefaultFlag)
+            throw new NonCorruptingException("Default flag fields can not be edited");
+        if (this.isSpecialFlag)
+            throw new NonCorruptingException("Special flag fields can not be edited");
 
         this.manualCanEdit = manualCanEdit;
     }
@@ -282,6 +304,10 @@ public class DataField_Schema<FieldType> {
             throw new NonCorruptingException("You can not set a DataCore twice");
         if (manualCanEdit)
             throw new NonCorruptingException("DataCore cannot be set if manual editing is enabled");
+        if (this.isDefaultFlag)
+            throw new NonCorruptingException("Default flag fields can not be edited");
+        if (this.isSpecialFlag)
+            throw new NonCorruptingException("Special flag fields can not be edited");
 
         this.dataCore_schema = dataCore_schema;
     }
@@ -291,6 +317,10 @@ public class DataField_Schema<FieldType> {
             throw new NonCorruptingException("You can not set a Setter Function twice");
         if (manualCanEdit)
             throw new NonCorruptingException("Setter Function cannot be set if manual editing is enabled");
+        if (this.isDefaultFlag)
+            throw new NonCorruptingException("Default flag fields can not be edited");
+        if (this.isSpecialFlag)
+            throw new NonCorruptingException("Special flag fields can not be edited");
 
         this.setterFunction = setterFunction;
     }
@@ -319,6 +349,32 @@ public class DataField_Schema<FieldType> {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public void setSpecialFlag(boolean specialFlag) {
+        if (this.type != Boolean.class)
+            throw new NonCorruptingException("A special flag field must be of type Boolean");
+        if (this.canBeNull)
+            throw new NonCorruptingException("The special flag field can not be null");
+        if (this.manualCanEdit)
+            throw new NonCorruptingException("The value of the special flag field can not be changed TODO this should be allowed in the future");
+        if (this.dataCore_schema != null)
+            throw new NonCorruptingException("The value of the special flag field can not be controlled by a dataCore");
+
+        isSpecialFlag = specialFlag;
+    }
+
+    public void setDefaultFlag(boolean defaultFlag) {
+        if (this.type != Boolean.class)
+            throw new NonCorruptingException("A default flag field must be of type boolean");
+        if (this.canBeNull)
+            throw new NonCorruptingException("The default flag field can not be null");
+        if (this.manualCanEdit)
+            throw new NonCorruptingException("The value of the default flag field can not be changed TODO this should be allowed in the future");
+        if (this.dataCore_schema != null)
+            throw new NonCorruptingException("The value of the default flag field can not be controlled by a dataCore");
+
+        isDefaultFlag = defaultFlag;
     }
 
     //------------------------------------------------------------------------------------------------------------------

@@ -1,30 +1,29 @@
 package com.ntankard.javaObjectDatabase.database.subContainers;
 
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
-import com.ntankard.javaObjectDatabase.dataObject.interfaces.SpecialValues;
+import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class SpecialValuesMap extends Container<Class, Map<Integer, DataObject>> {
+public class SpecialValuesMap extends Container<Class, Map<String, DataObject>> {
 
     /**
      * @inheritDoc
      */
+    @SuppressWarnings("unchecked")
     @Override
     public void add(DataObject dataObject) {
-        if (SpecialValues.class.isAssignableFrom(dataObject.getClass())) {
+        if (!dataObject.getSourceSchema().getSpecialFlagKeys().isEmpty()) {
             if (!container.containsKey(dataObject.getClass())) {
                 container.put(dataObject.getClass(), new HashMap<>());
             }
-        }
 
-        if (dataObject instanceof SpecialValues) {
-            for (Integer key : ((SpecialValues) dataObject).toChangeGetKeys()) {
-                if (((SpecialValues) dataObject).isValue(key)) {
-                    Map<Integer, DataObject> keyMap = container.get(dataObject.getClass());
+            for (String key : dataObject.getSourceSchema().getSpecialFlagKeys()) {
+                if (dataObject.<Boolean>get(key)) {
+                    Map<String, DataObject> keyMap = container.get(dataObject.getClass());
                     if (keyMap.containsKey(key)) {
-                        throw new RuntimeException("Double add");
+                        throw new CorruptingException(dataObject.getTrackingDatabase(), "Multiple objects with special values found");
                     }
                     keyMap.put(key, dataObject);
                 }
@@ -35,17 +34,16 @@ public class SpecialValuesMap extends Container<Class, Map<Integer, DataObject>>
     /**
      * @inheritDoc
      */
+    @SuppressWarnings("unchecked")
     @Override
     public void remove(DataObject dataObject) {
-        if (dataObject instanceof SpecialValues) {
-            for (Integer key : ((SpecialValues) dataObject).toChangeGetKeys()) {
-                if (((SpecialValues) dataObject).isValue(key)) {
-                    Map<Integer, DataObject> keyMap = container.get(dataObject.getClass());
-                    if (!keyMap.containsKey(key)) {
-                        throw new RuntimeException("Removing a value that dose not exist");
-                    }
-                    keyMap.remove(key);
+        for (String key : dataObject.getSourceSchema().getSpecialFlagKeys()) {
+            if (dataObject.<Boolean>get(key)) {
+                Map<String, DataObject> keyMap = container.get(dataObject.getClass());
+                if (!keyMap.containsKey(key)) {
+                    throw new CorruptingException(dataObject.getTrackingDatabase(), "Removing a value that dose not exist");
                 }
+                keyMap.remove(key);
             }
         }
     }
@@ -58,7 +56,10 @@ public class SpecialValuesMap extends Container<Class, Map<Integer, DataObject>>
      * @return The value of type aClass that is the special value for the key
      */
     @SuppressWarnings("unchecked")
-    public <T extends DataObject> T get(Class<T> aClass, Integer key) {
+    public <T extends DataObject> T get(Class<T> aClass, String key) {
+        if (!container.containsKey(aClass)) {
+            return null;
+        }
         return (T) container.get(aClass).get(key);
     }
 }

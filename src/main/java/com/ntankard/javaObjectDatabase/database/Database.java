@@ -173,7 +173,7 @@ public class Database {
      * @param key    The key to search
      * @return The value of type aClass that is the special value for the key
      */
-    public <T extends DataObject> T getSpecialValue(Class<T> aClass, Integer key) {
+    public <T extends DataObject> T getSpecialValue(Class<T> aClass, String key) {
         return specialValuesMap.get(aClass, key);
     }
 

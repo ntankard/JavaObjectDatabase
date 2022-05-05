@@ -125,6 +125,16 @@
               true
             ]
           },
+          "isDefault": {
+            "type": "boolean",
+            "default": false,
+            "title": "True if this field indicates if this instance of the object type is the system default. Must be attached to a Boolean type Field and must not be editable from a data core or manualy"
+          },
+          "isSpecial": {
+            "type": "boolean",
+            "default": false,
+            "title": "True if this field indicates if this instance of the object type is a special instance. Must be attached to a Boolean type Field and must not be editable from a data core or manualy"
+          },
           "attachedProperties": {
             "type": "object",
             "title": "A set of objects representing values to set in custom properties attached to the field. The object name should match the properties class name and then any internal fields should mate the properties to set",

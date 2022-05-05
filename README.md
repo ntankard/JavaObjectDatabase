@@ -1,24 +1,80 @@
 ##### Table of Contents  
 - [TODO](TODO)
-    - [DataField](#DataField TBD)
+    - [DataObject](#DataObject)
+        - [Special or Default Objects](#Special_or_Default_Objects)
+            - [Default](#Default)
+            - [Special](#Special)
+    - [DataField](#DataField_TBD)
         - [DataCore](#DataCore)
             - [Static_DataCore](#Static_DataCore)
             - [Derived_DataCore](#Derived_DataCore)
                 - [Source](#Source)
-                    - [Lists and sources](#Lists and sources)
-                    - [Shared chains](#Shared chains)
-                - [Derived_DataCore Factories](#Derived_DataCore Factories)
-                    - [Direct Derived DataCore](#Direct Derived DataCore)
-                    - [Self Parent List](#Self Parent List)
-                    - [Multi Parent List](#Multi Parent List)
+                    - [Lists and sources](#Lists_and_sources)
+                    - [Shared chains](#Shared_chains)
+                - [Derived_DataCore Factories](#Derived_DataCore_Factories)
+                    - [Direct Derived DataCore](#Direct_Derived_DataCore)
+                    - [Self Parent List](#Self_Parent_List)
+                    - [Multi Parent List](#Multi_Parent_List)
         - [FieldValidator](#FieldValidator)
             - [Null_FieldValidator](#Null_FieldValidator)
             - [NumberRange_FieldValidator](#NumberRange_FieldValidator)
-            - [Share_FieldValidator](#Share_FieldValidator)
+            - [Multi_FieldValidator](#Multi_FieldValidator)
     - [CustomProperty](#CustomProperty)
     - [Exception](#Exception)
 
-## DataField TBD
+## DataObject
+### Special_or_Default_Objects
+In some cases we want to flag that a specific instance of an object has special meaning to the application. For example, 
+we may want to flag a particular currency as default so that all objects in the system default to the same currency for 
+calculations. Or we may want to mark specific categories as special in some way, like for saving or tax. The system 
+supports this using a default or special instance flag.
+
+#### Default
+The database provides an interface to get the default instance of any object type
+```java
+database.getDefault(Currency.class);
+```
+Unless otherwise specified this object will be a random instance in the database (the same one until the database state 
+changes). To mark a specific instance as default a default field or type Boolean needs to be added to the object with 
+```setDefaultFlag()``` set to true.
+```java
+dataObjectSchema.get(KEY).setDefaultFlag(true);
+```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      ...
+      "isDefault": true
+      ...
+```
+Up to 1 instance may then have this field set to true and then it will be returned from a ```database.getDefault(...)``` 
+call. Even if a DataObject has this default field the database does not guarantee that any object is set to true, in 
+this case a random instance is returned. 
+
+#### Special
+Similar to default instances, its possible to make an individual instance of an object as having special meanings. 
+Unlike defaults, one object type can have multiple special instances (one per special type). A special instance is 
+identified by the name of the field that is used to flag it. The relevant field must have ```setSpecialFlag()``` set to 
+true and can then be accessed using the field key, and the class type. Like defaults the database does not grantee that 
+one of the instance has this field set to true, in this case the database will return null when requesting the special 
+instance.
+```java
+dataObjectSchema.get(KEY).setSpecialFlag(true);
+```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      ...
+      "isSpecial": true
+      ...
+```
+```java
+database.getSpecialValue(TYPE.class, KEY);
+```
+
+## DataField_TBD
 ### DataCore
 DataField can have there data controlled either externally by users via the set method or by a DataCore. A DataCore is 
 an object that drives value changes in a field based on some programmatic input. If a DataCore is attached to a field it 
@@ -35,11 +91,35 @@ values in a specific child. As the name suggests the values of these fields cann
 ```java
 dataObjectSchema.get(KEY).setDataCore_schema(new Static_DataCore_Schema<>(VALUE));
 ```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      ...
+      "dataCore": {
+        "static": {
+          "value": "VALUE"
+        }
+      }
+      ...
+```
 There is a special use case Static_DataCore where the value is calculated at initialization time. This mainly exists for 
 cases there default values need to be extracted from the database. There is no guarantee that the load order will alloy 
 this, so it may cause issues. 
 ```java
 dataObjectSchema.get(KEY).setDataCore_schema(new Static_DataCore_Schema<>(dataField -> CALCULATION));
+```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      ...
+      "dataCore": {
+        "static": {
+          "value": "dataField -> CALCULATION"
+        }
+      }
+      ...
 ```
 @TODO 
 This needs to be replaced with an explicit default object DataCore. (https://www.wrike.com/open.htm?id=734516415)
@@ -95,7 +175,7 @@ dataObjectSchema.<Double>get(Foo_B).setDataCore_schema(
 The only rule when using these utilities is that the first link in the chain must be a field in the same DataObject. You 
 can also attach a IndividualCalculator as the first parameter of the makeSourceChain method, see below for details on 
 IndividualCalculator's.
-###### Lists and sources
+###### Lists_and_sources
 @TODO
 Document the behavior of cases where the last element is a list (https://www.wrike.com/open.htm?id=735268303)
 When one of the steps in the chain (other than the last one) is a list the source will still work as expected. All 
@@ -111,7 +191,7 @@ values.
 @TODO
 This method is not perfect as not enough information is provided to the calculator to do its job fully, this needs to be 
 fixed (https://www.wrike.com/open.htm?id=735249543)
-###### Shared chains
+###### Shared_chains
 There are some cases where a DataCore may depends on multiple fields that go through a shared step in the chain. There 
 is a factory method for this case. It currently only works when the first link is the same.
 ```java
@@ -125,23 +205,23 @@ dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(
 ```
 @TODO This is here to allow for better optimization but this is not currently implemented. 
 (https://www.wrike.com/open.htm?id=734695856)
-##### Derived_DataCore Factories
+##### Derived_DataCore_Factories
 Some common configurations of Derived_DataCore and Source are exposed via factory methods for ease of use.
-###### Direct Derived DataCore
+###### Direct_Derived_DataCore
 This method will create a DataCore that makes the fields value directly equal the value of the field at the end of a 
 source chain. YOu only have to provide the chain of keys for the desired field.
 createDirectDerivedDataCore
 ```java
 dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(createDirectDerivedDataCore(CHAIN_1_KEY, CHAIN_2_KEY, ...));
 ```
-###### Self Parent List
+###### Self_Parent_List
 All DataObjects have a field that contains all the DataObjects that have any fields pointing to them (unless flagged 
 otherwise). createSelfParentList is used to create a second field with a subset of this list of a certain DataObject 
 type. It can also have a set filter attached to limit it further.
 ```java
 dataObjectSchema.<List<TYPE>>get(KEY).setDataCore_schema(createSelfParentList(TYPE.class, SET_FILTER/null));
 ```
-###### Multi Parent List
+###### Multi_Parent_List
 The multi parent list is the most common tool to create a subset of multiple other lists. It works by creating a list of 
 DataObject that have multiple specific parents. The parents are provided by other fields. A set filter can also be 
 provided to limit the list further.

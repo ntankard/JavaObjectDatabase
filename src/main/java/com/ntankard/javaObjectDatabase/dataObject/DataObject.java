@@ -377,6 +377,10 @@ public abstract class DataObject {
         return (DataField<T>) fieldMap.get(field);
     }
 
+    public List<DataField<?>> getFields() {
+        return new ArrayList<>(fieldMap.values());
+    }
+
     /**
      * Get the value from a specific field
      *
@@ -395,6 +399,10 @@ public abstract class DataObject {
 
     public List<DataObject> getChildren() {
         return get(DataObject_ChildrenField);
+    }
+
+    public DataObject_Schema getSourceSchema() {
+        return this.dataObjectSchema;
     }
 
     //------------------------------------------------------------------------------------------------------------------
