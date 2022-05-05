@@ -1,0 +1,3 @@
+[submodule "JavaObjectDatabase_CodeGenerator"]
+	path = JavaObjectDatabase_CodeGenerator
+	url = https://github.com/ntankard/JavaObjectDatabase_CodeGenerator.git
