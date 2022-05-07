@@ -6,12 +6,12 @@
             - [Special](#Special)
     - [DataField](#DataField_TBD)
         - [DataCore](#DataCore)
-            - [Static_DataCore](#Static_DataCore)
             - [Derived_DataCore](#Derived_DataCore)
                 - [Source](#Source)
                     - [Lists and sources](#Lists_and_sources)
                     - [Shared chains](#Shared_chains)
-                - [Derived_DataCore Factories](#Derived_DataCore_Factories)
+                - [DataCore Factories](#DataCore_Factories)
+                    - [Static](#Static)
                     - [Direct Derived DataCore](#Direct_Derived_DataCore)
                     - [Self Parent List](#Self_Parent_List)
                     - [Multi Parent List](#Multi_Parent_List)
@@ -83,47 +83,14 @@ cannot be controlled manually.
 DataCores are attached by attaching a DataCore_Schema to the DataField_Schema.
 
 Any DataField with an attached DataCore is not saved.
-#### Static_DataCore
-A Static_DataCore is used when a field will have only one value that is assigned when the database is initialised. It 
-primarily exists for DataField's that are defines in a parent object, are dynamic in other children but have fixed 
-values in a specific child. As the name suggests the values of these fields cannot be changed.
 
-```java
-dataObjectSchema.get(KEY).setDataCore_schema(new Static_DataCore_Schema<>(VALUE));
-```
-```json
-  "fields": [
-    {
-      "name": "KEY",
-      ...
-      "dataCore": {
-        "static": {
-          "value": "VALUE"
-        }
-      }
-      ...
-```
-There is a special use case Static_DataCore where the value is calculated at initialization time. This mainly exists for 
-cases there default values need to be extracted from the database. There is no guarantee that the load order will alloy 
-this, so it may cause issues. 
-```java
-dataObjectSchema.get(KEY).setDataCore_schema(new Static_DataCore_Schema<>(dataField -> CALCULATION));
-```
-```json
-  "fields": [
-    {
-      "name": "KEY",
-      ...
-      "dataCore": {
-        "static": {
-          "value": "dataField -> CALCULATION"
-        }
-      }
-      ...
-```
-@TODO 
-This needs to be replaced with an explicit default object DataCore. (https://www.wrike.com/open.htm?id=734516415)
+Most DataCore's are driven by changes in another field although in some cases they can just be "static" data.
 #### Derived_DataCore
+Almost all DataCores are built using the Derived_DataCore. This section described how they work and how to create your 
+own for calculated fields. That being said a set of factories are provided that create common patters and use cases. 
+These are documented in the next section [Common DataCore's](#Common_DataCore's). Its recommended that you use these 
+first before trying to make your own as outlined in this section.
+
 The Derived_DataCore is the main object used for setting the value of a field based on data in other fields. It works by 
 linking to the other fields and performing calculations based on the values of those fields, when any of those fields 
 change. It consists of 2 key parts, the Calculators and the sources.
@@ -205,14 +172,123 @@ dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(
 ```
 @TODO This is here to allow for better optimization but this is not currently implemented. 
 (https://www.wrike.com/open.htm?id=734695856)
-##### Derived_DataCore_Factories
-Some common configurations of Derived_DataCore and Source are exposed via factory methods for ease of use.
+
+#### DataCore_Factories
+The ```DataCore_Factory``` provides a set of factories that will create fully formed DataCore. These are the recommended 
+method if its fits the required use case. They are also exposed in the generation schema.
+
+##### Static
+A Static_DataCore is used when a field will have only one value that is assigned when the database is initialised. It 
+primarily exists for DataField's that are defines in a parent object, are dynamic in other children but have fixed 
+values in a specific child. As the name suggests the values of these fields cannot be changed.
+
+The values attached to a static field can either be a literal, or a default of special value from the database (see 
+[Special or Default Objects](#Special_or_Default_Objects)).
+
+To use a static literal value
+```java
+dataObjectSchema.get(KEY).setDataCore_schema(createStaticDataCore(VALUE));
+```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      ...
+      "dataCore": {
+        "static": {
+          "value": "VALUE"
+        }
+      }
+      ...
+```
+When the field is of a type that extends DataObject, and you want to use the Database's default instance 
+([Default](#Default)).
+```java
+dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(createStaticObjectDataCore(TYPE.class));
+```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      ...
+      "dataCore": {
+        "instanceStatic": {}
+      }
+      ...
+```
+When the field is of a type that extends DataObject, and you want to use a special instance from the Database
+([Special](#Special))
+```java
+dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(createStaticObjectDataCore(TYPE.class, SPECIAL_KEY));
+```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      ...
+      "dataCore": {
+        "instanceStatic": {
+          "specialKey": SPECIAL_KEY
+        }
+      }
+      ...
+```
+@TODO 
+This needs to be replaced with an explicit default object DataCore. (https://www.wrike.com/open.htm?id=734516415)
 ###### Direct_Derived_DataCore
 This method will create a DataCore that makes the fields value directly equal the value of the field at the end of a 
-source chain. YOu only have to provide the chain of keys for the desired field.
+source chain. You only have to provide the chain of keys for the desired field.
 createDirectDerivedDataCore
 ```java
 dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(createDirectDerivedDataCore(CHAIN_1_KEY, CHAIN_2_KEY, ...));
+```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      ...
+      "dataCore": {
+        "directDerived": {
+          "sources": "CHAIN_1_KEY, CHAIN_2_KEY, ..."
+        }
+      }
+      ...
+```
+If the value at the end of the chain, or any of the elements in the chain are null you can provide a default value via a 
+getter methods. This can be a static value or pulled from the Database, likely a default or special instance (see 
+[Special or Default Objects](#Special_or_Default_Objects))
+```java
+dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(createDirectDerivedDataCore(container -> DEFAULT_VALUE, CHAIN_1_KEY, CHAIN_2_KEY, ...));
+```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      ...
+      "dataCore": {
+        "directDerived": {
+          "sources": "CHAIN_1_KEY, CHAIN_2_KEY, ..."
+          "defaultGetter": DEFAULT_VALUE
+        }
+      }
+      ...
+```
+```java
+dataObjectSchema.<TYPE>get(KEY).setDataCore_schema(createDirectDerivedDataCore(container -> container.getTrackingDatabase().getDefault(TYPE.class), CHAIN_1_KEY, CHAIN_2_KEY, ...));
+```
+```json
+  "fields": [
+    {
+      "name": "KEY",
+      "type": "TYPE"
+      ...
+      "dataCore": {
+        "directDerived": {
+          "sources": "CHAIN_1_KEY, CHAIN_2_KEY, ..."
+          "defaultGetter": "container.getTrackingDatabase().getDefault(TYPE.class)"
+        }
+      }
+      ...
 ```
 ###### Self_Parent_List
 All DataObjects have a field that contains all the DataObjects that have any fields pointing to them (unless flagged 
