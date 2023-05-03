@@ -1,0 +1,155 @@
+{
+  "extends": "DataObject",
+  "fields": [
+    {
+      "name": "SimpleValue",
+      "type": "Double"
+    },
+    {
+      "name": "SimpleNullValue",
+      "type": "Double",
+      "canBeNull": true
+    },
+    {
+      "name": "SimpleSettableValue",
+      "type": "Double",
+      "editable": true
+    },
+    {
+      "name": "SimpleSettableNullValue",
+      "type": "Double",
+      "canBeNull": true,
+      "editable": true
+    },
+    {
+      "name": "StaticValue",
+      "type": "String",
+      "dataCore": {
+        "static": {
+          "value": "\"StaticValue\""
+        }
+      }
+    },
+    {
+      "name": "StaticGetter",
+      "type": "T_Special",
+      "dataCore": {
+        "instanceStatic": {
+          "specialKey": "T_Special_SpecialType1"
+        }
+      }
+    },
+    {
+      "name": "StaticNullValue",
+      "type": "String",
+      "canBeNull": true,
+      "dataCore": {
+        "static": {
+          "value": "null"
+        }
+      }
+    },
+    {
+      "name": "DirectDerivedLocal",
+      "type": "Double",
+      "dataCore": {
+        "directDerived": {
+          "sources": "T_Base_SimpleSettableValue"
+        }
+      }
+    },
+    {
+      "name": "DirectDerivedLocalNullable",
+      "type": "Double",
+      "canBeNull": true,
+      "dataCore": {
+        "directDerived": {
+          "sources": "T_Base_SimpleNullValue"
+        }
+      }
+    },
+    {
+      "name": "DirectDerivedLocalNullableDefault",
+      "type": "Double",
+      "dataCore": {
+        "directDerived": {
+          "sources": "T_Base_SimpleNullValue",
+          "defaultGetter": "-1.0"
+        }
+      }
+    },
+    {
+      "name": "T_SpecialNullable",
+      "type": "T_Special",
+      "canBeNull": true
+    },
+    {
+      "name": "DirectDerivedLocalNullableDefaultGetter",
+      "type": "T_Special",
+      "dataCore": {
+        "directDerived": {
+          "sources": "T_Base_T_SpecialNullable",
+          "defaultGetter": "container.getTrackingDatabase().getDefault(T_Special.class)"
+        }
+      }
+    },
+    {
+      "name": "Simple",
+      "type": "T_Simple"
+    },
+    {
+      "name": "SimpleNullable",
+      "type": "T_Simple",
+      "canBeNull": true
+    },
+    {
+      "name": "DirectDerivedExternal",
+      "type": "Double",
+      "dataCore": {
+        "directDerived": {
+          "sources": "T_Base_Simple, T_Simple_Value"
+        }
+      }
+    },
+    {
+      "name": "DirectDerivedExternalEndNullable",
+      "type": "Double",
+      "canBeNull": true,
+      "dataCore": {
+        "directDerived": {
+          "sources": "T_Base_Simple, T_Simple_NullableValue"
+        }
+      }
+    },
+    {
+      "name": "DirectDerivedExternalStepNullable",
+      "type": "Double",
+      "canBeNull": true,
+      "dataCore": {
+        "directDerived": {
+          "sources": "T_Base_SimpleNullable, T_Simple_Value"
+        }
+      }
+    },
+    {
+      "name": "DirectDerivedExternalEndNullableDefault",
+      "type": "Double",
+      "dataCore": {
+        "directDerived": {
+          "sources": "T_Base_Simple, T_Simple_NullableValue",
+          "defaultGetter": "-1.0"
+        }
+      }
+    },
+    {
+      "name": "DirectDerivedExternalStepNullableDefault",
+      "type": "Double",
+      "dataCore": {
+        "directDerived": {
+          "sources": "T_Base_SimpleNullable, T_Simple_Value",
+          "defaultGetter": "-1.0"
+        }
+      }
+    }
+  ]
+}

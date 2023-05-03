@@ -1,0 +1,14 @@
+{
+  "extends": "DataObject",
+  "fields": [
+    {
+      "name": "Value",
+      "type": "Double"
+    },
+    {
+      "name": "NullableValue",
+      "type": "Double",
+      "canBeNull": true
+    }
+  ]
+}
