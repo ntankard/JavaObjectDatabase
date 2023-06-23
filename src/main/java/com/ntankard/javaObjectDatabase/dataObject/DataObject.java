@@ -122,7 +122,6 @@ public abstract class DataObject {
     public <DataObjectType extends DataObject> DataObjectType add() {
         // TODO lifecycle test , add, remove, remove when object are in child list that sum
 
-
         for (ObjectFactory<?> factory : dataObjectSchema.getObjectFactories()) {
             factoryConstructed.addAll(factory.generate(this));
         }
@@ -157,7 +156,7 @@ public abstract class DataObject {
             }
         }
 
-        // check that none of thease are savable
+        // check that none of these are savable
         // Are all factories of a type that support deletion?
         for (ObjectFactory<?> factory : dataObjectSchema.getObjectFactories()) {
             if (!factory.isCanDelete()) {

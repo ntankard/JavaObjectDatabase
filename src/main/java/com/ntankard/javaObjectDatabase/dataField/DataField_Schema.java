@@ -300,8 +300,6 @@ public class DataField_Schema<FieldType> {
     }
 
     public void setDataCore_schema(DataCore_Schema<FieldType> dataCore_schema) {
-        if (this.dataCore_schema != null)
-            throw new NonCorruptingException("You can not set a DataCore twice");
         if (manualCanEdit)
             throw new NonCorruptingException("DataCore cannot be set if manual editing is enabled");
         if (this.isDefaultFlag)
