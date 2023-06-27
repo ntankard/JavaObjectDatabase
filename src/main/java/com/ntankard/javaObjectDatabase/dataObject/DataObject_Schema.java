@@ -1,17 +1,14 @@
 package com.ntankard.javaObjectDatabase.dataObject;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.Static_DataCore_Schema;
 import com.ntankard.javaObjectDatabase.dataField.properties.PropertyBuilder;
 import com.ntankard.javaObjectDatabase.dataField.validator.FieldValidator;
 import com.ntankard.javaObjectDatabase.dataField.validator.shared.Multi_FieldValidator.EndValidator;
 import com.ntankard.javaObjectDatabase.dataObject.factory.ObjectFactory;
+import com.ntankard.javaObjectDatabase.exception.corrupting.DatabaseStructureException;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DataObject_Schema {
 
@@ -41,6 +38,16 @@ public class DataObject_Schema {
      * The current amount to increment while incrementing the order (must be a multiple of 10)
      */
     private int orderStep = 10000000;
+
+    /**
+     * The field that acts as a flag to indicate if an instance of the object is the database default. Null if no field has that property
+     */
+    private String defaultFieldKey = null;
+
+    /**
+     * The fields that mark if an instance of this object is a special instance
+     */
+    private final List<String> specialFlagKeys = new ArrayList<>();
 
     // Class Behavior --------------------------------------------------------------------------------------------------
 
@@ -266,6 +273,18 @@ public class DataObject_Schema {
             }
         } while (DataObject.class.isAssignableFrom(aClass));
 
+        // Check default and special field flags
+        for (DataField_Schema<?> field_schema : list) {
+            if (field_schema.isDefaultFlag()) {
+                if (defaultFieldKey != null)
+                    throw new DatabaseStructureException(null, "More that one field marked as a default flag");
+                defaultFieldKey = field_schema.getIdentifierName();
+            }
+            if (field_schema.isSpecialFlag()) {
+                specialFlagKeys.add(field_schema.getIdentifierName());
+            }
+        }
+
         // Finalise all fields
         for (DataField_Schema<?> dataFieldSchema : list) {
             dataFieldSchema.containerFinished(end);
@@ -401,6 +420,14 @@ public class DataObject_Schema {
 
     public Class<? extends DataObject> getSolidObjectType() {
         return solidObjectType;
+    }
+
+    public String getDefaultFieldKey() {
+        return defaultFieldKey;
+    }
+
+    public List<String> getSpecialFlagKeys() {
+        return Collections.unmodifiableList(specialFlagKeys);
     }
 
     //------------------------------------------------------------------------------------------------------------------

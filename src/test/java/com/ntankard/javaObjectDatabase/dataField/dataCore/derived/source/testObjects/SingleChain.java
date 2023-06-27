@@ -7,6 +7,7 @@ import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
 
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore_Factory.createDirectDerivedDataCore;
+import static com.ntankard.javaObjectDatabase.dataField.dataCore.DataCore_Factory.createStaticDataCore;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.SingleChain.SingleEnd_TestObject.CoreData;
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.testObjects.SingleChain.SingleEnd_TestObject.NullableCoreData;
 
@@ -85,7 +86,7 @@ public class SingleChain {
                     createDirectDerivedDataCore(NullableStaticData));
 
             dataObjectSchema.add(new DataField_Schema<>(NullableStaticData, Integer.class, true));
-            dataObjectSchema.get(NullableStaticData).setDataCore_schema(new Static_DataCore_Schema<>(null));
+            dataObjectSchema.get(NullableStaticData).setDataCore_schema(createStaticDataCore(null));
 
             dataObjectSchema.add(new DataField_Schema<>(NullableStaticData_Derived2, Integer.class, true));
             dataObjectSchema.get(NullableStaticData_Derived2).setDataCore_schema(
@@ -103,15 +104,14 @@ public class SingleChain {
         }
 
         public SingleEnd_TestObject(Integer coreData, Integer nullCoreData, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , CoreData, coreData
                     , NullableCoreData, nullCoreData
             );
         }
 
-        public SingleEnd_TestObject(Database database) {
-            super(database);
+        public SingleEnd_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 
@@ -155,15 +155,14 @@ public class SingleChain {
         }
 
         public Step_TestObject(SingleEnd_TestObject link1, SingleEnd_TestObject nullableLink1, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , Link1, link1
                     , NullableLink1, nullableLink1
             );
         }
 
-        public Step_TestObject(Database database) {
-            super(database);
+        public Step_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 }

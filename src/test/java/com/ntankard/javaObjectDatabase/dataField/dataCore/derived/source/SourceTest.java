@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.SourceTest.SourceTestC.*;
+import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.Source_Factory.makeSourceChain;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
 
@@ -123,9 +124,9 @@ public class SourceTest {
                                             }
                                         }
                                         return finalList;
-                                    },
-                            new End_Source_Schema<>(SourceTestC_StringListFirst),
-                            new End_Source_Schema<>(SourceTestC_StringListSecond)));
+                                    }
+                            , makeSourceChain(SourceTestC_StringListFirst)
+                            , makeSourceChain(SourceTestC_StringListSecond)));
 
             dataObjectSchema.add(new ListDataField_Schema<>(SourceTestC_StringListSharedB, StringList.class));
             dataObjectSchema.<List<String>>get(SourceTestC_StringListSharedB).setDataCore_schema(
@@ -189,15 +190,14 @@ public class SourceTest {
         }
 
         public SourceTestC(List<String> stringListFirst, List<String> stringListSecond, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , SourceTestC_StringListFirst, stringListFirst
                     , SourceTestC_StringListSecond, stringListSecond
             );
         }
 
-        public SourceTestC(Database database) {
-            super(database);
+        public SourceTestC(Database database, Object... args) {
+            super(database, args);
         }
     }
 }

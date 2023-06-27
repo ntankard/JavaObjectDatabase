@@ -30,15 +30,14 @@ public class SingleListChain {
         }
 
         public SingleListEnd_TestObject(Integer coreData, Integer nCoreData, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , CoreData, coreData
                     , NCoreData, nCoreData
             );
         }
 
-        public SingleListEnd_TestObject(Database database) {
-            super(database);
+        public SingleListEnd_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 

@@ -36,6 +36,14 @@ public class ListStep_Source<EndFieldType, AttachedFieldType extends List<? exte
      * @inheritDoc
      */
     @Override
+    public DataField<AttachedFieldType> getDestinationField() {
+        return getAttachedField();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void valueChanged(DataField<AttachedFieldType> field, AttachedFieldType oldValue, AttachedFieldType newValue) {
         suppress = true;
         ArrayList<Object> toSendOld = null;

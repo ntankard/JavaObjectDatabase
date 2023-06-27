@@ -1,12 +1,14 @@
 package com.ntankard.javaObjectDatabase.util.set;
 
+import com.ntankard.javaObjectDatabase.dataField.DataField;
+import com.ntankard.javaObjectDatabase.dataField.FieldChangeListener;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class TwoParent_Children_Set<T extends DataObject, PrimaryParentType extends DataObject, SecondaryParentType extends DataObject> extends ObjectSet<T> implements DataObject.ChildrenListener<T> {
+public class TwoParent_Children_Set<T extends DataObject, PrimaryParentType extends DataObject, SecondaryParentType extends DataObject> extends ObjectSet<T> implements FieldChangeListener<List<T>> {
 
     /**
      * The DataObject to get from the core
@@ -100,10 +102,6 @@ public class TwoParent_Children_Set<T extends DataObject, PrimaryParentType exte
         return manualGet();
     }
 
-    /**
-     * @inheritDoc
-     */
-    @Override
     public void childAdded(T dataObject) {
         if (tClass.isAssignableFrom(dataObject.getClass())) {
             if (list.contains(dataObject)) {
@@ -119,10 +117,6 @@ public class TwoParent_Children_Set<T extends DataObject, PrimaryParentType exte
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    @Override
     public void childRemoved(T dataObject) {
         if (tClass.isAssignableFrom(dataObject.getClass())) { // TODO check that this is the right way around, also check other uses
             if (primaryParent.getChildren(tClass).contains(dataObject)) {
@@ -186,6 +180,27 @@ public class TwoParent_Children_Set<T extends DataObject, PrimaryParentType exte
         this.secondaryParent = secondaryParent;
         if (wasAttached) {
             attach();
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public DataField<List<T>> getDestinationField() {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    public void valueChanged(DataField<List<T>> field, List<T> oldValue, List<T> newValue) {
+        for (T dataObject : oldValue) {
+            childRemoved(dataObject);
+        }
+        for (T dataObject : newValue) {
+            childAdded(dataObject);
         }
     }
 }

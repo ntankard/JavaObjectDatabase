@@ -1,8 +1,8 @@
 package com.ntankard.javaObjectDatabase.dataObject.factory;
 
 import com.ntankard.javaObjectDatabase.dataObject.DataObject;
-import com.ntankard.javaObjectDatabase.util.set.TwoParent_Children_Set;
 import com.ntankard.javaObjectDatabase.database.io.Database_IO_Reader;
+import com.ntankard.javaObjectDatabase.util.set.TwoParent_Children_Set;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,13 +85,14 @@ public class DoubleParentFactory<GeneratedType extends DataObject, PrimaryGenera
      */
     @SuppressWarnings("unchecked")
     @Override
-    public void generate(DataObject generator) {
+    public List<GeneratedType> generate(DataObject generator) {
+        List<GeneratedType> toReturn = new ArrayList<>();
         if (primaryGeneratorType.isAssignableFrom(generator.getClass())) {
             PrimaryGeneratorType primaryGenerator = (PrimaryGeneratorType) generator;
             for (SecondaryGeneratorType secondaryGenerator : generator.getTrackingDatabase().get(secondaryGeneratorType)) {
                 tryLoad(primaryGenerator, secondaryGenerator, generator);
                 if (shouldBuild(new TwoParent_Children_Set<>(getGeneratedType(), primaryGenerator, secondaryGenerator).get().size())) {
-                    constructor.generate(primaryGenerator, secondaryGenerator).add();
+                    toReturn.add(constructor.generate(primaryGenerator, secondaryGenerator).add());
                 }
             }
         } else if (secondaryGeneratorType.isAssignableFrom(generator.getClass())) {
@@ -99,12 +100,13 @@ public class DoubleParentFactory<GeneratedType extends DataObject, PrimaryGenera
             for (PrimaryGeneratorType primaryGenerator : generator.getTrackingDatabase().get(primaryGeneratorType)) {
                 tryLoad(primaryGenerator, secondaryGenerator, generator);
                 if (shouldBuild(new TwoParent_Children_Set<>(getGeneratedType(), secondaryGenerator, primaryGenerator).get().size())) {
-                    constructor.generate(primaryGenerator, secondaryGenerator).add();
+                    toReturn.add(constructor.generate(primaryGenerator, secondaryGenerator).add());
                 }
             }
         } else {
             throw new IllegalArgumentException("A object other than one of the listed generators is trying to generate this object");
         }
+        return toReturn;
     }
 
     /**

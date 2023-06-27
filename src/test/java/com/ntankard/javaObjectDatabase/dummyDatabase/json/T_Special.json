@@ -1,0 +1,24 @@
+{
+  "extends": "DataObject",
+  "fields": [
+    {
+      "name": "Name",
+      "type": "String"
+    },
+    {
+      "name": "IsDefault",
+      "type": "Boolean",
+      "isDefault": true
+    },
+    {
+      "name": "SpecialType1",
+      "type": "Boolean",
+      "isSpecial": true
+    },
+    {
+      "name": "SpecialType2",
+      "type": "Boolean",
+      "isSpecial": true
+    }
+  ]
+}

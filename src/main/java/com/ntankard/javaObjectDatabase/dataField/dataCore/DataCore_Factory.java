@@ -21,6 +21,42 @@ import static com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.
 public class DataCore_Factory {
 
     /**
+     * Create a Static_DataCore_Schema that will set the field to a specific field forever
+     *
+     * @param defaultValue The value to set
+     * @param <FieldType>  The type of field the DataCore is connected to
+     * @return A newly constructed Static_DataCore_Schema
+     */
+    public static <FieldType> Static_DataCore_Schema<FieldType> createStaticDataCore(FieldType defaultValue) {
+        return new Static_DataCore_Schema<>(defaultValue);
+    }
+
+    /**
+     * Create a Static_DataCore_Schema that will set the field to the default instance of a certain DataObject
+     *
+     * @param defaultClassType The DataObject type to get the default instance of
+     * @param <FieldType>      The type of field the DataCore is connected to (must match defaultClassType)
+     * @return A newly constructed Static_DataCore_Schema
+     */
+    public static <FieldType extends DataObject> Static_DataCore_Schema<FieldType> createStaticObjectDataCore(Class<FieldType> defaultClassType) {
+        return new Static_DataCore_Schema<>(dataField -> dataField.getContainer().getTrackingDatabase().getDefault(defaultClassType));
+    }
+
+    /**
+     * Create a Static_DataCore_Schema that will set the field to the special instance of a certain DataObject. Note
+     * that if there is not special instance of the DataObject this will set null. If the field does not allow this it
+     * may throw an exception at run time
+     *
+     * @param defaultClassType The DataObject type to get the default instance of
+     * @param specialKey       The key for the special instance to get
+     * @param <FieldType>      The type of field the DataCore is connected to (must match defaultClassType)
+     * @return A newly constructed Static_DataCore_Schema
+     */
+    public static <FieldType extends DataObject> Static_DataCore_Schema<FieldType> createStaticObjectDataCore(Class<FieldType> defaultClassType, String specialKey) {
+        return new Static_DataCore_Schema<>(dataField -> dataField.getContainer().getTrackingDatabase().getSpecialValue(defaultClassType, specialKey));
+    }
+
+    /**
      * Create a Derived_DataCore_Schema with a single source chain who's value is the exact values of the last field in
      * the chain. Sets a value calculated at run time if any value in the chain is null
      *
@@ -30,27 +66,10 @@ public class DataCore_Factory {
      * @param <ContainerType> The Type of object the FieldType instance is connected to
      * @return A newly constructed Derived_DataCore_Factory
      */
-    public static <FieldType, ContainerType extends DataObject> Derived_DataCore_Schema<FieldType, ContainerType> createDefaultDirectDerivedDataCoreGetter(DefaultGetter<FieldType> getter, String... fieldKeys) {
+    public static <FieldType, ContainerType extends DataObject> Derived_DataCore_Schema<FieldType, ContainerType> createDirectDerivedDataCore(DefaultGetter<FieldType> getter, String... fieldKeys) {
         return new Derived_DataCore_Schema<>(container -> {
             DataObject end = getLowestContainer(container, fieldKeys);
             return end == null ? getter.getDefault(container) : end.get(fieldKeys[fieldKeys.length - 1]);
-        }, makeSourceChain(fieldKeys));
-    }
-
-    /**
-     * Create a Derived_DataCore_Schema with a single source chain who's value is the exact values of the last field in
-     * the chain. Sets a static default value if any value in the chain is null
-     *
-     * @param fieldKeys       The list of fields keys leading to the desired field.
-     * @param defaultValue    The value to use if any field in the chain is null
-     * @param <FieldType>     The type of field the DataCore is connected to
-     * @param <ContainerType> The Type of object the FieldType instance is connected to
-     * @return A newly constructed Derived_DataCore_Factory
-     */
-    public static <FieldType, ContainerType extends DataObject> Derived_DataCore_Schema<FieldType, ContainerType> createDefaultDirectDerivedDataCore(FieldType defaultValue, String... fieldKeys) {
-        return new Derived_DataCore_Schema<>(container -> {
-            DataObject end = getLowestContainer(container, fieldKeys);
-            return end == null ? defaultValue : end.get(fieldKeys[fieldKeys.length - 1]);
         }, makeSourceChain(fieldKeys));
     }
 
@@ -64,7 +83,7 @@ public class DataCore_Factory {
      * @return A newly constructed Derived_DataCore_Factory
      */
     public static <FieldType, ContainerType extends DataObject> Derived_DataCore_Schema<FieldType, ContainerType> createDirectDerivedDataCore(String... fieldKeys) {
-        return createDefaultDirectDerivedDataCore(null, fieldKeys);
+        return createDirectDerivedDataCore(container -> null, fieldKeys);
     }
 
     /**
@@ -308,7 +327,7 @@ public class DataCore_Factory {
             for (IndividualParentCalculator<ListContentType> individual : individualParentCalculators) {
                 if (!individual.equals(sourceParent)) {
                     DataObject end = getLowestContainer(container, individual.fieldKeys);
-                    if (end == null || !end.hasChild(toTest)) {
+                    if (end == null || !end.getChildren().contains(toTest)) {
                         return false;
                     }
                 }

@@ -4,9 +4,6 @@ import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.Source_
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.end.End_Source_Schema;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.step.Step_Source_Schema;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A set of methods used to simplify the creation of Source_Schema's with specific behaviors
  *

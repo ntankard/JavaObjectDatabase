@@ -1,8 +1,8 @@
 package com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source;
 
 import com.ntankard.javaObjectDatabase.dataField.DataField;
-import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore;
 import com.ntankard.javaObjectDatabase.dataField.FieldChangeListener;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore;
 
 /**
  * A source of data that can be used to drive a DataCore either by notifying it of changes or by making incremental

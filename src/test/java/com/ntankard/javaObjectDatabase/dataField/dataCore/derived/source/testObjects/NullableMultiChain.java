@@ -26,14 +26,13 @@ public class NullableMultiChain {
         }
 
         public End_N_TestObject(Integer nData, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , NData, nData
             );
         }
 
-        public End_N_TestObject(Database database) {
-            super(database);
+        public End_N_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 
@@ -55,14 +54,13 @@ public class NullableMultiChain {
         }
 
         public Step1_N_TestObject(End_N_TestObject nEndLink, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , NEndLink, nEndLink
             );
         }
 
-        public Step1_N_TestObject(Database database) {
-            super(database);
+        public Step1_N_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 
@@ -84,14 +82,13 @@ public class NullableMultiChain {
         }
 
         public Step2_N_TestObject(Step1_N_TestObject nS1Link, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , NS1Link, nS1Link
             );
         }
 
-        public Step2_N_TestObject(Database database) {
-            super(database);
+        public Step2_N_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 
@@ -113,14 +110,13 @@ public class NullableMultiChain {
         }
 
         public Step3_N_TestObject(Step2_N_TestObject nS2Link, Database database) {
-            this(database);
-            setAllValues(DataObject_Id, getTrackingDatabase().getNextId()
+            super(database
                     , NS2Link, nS2Link
             );
         }
 
-        public Step3_N_TestObject(Database database) {
-            super(database);
+        public Step3_N_TestObject(Database database, Object... args) {
+            super(database, args);
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.ntankard.javaObjectDatabase.database.io;
 
-import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataField.DataField_Schema;
+import com.ntankard.javaObjectDatabase.dataObject.DataObject;
 import com.ntankard.javaObjectDatabase.dataObject.DataObject_Schema;
 import com.ntankard.javaObjectDatabase.database.Database;
 import com.ntankard.javaObjectDatabase.exception.corrupting.CorruptingException;
@@ -293,11 +293,10 @@ public class Database_IO_Reader {
         try {
             Constructor<?>[] constructors = aClass.getConstructors();
             for (Constructor<?> constructor : constructors) {
-                if (constructor.getParameterCount() == 1 && constructor.getParameterTypes()[0].equals(Database.class)) {
-                    newDataObject = (DataObject) constructor.newInstance(database);
+                if (constructor.getParameterCount() == 2 && constructor.getParameterTypes()[0].equals(Database.class) && constructor.getParameterTypes()[1].equals(Object[].class)) {
+                    newDataObject = (DataObject) constructor.newInstance(database, args.toArray());
                     break;
                 }
-                // TODO add a check for the constructor with the schema
             }
             if (newDataObject == null) {
                 throw new RuntimeException();
@@ -306,7 +305,7 @@ public class Database_IO_Reader {
             throw new RuntimeException(e);
         }
 
-        return newDataObject.setAllValues(args.toArray());
+        return newDataObject;
     }
 
     /**

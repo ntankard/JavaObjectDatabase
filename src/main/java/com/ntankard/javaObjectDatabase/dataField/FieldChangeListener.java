@@ -12,6 +12,13 @@ package com.ntankard.javaObjectDatabase.dataField;
 public interface FieldChangeListener<T> {
 
     /**
+     * Get the field that will be notified when a change occurs (who is listening to the change)
+     *
+     * @return The field that will be notified when a change occurs (who is listening to the change)
+     */
+    DataField<T> getDestinationField();
+
+    /**
      * Called when the value is changed
      *
      * @param field    The field that changed

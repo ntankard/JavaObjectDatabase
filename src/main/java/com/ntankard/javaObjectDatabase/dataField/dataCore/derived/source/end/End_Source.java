@@ -24,6 +24,14 @@ public class End_Source<EndFieldType> extends Source<EndFieldType, End_Source_Sc
      * @inheritDoc
      */
     @Override
+    public DataField<EndFieldType> getDestinationField() {
+        return getAttachedField();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void valueChanged(DataField<EndFieldType> field, EndFieldType oldValue, EndFieldType newValue) {
         sourceChanged(oldValue, newValue);
     }
