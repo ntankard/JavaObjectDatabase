@@ -18,7 +18,7 @@ public class FileUtil {
         List<String> allLines = new ArrayList<>();
 
         try {
-            br = new BufferedReader(new FileReader(csvFile));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(csvFile), "UTF-8"));
             while ((line = br.readLine()) != null) {
                 allLines.add(line);
             }
@@ -48,10 +48,18 @@ public class FileUtil {
         String line;
         String cvsSplitBy = ",";
         List<String[]> allLines = new ArrayList<>();
-
+    
         try {
-            br = new BufferedReader(new FileReader(csvFile));
+            // Use InputStreamReader with UTF-8 encoding explicitly
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(csvFile), "UTF-8"));
+            
             while ((line = br.readLine()) != null) {
+                // Remove BOM if present
+                if (line.startsWith("\uFEFF")) {
+                    line = line.substring(1);
+                }
+    
+                // Split line by the delimiter
                 String[] lines = line.split(cvsSplitBy);
                 allLines.add(lines);
             }
@@ -68,6 +76,7 @@ public class FileUtil {
         }
         return allLines;
     }
+    
 
     /**
      * Write lines to a csv file
@@ -76,20 +85,21 @@ public class FileUtil {
      * @param lines The lines to write
      */
     public static void writeLines(String path, List<List<String>> lines) {
-        try {
-            FileWriter fw = new FileWriter(path);
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), "UTF-8"))) {
             for (List<String> line : lines) {
-                for (String s : line) {
-                    fw.write(s);
-                    fw.write(",");
+                for (int i = 0; i < line.size(); i++) {
+                    bw.write(line.get(i));
+                    if (i < line.size() - 1) {
+                        bw.write(","); // Add a comma between values
+                    }
                 }
-                fw.write('\n');
+                bw.write('\n'); // Newline at the end of each row
             }
-            fw.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+    
 
     /**
      * Write raw lines to a csv file
@@ -98,17 +108,16 @@ public class FileUtil {
      * @param lines The raw lines to write
      */
     public static void writeRawLines(String path, List<String> lines) {
-        try {
-            FileWriter fw = new FileWriter(path, false);
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), "UTF-8"))) {
             for (String line : lines) {
-                fw.write(line);
-                fw.write('\n');
+                bw.write(line);
+                bw.write('\n'); // Newline after each line
             }
-            fw.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+    
 
     /**
      * Find the files in a directory

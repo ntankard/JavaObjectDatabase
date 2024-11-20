@@ -236,7 +236,7 @@ class Multi_FieldValidatorTest {
      */
     static class Test_DataField extends DataField<Integer> {
 
-        public boolean hasValidValue;
+        public boolean hasValidValue = true;
 
         public Test_DataField(DataField_Schema<Integer> dataFieldSchema, DataObject container) {
             super(dataFieldSchema, container);

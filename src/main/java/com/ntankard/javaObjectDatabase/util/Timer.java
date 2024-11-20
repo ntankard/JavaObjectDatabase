@@ -45,4 +45,11 @@ public class Timer {
         System.out.println(prefix + string + ": " + delta);
         start = System.currentTimeMillis();
     }
+
+    public long stop(){
+        long end = System.currentTimeMillis();
+        long delta = end - start;
+        start = System.currentTimeMillis();
+        return delta;
+    }
 }

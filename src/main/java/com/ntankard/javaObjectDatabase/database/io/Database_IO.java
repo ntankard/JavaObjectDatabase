@@ -18,6 +18,9 @@ public class Database_IO {
         Database database = new Database(schema, reader, corePath);
         Database_IO_FileParser.readAvailableFiles(database);
         reader.read(database, rootPackageName, corePath, nameMap);
+
+        reader.printMetrics();
+
         return database;
     }
 

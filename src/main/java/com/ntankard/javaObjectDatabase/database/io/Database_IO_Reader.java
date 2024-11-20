@@ -27,6 +27,10 @@ public class Database_IO_Reader {
     // Core database
     private Database database;
 
+    // Metrics
+    public long maxTime = 0;
+    public int maxId = -1;
+
     /**
      * An interface to check if a line of saved data is the one that the factory is trying to make
      */
@@ -64,6 +68,14 @@ public class Database_IO_Reader {
     }
 
     /**
+     * Print the performance metric data
+     */
+    public void printMetrics(){
+        System.out.println("Max Time = " + maxTime);
+        System.out.println("ID " + maxId);
+    }
+
+    /**
      * Read all files for the database from the latest save folder
      *
      * @param rootPackageName The root package all classes are in
@@ -73,6 +85,7 @@ public class Database_IO_Reader {
         this.database = database;
 
         Timer timer = new Timer();
+        Timer totalTimer = new Timer();
         timer.stopPrint("Start");
 
         // Check that we have a valid path to a save directory
@@ -101,6 +114,8 @@ public class Database_IO_Reader {
             }
         }
         database.setIDFloor(maxID);
+
+        System.out.println("ID Floor: " + maxID);
 
         // Sort the objects so they are read correctly
         List<Class<? extends DataObject>> readOrder = new ArrayList<>(database.getSchema().getDependencyOrder());
@@ -135,9 +150,11 @@ public class Database_IO_Reader {
             for (String[] lines : newToReadData.get(toRead)) {
                 loadObject(toRead, lines, null);
             }
+
+            timer.stopPrint( toRead.getSimpleName());
         }
 
-        timer.stopPrint("End");
+        totalTimer.stopPrint("End");
     }
 
     /**
@@ -264,8 +281,13 @@ public class Database_IO_Reader {
      * @param underConstruction The under construction object that may have created this one
      */
     public void loadObject(Class<? extends DataObject> toRead, String[] lines, DataObject underConstruction) {
+        Timer timer = new Timer();
         DataObject toAdd = dataObjectFromString(toRead, lines, underConstruction);
         toAdd.add();
+        long endTime = timer.stop();
+        if(endTime > maxTime){
+            maxTime = endTime;
+        }
     }
 
     /**

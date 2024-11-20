@@ -29,6 +29,7 @@ public class DataObjectContainer extends Container<Class<? extends DataObject>, 
             }
 
             // Check for duplicate IDs across the entire container
+            // You may get an error here if you have 2 fields that reference the same object, either manually set or derived
             if (container.get(aClass).containsKey(toAdd.getId())) {
                 throw new RuntimeException("Duplicate key found");
             }

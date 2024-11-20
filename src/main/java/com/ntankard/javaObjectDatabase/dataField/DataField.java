@@ -7,6 +7,7 @@ import com.ntankard.javaObjectDatabase.exception.nonCorrupting.NonCorruptingExce
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.ntankard.javaObjectDatabase.dataField.DataField.NewFieldState.*;
 import static com.ntankard.javaObjectDatabase.dataField.DataField_Schema.SourceMode.DERIVED;
@@ -81,6 +82,8 @@ public class DataField<FieldType> {
      * Objects to be notified when data changes
      */
     private final List<FieldChangeListener<FieldType>> fieldChangeListeners = new ArrayList<>();
+
+    private final List<FieldChangeListener<Object>> genericFieldChangeListeners = new ArrayList<>();
 
     //------------------------------------------------------------------------------------------------------------------
     //################################################### Constructor ##################################################
@@ -175,6 +178,12 @@ public class DataField<FieldType> {
                 return true;
             }
         }
+        for (FieldChangeListener<Object> listener : genericFieldChangeListeners) {
+            if (listener.getDestinationField().getContainer() != this.getContainer()) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -197,7 +206,7 @@ public class DataField<FieldType> {
         }
 
         // Check that nothing else links to this field. If it dose, undo the change and throw
-        if (fieldChangeListeners.size() != 0) {
+        if (fieldChangeListeners.size() != 0 || genericFieldChangeListeners.size() != 0) {
             this.addChangeListener(notifyParentListener);
             if (DataObject.class.isAssignableFrom(dataFieldSchema.getType())) {
                 if (dataFieldSchema.isTellParent()) {
@@ -238,6 +247,24 @@ public class DataField<FieldType> {
      */
     public void removeChangeListener(FieldChangeListener<FieldType> fieldChangeListener) {
         this.fieldChangeListeners.remove(fieldChangeListener);
+    }
+
+    /**
+     * Add a new change listener to get called when a value changes
+     *
+     * @param fieldChangeListener The FieldChangeListener to add
+     */
+    public void addGenericChangeListener(FieldChangeListener<Object> fieldChangeListener) {
+        this.genericFieldChangeListeners.add(fieldChangeListener);
+    }
+
+    /**
+     * Remove a change listener
+     *
+     * @param fieldChangeListener The FieldChangeListener to remove
+     */
+    public void removeGenericChangeListener(FieldChangeListener<Object> fieldChangeListener) {
+        this.genericFieldChangeListeners.remove(fieldChangeListener);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -344,7 +371,10 @@ public class DataField<FieldType> {
      * Perform what ever actions are required after setting a new value (register, notify ect)
      */
     protected void set_postSet() {
-        getFieldChangeListeners().forEach(fieldChangeListener -> fieldChangeListener.valueChanged(this, oldValue, value));
+        if(!Objects.equals(oldValue,value) || !getState().equals(ACTIVE)){
+            getFieldChangeListeners().forEach(fieldChangeListener -> fieldChangeListener.valueChanged(this, oldValue, value));
+            getGenericFieldChangeListeners().forEach(fieldChangeListener -> fieldChangeListener.valueChanged((DataField<Object>)this, oldValue, value));
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -381,6 +411,10 @@ public class DataField<FieldType> {
 
     public List<FieldChangeListener<FieldType>> getFieldChangeListeners() {
         return fieldChangeListeners;
+    }
+
+    public List<FieldChangeListener<Object>> getGenericFieldChangeListeners() {
+        return genericFieldChangeListeners;
     }
 
     //------------------------------------------------------------------------------------------------------------------

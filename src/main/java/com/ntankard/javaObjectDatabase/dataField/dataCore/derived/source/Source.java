@@ -1,8 +1,12 @@
 package com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.ntankard.javaObjectDatabase.dataField.DataField;
 import com.ntankard.javaObjectDatabase.dataField.FieldChangeListener;
 import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.Derived_DataCore;
+import com.ntankard.javaObjectDatabase.dataField.dataCore.derived.source.step.ListStep_Source;
 
 /**
  * A source of data that can be used to drive a DataCore either by notifying it of changes or by making incremental
@@ -101,7 +105,19 @@ public abstract class Source<AttachedFieldType, SchemaType extends Source_Schema
                     if (!parentDataCore.canIncrementalCalculate()) {         // Full recalculation has not been run once
                         parentDataCore.recalculate();
                     } else {                                                // Full recalculation has been run once, update individual only
-                        schema.doIndividualRecalculate(parentDataCore, oldValue, newValue);
+                        if(this instanceof ListStep_Source){
+                            if((oldValue == null || (oldValue instanceof List)) && (newValue == null || (newValue instanceof List))){
+                                schema.doIndividualRecalculate(parentDataCore, oldValue, newValue);
+                            }else{
+                                List<Object> newList = new ArrayList<>();
+                                List<Object> oldList = new ArrayList<>();
+                                newList.add(newValue);
+                                oldList.add(oldValue);
+                                schema.doIndividualRecalculate(parentDataCore, oldList, newList);
+                            }
+                        }else{
+                            schema.doIndividualRecalculate(parentDataCore, oldValue, newValue);
+                        }
                     }
                 } else {                                                // Individual calculation not supported
                     parentDataCore.recalculate();

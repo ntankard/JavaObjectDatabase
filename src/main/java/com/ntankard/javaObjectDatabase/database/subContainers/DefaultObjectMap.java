@@ -13,7 +13,7 @@ public class DefaultObjectMap extends Container<Class, DataObject> {
     public void add(DataObject dataObject) {
         String defaultKey = dataObject.getSourceSchema().getDefaultFieldKey();
         if (defaultKey != null) {
-            if (dataObject.get(defaultKey)) {
+            if ((boolean) dataObject.get(defaultKey)) {
                 if (container.containsKey(dataObject.getClass())) {
                     throw new CorruptingException(dataObject.getTrackingDatabase(), "Default already set");
                 }
